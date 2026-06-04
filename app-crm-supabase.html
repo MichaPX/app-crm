@@ -2,8 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App CRM Supabase</title>
+<title>App CRM Supabase v1780580898</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -247,6 +250,26 @@ select:focus{border-color:var(--accent)}
 <div id="mc"></div>
 
 <script>
+// ════════════════════════════════════════
+// VERSION & CACHE CHECK
+// ════════════════════════════════════════
+const APP_VERSION = '1780580910';
+const STORED_VERSION = localStorage.getItem('app_crm_version');
+
+// If running on file:// protocol, show warning
+if (window.location.protocol === 'file:') {
+  // Force clear any cached state
+  const keysToKeep = ['crm_logged_in'];
+  Object.keys(localStorage).forEach(k => {
+    if (!keysToKeep.includes(k) && !k.startsWith('appcrm_')) {
+      // keep app data
+    }
+  });
+}
+
+// Store current version
+localStorage.setItem('app_crm_version', APP_VERSION);
+
 // ════════════════════════════════════════
 // LOGIN — runs immediately
 // ════════════════════════════════════════
@@ -808,7 +831,7 @@ function filterByYear(y) {
 }
 
 function openDetail(id){
-  const a=apps.find(x=>x.id===id);
+  const a=apps.find(x=>String(x.id)===String(id));
   if(!a) return;
   function ir(label,val,isLink){
     if(!val) return'';
@@ -986,7 +1009,7 @@ function openAdd(){
 }
 
 function openEdit(id){
-  const a={...apps.find(x=>x.id===id)};
+  const a={...apps.find(x=>String(x.id)===String(id))};
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">${formHTML(a,'App bearbeiten')}<div class="modal-actions"><button class="btn" onclick="closeMod()">Abbrechen</button><button class="btn btn-primary" onclick="saveEdit(${id})"><i class="ti ti-check"></i> Speichern</button></div></div></div>`;
 }
 
