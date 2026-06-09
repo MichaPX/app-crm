@@ -413,21 +413,26 @@ let apps = [];
 let sortCol = 'name', sortDir = 1;
 
 const SESSION_APPS_KEY = 'crm_apps_cache';
+const SESSION_APPS_TS = 'crm_apps_ts';
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 
 async function loadApps() {
-  // First: load from sessionStorage cache instantly
+  // Check sessionStorage cache
   const cached = sessionStorage.getItem(SESSION_APPS_KEY);
-  if (cached) {
+  const ts = parseInt(sessionStorage.getItem(SESSION_APPS_TS) || '0');
+  const age = Date.now() - ts;
+
+  if (cached && age < CACHE_TTL) {
     try {
       apps = JSON.parse(cached);
       render();
-      // Then refresh from Supabase in background silently
-      refreshFromSupabase();
+      // Silently refresh in background
+      refreshFromSupabase(false);
       return;
     } catch(e) {}
   }
-  
-  // No cache: load from Supabase with spinner
+
+  // No valid cache: show spinner and load
   showLoader('Apps werden geladen…');
   await refreshFromSupabase(true);
 }
@@ -449,7 +454,7 @@ async function refreshFromSupabase(showSpinner) {
       showImportScreen();
     } else {
       apps = all.map(rowToApp);
-      sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
+      sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); sessionStorage.setItem(SESSION_APPS_TS, Date.now().toString());
       render();
     }
   } catch(e) {
@@ -612,7 +617,7 @@ async function saveEdit(id) {
   try {
     await saveAppSb(a);
     if (changes.length) await logChange(a.id, a.name, changes);
-    apps[idx] = a; sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); closeMod(); render(); toast('Gespeichert ✓');
+    apps[idx] = a; sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); sessionStorage.setItem(SESSION_APPS_TS, Date.now().toString()); closeMod(); render(); toast('Gespeichert ✓');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
@@ -622,7 +627,7 @@ async function saveAdd() {
   try {
     await saveAppSb(a);
     await logChange(a.id, a.name, [{field:'_new',from:'',to:''}]);
-    apps.push(a); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); hideLoader(); closeMod(); render(); toast('App gespeichert ✓');
+    apps.push(a); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); sessionStorage.setItem(SESSION_APPS_TS, Date.now().toString()); hideLoader(); closeMod(); render(); toast('App gespeichert ✓');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
@@ -632,7 +637,7 @@ async function confirmDelete(id) {
   try {
     if (a._dbId) await deleteAppSb(a._dbId);
     await logChange(a.id, a.name, [{field:'_deleted',from:'',to:''}]);
-    apps = apps.filter(x => x.id !== id); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); render(); toast('App gelöscht');
+    apps = apps.filter(x => x.id !== id); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); sessionStorage.setItem(SESSION_APPS_TS, Date.now().toString()); render(); toast('App gelöscht');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
