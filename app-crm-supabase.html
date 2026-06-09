@@ -985,7 +985,9 @@ function openDetail(id){
       ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
       ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+    <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+      <button class="btn" style="color:#A32D2D;border-color:#F7C1C1" onclick="closeMod();confirmDelete('${a.id}')"><i class="ti ti-trash"></i> Löschen</button>
+      <div style="flex:1"></div>
       <button class="btn" onclick="closeMod()">Schließen</button>
       <button class="btn btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
     </div>
