@@ -412,8 +412,27 @@ function hideLoader() {
 let apps = [];
 let sortCol = 'name', sortDir = 1;
 
+const SESSION_APPS_KEY = 'crm_apps_cache';
+
 async function loadApps() {
+  // First: load from sessionStorage cache instantly
+  const cached = sessionStorage.getItem(SESSION_APPS_KEY);
+  if (cached) {
+    try {
+      apps = JSON.parse(cached);
+      render();
+      // Then refresh from Supabase in background silently
+      refreshFromSupabase();
+      return;
+    } catch(e) {}
+  }
+  
+  // No cache: load from Supabase with spinner
   showLoader('Apps werden geladen…');
+  await refreshFromSupabase(true);
+}
+
+async function refreshFromSupabase(showSpinner) {
   try {
     let all = [], from = 0;
     while (true) {
@@ -425,18 +444,21 @@ async function loadApps() {
       if (batch.length < 500) break;
       from += 500;
     }
-    hideLoader();
+    if (showSpinner) hideLoader();
     if (all.length === 0) {
       showImportScreen();
     } else {
       apps = all.map(rowToApp);
+      sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
       render();
     }
   } catch(e) {
-    hideLoader();
+    if (showSpinner) hideLoader();
     console.error(e);
-    document.getElementById('grid').innerHTML =
-      '<div class="empty" style="grid-column:1/-1"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin:0 auto 8px;opacity:.3"></i><p>Supabase Fehler: ' + e.message + '</p></div>';
+    if (!apps.length) {
+      document.getElementById('grid').innerHTML =
+        '<div class="empty" style="grid-column:1/-1"><i class="ti ti-wifi-off" style="font-size:32px;display:block;margin:0 auto 8px;opacity:.3"></i><p>Supabase Fehler: ' + e.message + '</p></div>';
+    }
   }
 }
 
@@ -587,33 +609,30 @@ async function saveEdit(id) {
   if (!a.name) { document.getElementById('f-name').focus(); return; }
   const LABELS = {name:'Name',vApple:'iOS',vGoogle:'Android',store:'Store',year:'Jahr',updateStatus:'Status',fcs:'FCS',blockiert:'Blockiert',storeZugang:'Store Zugang',deeplinks:'Deeplinks',push:'Push',datum:'Datum'};
   const changes = Object.keys(LABELS).filter(k => String(old[k]||'') !== String(a[k]||'')).map(k => ({field:LABELS[k],from:String(old[k]||''),to:String(a[k]||'')}));
-  showLoader('Speichern…');
   try {
     await saveAppSb(a);
     if (changes.length) await logChange(a.id, a.name, changes);
-    apps[idx] = a; hideLoader(); closeMod(); render(); toast('Gespeichert ✓');
+    apps[idx] = a; sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); closeMod(); render(); toast('Gespeichert ✓');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
 async function saveAdd() {
   const a = readForm({id:Date.now(),name:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',appManager:'',update:'',blockiert:false,statistik:'',updateAppManager:'',features:{}});
   if (!a.name) { document.getElementById('f-name').focus(); return; }
-  showLoader('Speichern…');
   try {
     await saveAppSb(a);
     await logChange(a.id, a.name, [{field:'_new',from:'',to:''}]);
-    apps.push(a); hideLoader(); closeMod(); render(); toast('App gespeichert ✓');
+    apps.push(a); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); hideLoader(); closeMod(); render(); toast('App gespeichert ✓');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
 async function confirmDelete(id) {
   const a = apps.find(x => x.id === id);
   if (!confirm('"' + a.name + '" wirklich löschen?')) return;
-  showLoader('Löschen…');
   try {
     if (a._dbId) await deleteAppSb(a._dbId);
     await logChange(a.id, a.name, [{field:'_deleted',from:'',to:''}]);
-    apps = apps.filter(x => x.id !== id); hideLoader(); render(); toast('App gelöscht');
+    apps = apps.filter(x => x.id !== id); sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); render(); toast('App gelöscht');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
