@@ -98,6 +98,12 @@ select:focus{border-color:var(--accent)}
 .info-label{min-width:130px;font-size:11px;color:var(--text3);flex-shrink:0;padding-top:1px}
 .info-val{font-size:12px;color:var(--text)}
 .info-link{color:var(--blue);word-break:break-all;font-size:11px}
+.link-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;font-size:12px;font-family:inherit;font-weight:500;text-decoration:none;transition:opacity .12s;cursor:pointer}
+.link-btn:hover{opacity:.85}
+.link-btn-apple{background:#000;color:#fff}
+.link-btn-google{background:#34A853;color:#fff}
+.link-btn-appmanager{background:#EEEDFE;color:#3C3489;border:0.5px solid #C5C2F7}
+.link-btn-pegasus{background:#F5C842;color:#333;border:0.5px solid #E0B800}
 .sec-head{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 4px}
 .toast{position:fixed;bottom:20px;right:20px;z-index:300;background:#fff;border:1px solid #d5d5d0;border-radius:8px;padding:10px 16px;font-size:12px;color:#1a1a1a;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);animation:tIn .2s ease;pointer-events:none}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -862,6 +868,14 @@ function openDetail(id){
     const v=isLink?`<a href="${val}" target="_blank" class="info-link">${val.length>58?val.slice(0,58)+'…':val}</a>`:`<span class="info-val">${val}</span>`;
     return`<div class="info-row"><span class="info-label">${label}</span>${v}</div>`;
   }
+  function irBtn(label, val, icon, cls) {
+    if(!val) return '';
+    return `<div class="info-row"><span class="info-label">${label}</span>
+      <a href="${val}" target="_blank" class="link-btn ${cls}">
+        <i class="ti ${icon}" style="font-size:13px"></i> ${label} öffnen
+      </a>
+    </div>`;
+  }
   const sc={'verfügbar':'b-teal','nur Apple':'b-blue','nur Google':'b-green','Aus dem Store':'b-red','aus dem Store':'b-red'};
   const uc={'Fertig':'b-green','In Arbeit':'b-orange','Offen':'b-gray'};
   const feats=a.features||{};
@@ -903,10 +917,12 @@ function openDetail(id){
       </div>
     </div>
     <div class="sec-head">Links</div>
-    ${ir('Pegasus',a.pegasus,true)}
-    ${ir('Apple Store',a.appleStore,true)}
-    ${ir('Google Store',a.googleStore,true)}
-    ${ir('AppManager',a.appManager,true)}
+    ${a.pegasus?`<div class="info-row"><span class="info-label">Pegasus</span><a href="${a.pegasus}" target="_blank" class="link-btn link-btn-pegasus"><i class="ti ti-link" style="font-size:13px"></i> Pegasus</a></div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:10px 0;border-bottom:0.5px solid #f0f0ec">
+      ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
+      ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
+      ${a.appManager?`<a href="${a.appManager}" target="_blank" class="link-btn link-btn-appmanager"><i class="ti ti-device-mobile-cog" style="font-size:13px"></i> AppManager</a>`:''}
+    </div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
       <button class="btn" onclick="closeMod()">Schließen</button>
       <button class="btn btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
