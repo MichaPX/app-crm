@@ -740,12 +740,17 @@ function render() {
   ys.innerHTML='<option value="">Alle Jahre</option>'+years.map(y=>`<option${y===cy?' selected':''}>${y}</option>`).join('');
   let list=apps.filter(a=>{
     if(q&&!a.name.toLowerCase().includes(q)) return false;
-    if(fs&&a.store!==fs) return false;
+    if(fs) {
+      if(fs==='aus dem Store') {
+        if(a.store!=='Aus dem Store'&&a.store!=='aus dem Store') return false;
+      } else {
+        if(a.store!==fs) return false;
+      }
+    }
     if(fy&&a.year!==fy) return false;
     if(fst==='Fertig'&&a.updateStatus!=='Fertig') return false;
     if(fst==='In Arbeit'&&a.updateStatus!=='In Arbeit') return false;
     if(fst==='Blockiert'&&!a.blockiert) return false;
-    if(fst==='aus dem Store'&&a.store!=='Aus dem Store'&&a.store!=='aus dem Store') return false;
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
@@ -795,13 +800,7 @@ function render() {
   const dcBen = document.getElementById('dc-benoetigt');
   if(dcIm) { dcIm.style.display = imUpdate > 0 ? 'flex' : 'none'; document.getElementById('dv-imupdate').textContent = imUpdate; }
   if(dcBen) { dcBen.style.display = benoetigtUpdate > 0 ? 'flex' : 'none'; document.getElementById('dv-benoetigt').textContent = benoetigtUpdate; }
-;
-  sb.querySelectorAll('.stat-pill').forEach(el=>{
-    el.addEventListener('click', function(){
-      setStatusFilter(this.dataset.filter);
-    });
-  });
-  document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
+; document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
   updateDashboard();
   const grid=document.getElementById('grid');
   if(!list.length){grid.innerHTML='<div class="empty"><i class="ti ti-device-mobile-off"></i><p>Keine Apps gefunden</p></div>';return;}
@@ -859,8 +858,9 @@ function render() {
       </div>
       <div class="ac-footer">
         <span class="ac-year">${fmtDate(a.datum)||a.year||'—'}</span>
-        <span class="ac-access">${a.storeZugang||'—'}</span>
+        ${a.benoetigtUpdate?'<span class="card-benoetigt"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':'<span class="ac-access">'+(a.storeZugang||'—')+'</span>'}
       </div>
+      ${a.imUpdate?'<div class="card-im-update"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</div>':''}
     </div>`;
   });
   grid.innerHTML=html;
