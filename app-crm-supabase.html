@@ -104,6 +104,24 @@ select:focus{border-color:var(--accent)}
 .link-btn-google{background:#34A853;color:#fff}
 .link-btn-appmanager{background:#EEEDFE;color:#3C3489;border:0.5px solid #C5C2F7}
 .link-btn-pegasus{background:#F5C842;color:#333;border:0.5px solid #E0B800}
+
+/* Toggle Switch */
+.toggle-wrap{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid #f0f0ec}
+.toggle-label{font-size:12px;color:#666;min-width:130px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#d5d5d0;border-radius:24px;transition:.2s}
+.toggle-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked + .toggle-slider{background:#534AB7}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px)}
+.toggle-value{font-size:12px;font-weight:500;color:#534AB7;min-width:60px}
+
+/* Status badges */
+.b-update-needed{background:#FFF3E0;color:#E65100}
+.b-in-update{background:#EDE7F6;color:#4527A0}
+.card-im-update{position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;color:#4527A0;background:#EDE7F6;padding:3px 8px;border-radius:100px;border:1px solid #C5B8F0}
+.card-benoetigt{font-size:10px;font-weight:600;color:#E65100;background:#FFF3E0;padding:3px 8px;border-radius:100px;border:1px solid #FFB74D;white-space:nowrap}
+.app-card{position:relative}
 .sec-head{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 4px}
 .toast{position:fixed;bottom:20px;right:20px;z-index:300;background:#fff;border:1px solid #d5d5d0;border-radius:8px;padding:10px 16px;font-size:12px;color:#1a1a1a;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);animation:tIn .2s ease;pointer-events:none}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -232,6 +250,8 @@ select:focus{border-color:var(--accent)}
     <select id="f-status" onchange="render()">
       <option value="">Alle Status</option>
       <option>Fertig</option><option>In Arbeit</option><option>Offen</option><option>Blockiert</option>
+      <option value="imUpdate">Im Update</option>
+      <option value="benoetigtUpdate">Benötigt Update</option>
     </select>
     <select id="f-year" onchange="render()"><option value="">Alle Jahre</option></select>
     <select id="f-maxver" onchange="render()">
@@ -345,6 +365,10 @@ function appToRow(a) {
     feat_paid: !!((a.features||{}).paid),
     feat_abo: !!((a.features||{}).abo),
     feat_ai: !!((a.features||{}).ai),
+    im_update: !!a.imUpdate,
+    benoetigt_update: !!a.benoetigtUpdate,
+    in_pruefung_apple: !!a.inPruefungApple,
+    in_pruefung_google: !!a.inPruefungGoogle,
   };
 }
 
@@ -363,7 +387,11 @@ function rowToApp(r) {
     features: {
       login: !!r.feat_login, paid: !!r.feat_paid,
       abo: !!r.feat_abo, ai: !!r.feat_ai
-    }
+    },
+    imUpdate: !!r.im_update,
+    benoetigtUpdate: !!r.benoetigt_update,
+    inPruefungApple: !!r.in_pruefung_apple,
+    inPruefungGoogle: !!r.in_pruefung_google,
   };
 }
 
@@ -614,9 +642,14 @@ async function openChangelog() {
 
 // ── CRUD ──
 async function saveEdit(id) {
-  const idx = apps.findIndex(x => x.id === id);
-  const old = {...apps[idx]};
-  const a = readForm({...apps[idx]});
+  const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
+  if(idx<0){toast('App nicht gefunden');return;}
+  const base = apps[idx];
+  const old = {...base};
+  const a = readForm({...base});
+  // Preserve database identity so we PATCH not POST
+  a._dbId = base._dbId;
+  a.id = base.id;
   if (!a.name) { document.getElementById('f-name').focus(); return; }
   const LABELS = {name:'Name',vApple:'iOS',vGoogle:'Android',store:'Store',year:'Jahr',updateStatus:'Status',fcs:'FCS',blockiert:'Blockiert',storeZugang:'Store Zugang',deeplinks:'Deeplinks',push:'Push',datum:'Datum'};
   const changes = Object.keys(LABELS).filter(k => String(old[k]||'') !== String(a[k]||'')).map(k => ({field:LABELS[k],from:String(old[k]||''),to:String(a[k]||'')}));
@@ -638,7 +671,7 @@ async function saveAdd() {
 }
 
 async function confirmDelete(id) {
-  const a = apps.find(x => x.id === id);
+  const a = apps.find(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if (!confirm('"' + a.name + '" wirklich löschen?')) return;
   try {
     if (a._dbId) await deleteAppSb(a._dbId);
@@ -711,6 +744,8 @@ function render() {
     if(fst==='In Arbeit'&&a.updateStatus!=='In Arbeit') return false;
     if(fst==='Blockiert'&&!a.blockiert) return false;
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
+    if(fst==='imUpdate'&&!a.imUpdate) return false;
+    if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
     const fmv=document.getElementById('f-maxver').value;
     if(fmv){
       function parseVer(v){if(!v) return null;const p=v.split('.').map(n=>parseInt(n)||0);return p;}
@@ -750,6 +785,8 @@ function render() {
   const inA=apps.filter(a=>a.updateStatus==='In Arbeit').length,block=apps.filter(a=>a.blockiert).length;
   const curStatus = document.getElementById('f-status').value;
   const offen = apps.filter(a=>a.updateStatus==='Offen'&&!a.blockiert).length;
+  const imUpdate = apps.filter(a=>a.imUpdate).length;
+  const benoetigtUpdate = apps.filter(a=>a.benoetigtUpdate).length;
   const sb = document.getElementById('statsbar');
   sb.innerHTML = [
     {label:'Apps gesamt', icon:'', cls:'', fv:'', count:total},
@@ -757,6 +794,8 @@ function render() {
     inA?{label:'In Arbeit', icon:'ti-loader', cls:'sp-orange', fv:'In Arbeit', count:inA}:null,
     block?{label:'Blockiert', icon:'ti-lock', cls:'sp-red', fv:'Blockiert', count:block}:null,
     {label:'Offen', icon:'ti-clock', cls:'', fv:'Offen', count:offen},
+    imUpdate?{label:'Im Update', icon:'ti-refresh', cls:'sp-purple', fv:'imUpdate', count:imUpdate}:null,
+    benoetigtUpdate?{label:'Benötigt Update', icon:'ti-refresh-alert', cls:'sp-amber', fv:'benoetigtUpdate', count:benoetigtUpdate}:null,
   ].filter(Boolean).map(p=>
     `<span class="stat-pill${p.cls?' '+p.cls:''}${curStatus===p.fv?' active':''}" data-filter="${p.fv}" style="cursor:pointer">
       ${p.icon?`<i class="ti ${p.icon}" style="font-size:11px"></i>`:''}
@@ -893,6 +932,8 @@ function openDetail(id){
           ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:10px"></i> Blockiert</span>':''}
           ${a.inPruefungApple?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-brand-apple" style="font-size:9px"></i> In Prüfung Apple</span>':''}
           ${a.inPruefungGoogle?'<span class="badge" style="background:#E8F5E9;color:#2E7D32"><i class="ti ti-brand-google-play" style="font-size:9px"></i> In Prüfung Google</span>':''}
+          ${a.benoetigtUpdate?'<span class="badge b-update-needed"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
+          ${a.imUpdate?'<span class="badge b-in-update"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</span>':''}
           ${fb}
         </div>
       </div>
@@ -917,6 +958,25 @@ function openDetail(id){
         ${ir('Login Google',a.loginGoogle)}
         ${ir('Update',a.update)}
       </div>
+    </div>
+
+    <!-- Im Update Toggle -->
+    <div class="toggle-wrap" style="margin-top:12px">
+      <span class="toggle-label">Im Update</span>
+      <label class="toggle">
+        <input type="checkbox" id="detail-imUpdate" ${a.imUpdate?'checked':''} onchange="toggleImUpdate('${a.id}',this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-value" id="detail-imUpdate-label">${a.imUpdate?'Aktiv':'Inaktiv'}</span>
+    </div>
+
+    <!-- Benötigt Update Button -->
+    <div style="padding:10px 0;border-bottom:0.5px solid #f0f0ec">
+      <button onclick="toggleBenoetigtUpdate('${a.id}')" 
+        style="padding:7px 14px;font-size:12px;font-family:inherit;border-radius:8px;cursor:pointer;border:1px solid ${a.benoetigtUpdate?'#E65100':'#d5d5d0'};background:${a.benoetigtUpdate?'#FFF3E0':'#f5f5f3'};color:${a.benoetigtUpdate?'#E65100':'#555'};display:inline-flex;align-items:center;gap:6px;font-weight:${a.benoetigtUpdate?'600':'400'}">
+        <i class="ti ti-refresh-alert" style="font-size:13px"></i>
+        ${a.benoetigtUpdate?'✓ Benötigt Update':'Benötigt Update markieren'}
+      </button>
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:0.5px solid #f0f0ec;margin-top:4px">
@@ -1053,7 +1113,7 @@ function openAdd(){
 }
 
 function openEdit(id){
-  const a={...apps.find(x=>String(x.id)===String(id))};
+  const a={...apps.find(x=>String(x.id)===String(id)||String(x._dbId)===String(id))};
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">${formHTML(a,'App bearbeiten')}<div class="modal-actions"><button class="btn" onclick="closeMod()">Abbrechen</button><button class="btn btn-primary" onclick="saveEdit(${id})"><i class="ti ti-check"></i> Speichern</button></div></div></div>`;
 }
 
@@ -1229,6 +1289,35 @@ function updateDashboard() {
 }
 
 function closeMod(){document.getElementById('mc').innerHTML='';}
+
+async function toggleImUpdate(id, checked) {
+  const label = document.getElementById('detail-imUpdate-label');
+  if(label) label.textContent = checked ? 'Aktiv' : 'Inaktiv';
+  const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
+  if(idx < 0) return;
+  apps[idx].imUpdate = checked;
+  sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
+  try {
+    await saveAppSb(apps[idx]);
+    // Update badge in header
+    const badges = document.querySelectorAll('.badge.b-in-update');
+    toast('Im Update: ' + (checked ? 'Aktiv' : 'Inaktiv'));
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+async function toggleBenoetigtUpdate(id) {
+  const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
+  if(idx < 0) return;
+  apps[idx].benoetigtUpdate = !apps[idx].benoetigtUpdate;
+  sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
+  try {
+    await saveAppSb(apps[idx]);
+    // Reopen detail to refresh
+    closeMod();
+    openDetail(id);
+    toast(apps[idx].benoetigtUpdate ? 'Als "Benötigt Update" markiert' : 'Markierung entfernt');
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
 
 function toast(msg){
   const t=document.createElement('div');t.className='toast';
