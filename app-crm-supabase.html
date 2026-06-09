@@ -58,11 +58,11 @@ select:focus{border-color:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .section-sep{grid-column:1/-1;font-size:11px;font-weight:600;color:#999990;text-transform:uppercase;letter-spacing:.8px;padding:6px 0 4px;margin-top:12px;border-top:1px solid #e0e0dc;display:flex;align-items:center;gap:10px}.section-sep:first-child{margin-top:0;border-top:none}
 .section-sep:first-child{margin-top:0;border-top:none}
-.app-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .12s,background .12s;display:flex;flex-direction:column;height:190px}
+.app-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;transition:border-color .12s,background .12s;display:flex;flex-direction:column;height:165px}
 .app-card:hover{border-color:var(--border2);background:var(--bg3)}
 .app-card.blocked{border-left:2px solid #A32D2D;border-radius:0 12px 12px 0}
 .ac-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px;flex-shrink:0}
-.ac-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.ac-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .ac-meta{font-size:11px;color:var(--text2);margin-bottom:8px;font-family:'DM Mono',monospace;line-height:1.5}
 .ac-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;min-height:20px}
 .ac-footer{margin-top:auto;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -225,14 +225,16 @@ select:focus{border-color:var(--accent)}
       <button class="btn btn-primary" onclick="openAdd()"><i class="ti ti-plus"></i> App hinzufügen</button>
     </div>
   </div>
-  <div class="statsbar" id="statsbar"></div>
+  
   <div class="dashboard" id="dashboard">
     <div class="dash-grid">
-      <div class="dash-card" id="dc-total"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
-      <div class="dash-card"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
-      <div class="dash-card"><div class="dc-icon" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-loader"></i></div><div><div class="dc-val" style="color:#854F0B" id="dv-arbeit">—</div><div class="dc-label">In Arbeit</div></div></div>
-      <div class="dash-card"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
-      <div class="dash-card"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>
+      <div class="dash-card" id="dc-total" style="cursor:pointer" onclick="clearF()" title="Alle Apps"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
+      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Fertig')" title="Fertig filtern"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
+      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('In Arbeit')" title="In Arbeit filtern"><div class="dc-icon" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-loader"></i></div><div><div class="dc-val" style="color:#854F0B" id="dv-arbeit">—</div><div class="dc-label">In Arbeit</div></div></div>
+      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Blockiert')" title="Blockiert filtern"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
+      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Offen')" title="Offen filtern"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>
+          <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')" title="Im Update filtern"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Im Update</div></div></div>
+      <div class="dash-card" id="dc-benoetigt" style="cursor:pointer;display:none" onclick="setStatusFilter('benoetigtUpdate')" title="Benötigt Update filtern"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
     </div>
     <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
     <div class="dash-bars"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
@@ -245,7 +247,7 @@ select:focus{border-color:var(--accent)}
     <select id="f-store" onchange="render()">
       <option value="">Alle Stores</option>
       <option>verfügbar</option><option>nur Apple</option><option>nur Google</option>
-      <option>Aus dem Store</option><option>aus dem Store</option>
+      <option value='aus dem Store'>Aus dem Store</option>
     </select>
     <select id="f-status" onchange="render()">
       <option value="">Alle Status</option>
@@ -743,6 +745,7 @@ function render() {
     if(fst==='Fertig'&&a.updateStatus!=='Fertig') return false;
     if(fst==='In Arbeit'&&a.updateStatus!=='In Arbeit') return false;
     if(fst==='Blockiert'&&!a.blockiert) return false;
+    if(fst==='aus dem Store'&&a.store!=='Aus dem Store'&&a.store!=='aus dem Store') return false;
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
@@ -787,21 +790,12 @@ function render() {
   const offen = apps.filter(a=>a.updateStatus==='Offen'&&!a.blockiert).length;
   const imUpdate = apps.filter(a=>a.imUpdate).length;
   const benoetigtUpdate = apps.filter(a=>a.benoetigtUpdate).length;
-  const sb = document.getElementById('statsbar');
-  sb.innerHTML = [
-    {label:'Apps gesamt', icon:'', cls:'', fv:'', count:total},
-    {label:'Fertig', icon:'ti-check', cls:'sp-green', fv:'Fertig', count:fertig},
-    inA?{label:'In Arbeit', icon:'ti-loader', cls:'sp-orange', fv:'In Arbeit', count:inA}:null,
-    block?{label:'Blockiert', icon:'ti-lock', cls:'sp-red', fv:'Blockiert', count:block}:null,
-    {label:'Offen', icon:'ti-clock', cls:'', fv:'Offen', count:offen},
-    imUpdate?{label:'Im Update', icon:'ti-refresh', cls:'sp-purple', fv:'imUpdate', count:imUpdate}:null,
-    benoetigtUpdate?{label:'Benötigt Update', icon:'ti-refresh-alert', cls:'sp-amber', fv:'benoetigtUpdate', count:benoetigtUpdate}:null,
-  ].filter(Boolean).map(p=>
-    `<span class="stat-pill${p.cls?' '+p.cls:''}${curStatus===p.fv?' active':''}" data-filter="${p.fv}" style="cursor:pointer">
-      ${p.icon?`<i class="ti ${p.icon}" style="font-size:11px"></i>`:''}
-      <b>${p.count}</b> ${p.label}
-    </span>`
-  ).join('');
+  // Show/hide Im Update and Benötigt Update cards
+  const dcIm = document.getElementById('dc-imupdate');
+  const dcBen = document.getElementById('dc-benoetigt');
+  if(dcIm) { dcIm.style.display = imUpdate > 0 ? 'flex' : 'none'; document.getElementById('dv-imupdate').textContent = imUpdate; }
+  if(dcBen) { dcBen.style.display = benoetigtUpdate > 0 ? 'flex' : 'none'; document.getElementById('dv-benoetigt').textContent = benoetigtUpdate; }
+;
   sb.querySelectorAll('.stat-pill').forEach(el=>{
     el.addEventListener('click', function(){
       setStatusFilter(this.dataset.filter);
