@@ -784,7 +784,7 @@ function render() {
     const googleOld=isOldV(a.vGoogle);
     const feats=a.features||{};
     const ft=[feats.login?'<span class="badge b-blue">Login</span>':'',feats.paid?'<span class="badge b-orange">Paid</span>':'',feats.abo?'<span class="badge b-purple">Abo</span>':'',feats.ai?'<span class="badge b-teal">AI</span>':''].filter(Boolean).join('');
-    html+=`<div class="app-card${a.blockiert?' blocked':''}" onclick="openDetail(${a.id})">
+    html+=`<div class="app-card${a.blockiert?' blocked':''}" onclick="event.preventDefault();event.stopPropagation();openDetail('${a.id}')">
       <div class="ac-icon" style="${is}"><i class="ti ${ic}"></i></div>
       <div class="ac-name">${a.name}</div>
       <div class="ac-meta" style="${(appleOld||googleOld)&&byVersion?'color:#f06060':''}">${meta}${(appleOld||googleOld)&&byVersion?' <span style=\"color:#f06060\">⚠</span>':''}</div>
@@ -831,7 +831,7 @@ function filterByYear(y) {
 }
 
 function openDetail(id){
-  const a=apps.find(x=>String(x.id)===String(id));
+  const a=apps.find(x=>String(x.id)===String(id)||String(x._dbId)===String(id));
   if(!a) return;
   function ir(label,val,isLink){
     if(!val) return'';
