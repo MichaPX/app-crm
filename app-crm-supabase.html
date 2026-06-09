@@ -891,6 +891,8 @@ function openDetail(id){
           ${a.vGoogle?`<span class="badge b-purple">Android ${a.vGoogle}</span>`:''}
           ${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge ${uc[a.updateStatus]||'b-gray'}">${a.updateStatus}</span>`:''}
           ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:10px"></i> Blockiert</span>':''}
+          ${a.inPruefungApple?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-brand-apple" style="font-size:9px"></i> In Prüfung Apple</span>':''}
+          ${a.inPruefungGoogle?'<span class="badge" style="background:#E8F5E9;color:#2E7D32"><i class="ti ti-brand-google-play" style="font-size:9px"></i> In Prüfung Google</span>':''}
           ${fb}
         </div>
       </div>
@@ -916,12 +918,12 @@ function openDetail(id){
         ${ir('Update',a.update)}
       </div>
     </div>
-    <div class="sec-head">Links</div>
-    ${a.pegasus?`<div class="info-row"><span class="info-label">Pegasus</span><a href="${a.pegasus}" target="_blank" class="link-btn link-btn-pegasus"><i class="ti ti-link" style="font-size:13px"></i> Pegasus</a></div>`:''}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:10px 0;border-bottom:0.5px solid #f0f0ec">
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:0.5px solid #f0f0ec;margin-top:4px">
+      ${a.pegasus?`<a href="${a.pegasus}" target="_blank" class="link-btn link-btn-pegasus"><i class="ti ti-link" style="font-size:13px"></i> Pegasus</a>`:''}
+      ${a.appManager?`<a href="${a.appManager}" target="_blank" class="link-btn link-btn-appmanager"><i class="ti ti-device-mobile-cog" style="font-size:13px"></i> AppManager</a>`:''}
       ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
       ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
-      ${a.appManager?`<a href="${a.appManager}" target="_blank" class="link-btn link-btn-appmanager"><i class="ti ti-device-mobile-cog" style="font-size:13px"></i> AppManager</a>`:''}
     </div>
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
       <button class="btn" onclick="closeMod()">Schließen</button>
@@ -1040,6 +1042,8 @@ function readForm(a){
     ai:document.getElementById('f-feat-ai').checked,
   };
   a.blockiert=document.getElementById('f-blockiert').checked;
+  a.inPruefungApple=document.getElementById('f-inPruefungApple') ? document.getElementById('f-inPruefungApple').checked : (a.inPruefungApple||false);
+  a.inPruefungGoogle=document.getElementById('f-inPruefungGoogle') ? document.getElementById('f-inPruefungGoogle').checked : (a.inPruefungGoogle||false);
   return a;
 }
 
