@@ -644,6 +644,13 @@ function initApp() {
 }
 
 // Auto-start if already logged in
+function storeColor(s) {
+  if(s==='verfügbar') return 'b-green';
+  if(s==='nur Apple') return 'b-blue';
+  if(s==='nur Google') return 'b-teal';
+  if(s==='Aus dem Store'||s==='aus dem Store') return 'b-red';
+  return 'b-gray';
+}
 function statusBarColor(s, blockiert) {
   if(blockiert) return '#A32D2D';
   if(s==='Fertig') return '#0F6E56';
