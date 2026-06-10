@@ -792,7 +792,7 @@ function render() {
     const ft=[feats.login?'<span class="badge b-blue">Login</span>':'',feats.paid?'<span class="badge b-orange">Paid</span>':'',feats.abo?'<span class="badge b-purple">Abo</span>':'',feats.ai?'<span class="badge b-teal">AI</span>':''].filter(Boolean).join('');
     html+=`<div class="app-card${a.blockiert?' blocked':''}" onclick="event.preventDefault();event.stopPropagation();openDetail('${a.id}')">
       <div class="ac-statusbar" style="background:${statusBarColor(a.updateStatus,a.blockiert)}"></div>
-      <div class="ac-inner">
+      <div class="ac-inner" style="position:relative">
         <div class="ac-top">
           <div class="ac-icon" style="${is}"><i class="ti ${ic}"></i></div>
           <div style="min-width:0;flex:1">
@@ -805,13 +805,13 @@ function render() {
           ${a.store?`<span class="badge ${storeColor(a.store)}">${a.store}</span>`:''}
           ${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge ${statusColor(a.updateStatus)}">${a.updateStatus}`+'</span>':'<span class="badge b-gray">Offen</span>'}
           ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':''}
-          ${a.imUpdate?'<span class="badge" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</span>':''}
+          ${a.imUpdate?'<div style="position:absolute;top:0;right:0;background:#534AB7;color:#fff;font-size:9px;font-weight:500;padding:3px 8px;border-radius:0 0 0 6px;display:flex;align-items:center;gap:3px"><i class=\"ti ti-refresh\" style=\"font-size:9px\"></i> Im Update</div>':''}
           ${a.benoetigtUpdate?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
           ${ft}
         </div>
         <div class="ac-footer">
           <span class="ac-year">${fmtDate(a.datum)||a.year||'—'}</span>
-          ${a.benoetigtUpdate?'<span class="card-benoetigt"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':'<span class="ac-access">'+(a.storeZugang||'—')+'</span>'}
+          <span class="ac-access">${a.storeZugang||'—'}</span>
         </div>
       </div>
     </div>`;
