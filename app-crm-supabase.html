@@ -320,6 +320,8 @@ function appToRow(a) {
     benoetigt_update: !!a.benoetigtUpdate,
     in_pruefung_apple: !!a.inPruefungApple,
     in_pruefung_google: !!a.inPruefungGoogle,
+    shared_secret: a.sharedSecret||'',
+    google_service_account: a.googleServiceAccount||'',
   };
 }
 
@@ -330,7 +332,7 @@ function rowToApp(r) {
     appleStore: r.apple_store||'', googleStore: r.google_store||'',
     store: r.store||'', year: r.year||'', storeZugang: r.store_zugang||'',
     deeplinks: r.deeplinks||'', push: r.push||'', produktIDs: r.produkt_ids||'',
-    updateAppManager: r.update_app_manager||'', statistik: r.statistik||'',
+    updateAppManager: r.update_app_manager||'', sharedSecret: r.shared_secret||'', googleServiceAccount: r.google_service_account||'', statistik: r.statistik||'',
     fcs: r.fcs||'', datum: r.datum||'', loginApple: r.login_apple||'',
     loginGoogle: r.login_google||'', appManager: r.app_manager||'',
     updateStatus: r.update_status||'Offen', update: r.update_field||'',
@@ -831,6 +833,10 @@ function clearF(){
   render();
 }
 
+function toggleAboFields(checked) {
+  const el = document.getElementById('abo-fields');
+  if(el) el.style.display = checked ? 'block' : 'none';
+}
 function setStatusFilter(val) {
   const sel = document.getElementById('f-status');
   if(!sel) return;
@@ -934,6 +940,19 @@ function openDetail(id){
       ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
       ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
     </div>
+    ${(a.features&&a.features.abo)?`<div style="background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:8px;padding:12px;margin-top:12px">
+      <div style="font-size:11px;font-weight:500;color:#534AB7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-key" style="font-size:11px"></i> Abo Credentials</div>
+      <div style="display:grid;gap:6px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:0.5px solid #E8E6FF">
+          <span style="color:var(--text2)">Shared Secret (Apple)</span>
+          <span style="font-weight:500;padding:2px 8px;border-radius:4px;font-size:11px;background:${a.sharedSecret==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.sharedSecret==='hinterlegt'?'#085041':'#A32D2D'}">${a.sharedSecret==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0">
+          <span style="color:var(--text2)">Google Service Account</span>
+          <span style="font-weight:500;padding:2px 8px;border-radius:4px;font-size:11px;background:${a.googleServiceAccount==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.googleServiceAccount==='hinterlegt'?'#085041':'#A32D2D'}">${a.googleServiceAccount==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span>
+        </div>
+      </div>
+    </div>`:''}
     <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
       <button class="btn" style="color:#A32D2D;border-color:#F7C1C1" onclick="closeMod();confirmDelete('${a.id}')"><i class="ti ti-trash"></i> Löschen</button>
       <div style="flex:1"></div>
@@ -1018,8 +1037,27 @@ function formHTML(a,title){
     <div style="grid-column:1/-1;display:flex;gap:20px;flex-wrap:wrap;padding:4px 0">
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-login"${chk('login')} style="accent-color:var(--accent);width:15px;height:15px"> Login</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-paid"${chk('paid')} style="accent-color:var(--accent);width:15px;height:15px"> Paid</label>
-      <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-abo"${chk('abo')} style="accent-color:var(--accent);width:15px;height:15px"> Abo</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-abo"${chk('abo')} style="accent-color:var(--accent);width:15px;height:15px" onchange="toggleAboFields(this.checked)"> Abo</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-ai"${chk('ai')} style="accent-color:var(--accent);width:15px;height:15px"> AI</label>
+    </div>
+    <div id="abo-fields" style="display:${chk('abo')?'block':'none'};grid-column:1/-1;background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:8px;padding:12px;margin:4px 0">
+      <div style="font-size:11px;font-weight:500;color:#534AB7;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-key" style="font-size:11px"></i> Abo Credentials</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px"><i class="ti ti-brand-apple" style="font-size:10px"></i> Shared Secret (Apple)</label>
+          <select id="f-sharedSecret" style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg1);cursor:pointer">
+            <option value="hinterlegt" ${s('sharedSecret')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
+            <option value="fehlt" ${s('sharedSecret')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px"><i class="ti ti-brand-google" style="font-size:10px"></i> Google Service Account</label>
+          <select id="f-googleServiceAccount" style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg1);cursor:pointer">
+            <option value="hinterlegt" ${s('googleServiceAccount')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
+            <option value="fehlt" ${s('googleServiceAccount')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="check-field" style="grid-column:1/-1"><input type="checkbox" id="f-blockiert" ${a.blockiert?'checked':''}><label for="f-blockiert">Blockiert</label></div>
   </div>`;
@@ -1046,6 +1084,8 @@ function readForm(a){
   a.loginApple=document.getElementById('f-loginApple').value.trim();
   a.loginGoogle=document.getElementById('f-loginGoogle').value.trim();
   a.appManager=document.getElementById('f-appManager').value.trim();
+  a.sharedSecret=document.getElementById('f-sharedSecret')?document.getElementById('f-sharedSecret').value:'';
+  a.googleServiceAccount=document.getElementById('f-googleServiceAccount')?document.getElementById('f-googleServiceAccount').value:'';
   a.features={
     login:document.getElementById('f-feat-login').checked,
     paid:document.getElementById('f-feat-paid').checked,
