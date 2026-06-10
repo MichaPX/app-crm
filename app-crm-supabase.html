@@ -940,18 +940,10 @@ function openDetail(id){
       ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
       ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
     </div>
-    ${(a.features&&a.features.abo)?`<div style="background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:8px;padding:12px;margin-top:12px">
-      <div style="font-size:11px;font-weight:500;color:#534AB7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-key" style="font-size:11px"></i> Abo Credentials</div>
-      <div style="display:grid;gap:6px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:0.5px solid #E8E6FF">
-          <span style="color:var(--text2)">Shared Secret (Apple)</span>
-          <span style="font-weight:500;padding:2px 8px;border-radius:4px;font-size:11px;background:${a.sharedSecret==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.sharedSecret==='hinterlegt'?'#085041':'#A32D2D'}">${a.sharedSecret==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0">
-          <span style="color:var(--text2)">Google Service Account</span>
-          <span style="font-weight:500;padding:2px 8px;border-radius:4px;font-size:11px;background:${a.googleServiceAccount==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.googleServiceAccount==='hinterlegt'?'#085041':'#A32D2D'}">${a.googleServiceAccount==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span>
-        </div>
-      </div>
+    ${(a.features&&a.features.abo)?`<div style="display:flex;align-items:center;gap:10px;background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:6px;padding:6px 10px;margin-top:8px;flex-wrap:wrap">
+      <span style="font-size:10px;font-weight:500;color:#534AB7;white-space:nowrap"><i class="ti ti-key" style="font-size:10px"></i> Credentials</span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-brand-apple" style="font-size:10px"></i> Shared Secret <span style="font-weight:500;padding:1px 7px;border-radius:4px;background:${a.sharedSecret==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.sharedSecret==='hinterlegt'?'#085041':'#A32D2D'}">${a.sharedSecret==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span></span>
+      <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-brand-google" style="font-size:10px"></i> Service Account <span style="font-weight:500;padding:1px 7px;border-radius:4px;background:${a.googleServiceAccount==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.googleServiceAccount==='hinterlegt'?'#085041':'#A32D2D'}">${a.googleServiceAccount==='hinterlegt'?'✅ Hinterlegt':'⚠️ Fehlt'}</span></span>
     </div>`:''}
     <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
       <button class="btn" style="color:#A32D2D;border-color:#F7C1C1" onclick="closeMod();confirmDelete('${a.id}')"><i class="ti ti-trash"></i> Löschen</button>
@@ -1040,24 +1032,20 @@ function formHTML(a,title){
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-abo"${chk('abo')} style="accent-color:var(--accent);width:15px;height:15px" onchange="toggleAboFields(this.checked)"> Abo</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:var(--text)"><input type="checkbox" id="f-feat-ai"${chk('ai')} style="accent-color:var(--accent);width:15px;height:15px"> AI</label>
     </div>
-    <div id="abo-fields" style="display:${chk('abo')?'block':'none'};grid-column:1/-1;background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:8px;padding:12px;margin:4px 0">
-      <div style="font-size:11px;font-weight:500;color:#534AB7;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em"><i class="ti ti-key" style="font-size:11px"></i> Abo Credentials</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div>
-          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px"><i class="ti ti-brand-apple" style="font-size:10px"></i> Shared Secret (Apple)</label>
-          <select id="f-sharedSecret" style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg1);cursor:pointer">
-            <option value="hinterlegt" ${s('sharedSecret')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
-            <option value="fehlt" ${s('sharedSecret')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px"><i class="ti ti-brand-google" style="font-size:10px"></i> Google Service Account</label>
-          <select id="f-googleServiceAccount" style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg1);cursor:pointer">
-            <option value="hinterlegt" ${s('googleServiceAccount')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
-            <option value="fehlt" ${s('googleServiceAccount')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
-          </select>
-        </div>
-      </div>
+    <div id="abo-fields" style="display:${chk('abo')?'flex':'none'};grid-column:1/-1;align-items:center;gap:12px;background:#F8F7FF;border:0.5px solid #AFA9EC;border-radius:6px;padding:6px 10px;margin:2px 0">
+      <span style="font-size:10px;font-weight:500;color:#534AB7;white-space:nowrap"><i class="ti ti-key" style="font-size:10px"></i> Credentials</span>
+      <label style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;white-space:nowrap"><i class="ti ti-brand-apple" style="font-size:10px"></i> Shared Secret
+        <select id="f-sharedSecret" style="font-size:11px;padding:2px 6px;border:0.5px solid var(--border);border-radius:4px;background:var(--bg1);cursor:pointer">
+          <option value="hinterlegt" ${s('sharedSecret')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
+          <option value="fehlt" ${s('sharedSecret')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
+        </select>
+      </label>
+      <label style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;white-space:nowrap"><i class="ti ti-brand-google" style="font-size:10px"></i> Service Account
+        <select id="f-googleServiceAccount" style="font-size:11px;padding:2px 6px;border:0.5px solid var(--border);border-radius:4px;background:var(--bg1);cursor:pointer">
+          <option value="hinterlegt" ${s('googleServiceAccount')==='hinterlegt'?'selected':''}>✅ Hinterlegt</option>
+          <option value="fehlt" ${s('googleServiceAccount')!=='hinterlegt'?'selected':''}>⚠️ Fehlt</option>
+        </select>
+      </label>
     </div>
     <div class="check-field" style="grid-column:1/-1"><input type="checkbox" id="f-blockiert" ${a.blockiert?'checked':''}><label for="f-blockiert">Blockiert</label></div>
   </div>`;
