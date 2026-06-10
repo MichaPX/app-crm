@@ -170,15 +170,7 @@ select:focus{border-color:var(--accent)}
 
 
 
-/* Login */
-.login-overlay{position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:9999}
-.login-box{background:#fff;border:0.5px solid #e0e0dc;border-radius:16px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-.login-icon{width:48px;height:48px;border-radius:14px;background:#534AB7;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;margin:0 auto 16px}
-.login-title{font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
-.login-sub{font-size:13px;color:#999;margin-bottom:28px}
-.login-input{width:100%;padding:10px 14px;font-size:13px;font-family:inherit;border:0.5px solid #d5d5d0;border-radius:8px;background:#f5f5f3;color:#1a1a1a;outline:none;margin-bottom:12px;-webkit-appearance:none}
-.login-input:focus{border-color:#534AB7;background:#fff}
-.login-btn{width:100%;padding:11px;font-size:13px;font-family:inherit;background:#534AB7;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500;-webkit-appearance:none}
+
 .login-btn:hover{background:#6b62d4}
 .login-err{font-size:12px;color:#A32D2D;background:#FCEBEB;border-radius:6px;padding:8px 12px;margin-bottom:12px;display:none;text-align:left}
 
@@ -191,22 +183,8 @@ select:focus{border-color:var(--accent)}
 </head>
 <body>
 
-<!-- Login Screen -->
-<div class="login-overlay" id="login-overlay">
-  <div class="login-box">
-    <div class="login-icon"><i class="ti ti-device-mobile"></i></div>
-    <div class="login-title">App CRM</div>
-    <div class="login-sub">Produktion</div>
-    <div class="login-err" id="login-err"><i class="ti ti-alert-circle" style="font-size:12px;margin-right:4px"></i>Falsches Passwort</div>
-    <input class="login-input" type="password" id="login-pw" placeholder="Passwort eingeben"
-      autocomplete="current-password"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" type="button" onclick="doLogin()">Einloggen</button>
-  </div>
-</div>
-
 <!-- Main App -->
-<div class="layout" id="app-layout" style="display:none">
+<div class="layout" id="app-layout" style="display:flex">
   <div class="header">
     <div style="display:flex;align-items:center;gap:10px">
       <div class="logo-icon"><i class="ti ti-device-mobile"></i></div>
@@ -295,37 +273,6 @@ if (window.location.protocol === 'file:') {
 
 // Store current version
 localStorage.setItem('app_crm_version', APP_VERSION);
-
-// ════════════════════════════════════════
-// LOGIN — runs immediately
-// ════════════════════════════════════════
-const LOGIN_PW = 'crm2026';
-const LOGIN_KEY = 'crm_logged_in';
-
-function doLogin() {
-  const pw = document.getElementById('login-pw').value;
-  if (pw === LOGIN_PW) {
-    sessionStorage.setItem(LOGIN_KEY, '1');
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-layout').style.display = 'flex';
-    initApp();
-  } else {
-    const err = document.getElementById('login-err');
-    err.style.display = 'block';
-    document.getElementById('login-pw').value = '';
-    document.getElementById('login-pw').focus();
-    setTimeout(() => err.style.display = 'none', 2500);
-  }
-}
-
-// Check existing session - runs after all JS is parsed
-document.addEventListener('DOMContentLoaded', function() {
-  if (sessionStorage.getItem(LOGIN_KEY) === '1') {
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-layout').style.display = 'flex';
-    initApp();
-  }
-});
 
 // ════════════════════════════════════════
 // SUPABASE
@@ -1325,6 +1272,7 @@ function toast(msg){
   t.innerHTML=`<i class="ti ti-check" style="color:#0F6E56"></i> ${msg}`;
   document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
 }
+initApp();
 
 </script>
 
