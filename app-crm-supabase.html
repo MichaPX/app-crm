@@ -322,6 +322,7 @@ function doLogin() {
 if (sessionStorage.getItem(LOGIN_KEY) === '1') {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('app-layout').style.display = 'flex';
+  initApp();
 }
 
 // ════════════════════════════════════════
