@@ -258,7 +258,7 @@ select:focus{border-color:var(--accent)}
 // ════════════════════════════════════════
 // VERSION & CACHE CHECK
 // ════════════════════════════════════════
-const APP_VERSION = '1780580920';
+const APP_VERSION = '1780580930';
 const STORED_VERSION = localStorage.getItem('app_crm_version');
 
 // If running on file:// protocol, show warning
@@ -863,6 +863,19 @@ function openDetail(id){
     const v=isLink?`<a href="${val}" target="_blank" class="info-link">${val.length>58?val.slice(0,58)+'…':val}</a>`:`<span class="info-val">${val}</span>`;
     return`<div class="info-row"><span class="info-label">${label}</span>${v}</div>`;
   }
+  function irCopy(label,val){
+    if(!val) return'';
+    const escaped=val.replace(/'/g,"\\'");
+    return`<div class="info-row"><span class="info-label">${label}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="info-val">${val}</span>
+        <button onclick="navigator.clipboard.writeText('${escaped}').then(()=>toast('${label} kopiert ✓'))" 
+          style="padding:2px 6px;font-size:10px;font-family:inherit;border:1px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:3px;flex-shrink:0" title="Kopieren">
+          <i class="ti ti-copy" style="font-size:11px"></i>
+        </button>
+      </span>
+    </div>`;
+  }
   function irBtn(label, val, icon, cls) {
     if(!val) return '';
     return `<div class="info-row"><span class="info-label">${label}</span>
@@ -910,8 +923,8 @@ function openDetail(id){
         ${ir('Deeplinks',a.deeplinks)}
         ${ir('Push',a.push)}
         ${ir('Produkt IDs',a.produktIDs)}
-        ${ir('Login Apple',a.loginApple)}
-        ${ir('Login Google',a.loginGoogle)}
+        ${irCopy('Login Apple',a.loginApple)}
+        ${irCopy('Login Google',a.loginGoogle)}
         ${ir('Update',a.update)}
       </div>
     </div>
