@@ -644,6 +644,12 @@ function initApp() {
 }
 
 // Auto-start if already logged in
+function statusBarColor(s, blockiert) {
+  if(blockiert) return '#A32D2D';
+  if(s==='Fertig') return '#0F6E56';
+  if(s==='In Arbeit') return '#854F0B';
+  return '#B4B2A9';
+}
 function statusColor(s) { return {'Fertig':'b-green','In Arbeit':'b-orange','Offen':'b-gray'}[s]||'b-gray'; }
 
 function fmtDate(d) {
