@@ -245,7 +245,7 @@ select:focus{border-color:var(--accent)}
     </select>
     <select id="f-status" onchange="render()">
       <option value="">Alle Status</option>
-      <option>Fertig</option><option>In Arbeit</option><option>Offen</option><option>Blockiert</option>
+      <option>Fertig</option><option>Offen</option><option>Blockiert</option>
       <option value="imUpdate">Update läuft</option>
       <option value="benoetigtUpdate">Benötigt Update</option>
     </select>
@@ -298,19 +298,46 @@ localStorage.setItem('app_crm_version', APP_VERSION);
 const SB_URL = 'https://womcbvvcmtmqpdhbukzw.supabase.co';
 const SB_KEY = 'sb_publishable_ih7z6TLCcAxMq9TzdMxj0w_dLQ9AOjY';
 
+async function refreshToken() {
+  const refresh = localStorage.getItem('crm_refresh_token');
+  if (!refresh) { doLogout(); return false; }
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh })
+    });
+    const data = await res.json();
+    if (!res.ok) { doLogout(); return false; }
+    localStorage.setItem('crm_access_token', data.access_token);
+    localStorage.setItem('crm_refresh_token', data.refresh_token);
+    return true;
+  } catch(e) { doLogout(); return false; }
+}
+
 async function sbFetch(path, opts) {
   opts = opts || {};
-  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+  const makeHeaders = () => ({
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + (localStorage.getItem('crm_access_token') || SB_KEY),
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=representation',
+    ...(opts.headers || {})
+  });
+  let res = await fetch(SB_URL + '/rest/v1/' + path, {
     method: opts.method || 'GET',
     body: opts.body || undefined,
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + (localStorage.getItem('crm_access_token') || SB_KEY),
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=representation',
-      ...(opts.headers || {})
-    }
+    headers: makeHeaders()
   });
+  if (res.status === 401) {
+    const ok = await refreshToken();
+    if (!ok) return null;
+    res = await fetch(SB_URL + '/rest/v1/' + path, {
+      method: opts.method || 'GET',
+      body: opts.body || undefined,
+      headers: makeHeaders()
+    });
+  }
   if (!res.ok) throw new Error(await res.text());
   const t = await res.text();
   return t ? JSON.parse(t) : null;
@@ -1092,10 +1119,9 @@ function formHTML(a,title){
         <option${sel('storeZugang','Apple')}>Apple</option>
         <option${sel('storeZugang','Google')}>Google</option>
       </select></div>
-    <div class="field"><label>Update Status</label>
+    <div class="field"><label>CRM Status</label>
       <select id="f-updateStatus">
         <option${sel('updateStatus','Offen')}>Offen</option>
-        <option${sel('updateStatus','In Arbeit')}>In Arbeit</option>
         <option${sel('updateStatus','Fertig')}>Fertig</option>
       </select></div>
     <div class="field"><label>FCS</label>
