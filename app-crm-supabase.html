@@ -825,6 +825,7 @@ function render() {
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
     if(fst==='ac'&&!(a.features&&a.features.ac)) return false;
+    if(window._featFilter==='ac'&&!(a.features&&a.features.ac)) return false;
     const fmv=document.getElementById('f-maxver').value;
     if(fmv){
       function parseVer(v){if(!v) return null;const p=v.split('.').map(n=>parseInt(n)||0);return p;}
@@ -950,6 +951,7 @@ function clearF(){
   document.getElementById('f-year').value='';
   document.getElementById('f-maxver').value='';
   document.getElementById('f-sort').value='name-asc';
+  window._featFilter = null;
   render();
 }
 
@@ -965,7 +967,7 @@ function setStatusFilter(val) {
 }
 
 function filterByFeature(feat) {
-  document.getElementById('f-status').value = feat;
+  window._featFilter = feat;
   render();
 }
 
