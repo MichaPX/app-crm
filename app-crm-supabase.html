@@ -170,7 +170,6 @@ select:focus{border-color:var(--accent)}
 
 
 
-
 .login-btn:hover{background:#6b62d4}
 .login-err{font-size:12px;color:#A32D2D;background:#FCEBEB;border-radius:6px;padding:8px 12px;margin-bottom:12px;display:none;text-align:left}
 
@@ -206,7 +205,7 @@ select:focus{border-color:var(--accent)}
   
   <div class="dashboard" id="dashboard">
     <div class="dash-grid">
-      <div class="dash-card" id="dc-total" style="cursor:pointer" onclick="clearF()" title="Alle Apps"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
+      <div class="dash-card" id="dc-total" style="cursor:pointer" onclick="clearF()"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Fertig')"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('In Arbeit')"><div class="dc-icon" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-loader"></i></div><div><div class="dc-val" style="color:#854F0B" id="dv-arbeit">—</div><div class="dc-label">In Arbeit</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Blockiert')"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
@@ -645,16 +644,6 @@ function initApp() {
 }
 
 // Auto-start if already logged in
-if (sessionStorage.getItem(LOGIN_KEY) === '1') initApp();
-
-// ════════════════════════════════════════
-// UI FUNCTIONS
-// ════════════════════════════════════════
-function storeColor(s) {
-  const m={'verfügbar':'b-teal','nur Apple':'b-blue','nur Google':'b-green','Aus dem Store':'b-red','aus dem Store':'b-red','bereit für Veröff':'b-orange'};
-  return m[s]||'b-gray';
-}
-
 function statusColor(s) { return {'Fertig':'b-green','In Arbeit':'b-orange','Offen':'b-gray'}[s]||'b-gray'; }
 
 function fmtDate(d) {
@@ -789,30 +778,29 @@ function render() {
     const feats=a.features||{};
     const ft=[feats.login?'<span class="badge b-blue">Login</span>':'',feats.paid?'<span class="badge b-orange">Paid</span>':'',feats.abo?'<span class="badge b-purple">Abo</span>':'',feats.ai?'<span class="badge b-teal">AI</span>':''].filter(Boolean).join('');
     html+=`<div class="app-card${a.blockiert?' blocked':''}" onclick="event.preventDefault();event.stopPropagation();openDetail('${a.id}')">
-      <div class="ac-statusbar" style="background:\${statusBarColor(a.updateStatus,a.blockiert)}"></div>
+      <div class="ac-statusbar" style="background:${statusBarColor(a.updateStatus,a.blockiert)}"></div>
       <div class="ac-inner">
         <div class="ac-top">
-          <div class="ac-icon" style="\${is}"><i class="ti \${ic}"></i></div>
+          <div class="ac-icon" style="${is}"><i class="ti ${ic}"></i></div>
           <div style="min-width:0;flex:1">
-            <div class="ac-name">\${a.name}</div>
-            <div class="ac-meta" style="\${(appleOld||googleOld)&&byVersion?'color:#f06060':''}">\${meta}\${(appleOld||googleOld)&&byVersion?' <span style=\"color:#f06060\">⚠</span>':''}</div>
+            <div class="ac-name">${a.name}</div>
+            <div class="ac-meta" style="${(appleOld||googleOld)&&byVersion?'color:#f06060':''}">${meta}${(appleOld||googleOld)&&byVersion?' <span style=\"color:#f06060\">⚠</span>':''}</div>
           </div>
         </div>
         <div class="ac-divider"></div>
         <div class="ac-tags">
-          \${a.store?`<span class="badge \${storeColor(a.store)}">\${a.store}</span>`:''}
-          \${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge \${statusColor(a.updateStatus)}">\${a.updateStatus}`+'</span>':'<span class="badge b-gray">Offen</span>'}
-          \${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':''}
-          \${a.imUpdate?'<span class="badge" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</span>':''}
-          \${a.benoetigtUpdate?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
-          \${ft}
+          ${a.store?`<span class="badge ${storeColor(a.store)}">${a.store}</span>`:''}
+          ${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge ${statusColor(a.updateStatus)}">${a.updateStatus}`+'</span>':'<span class="badge b-gray">Offen</span>'}
+          ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':''}
+          ${a.imUpdate?'<span class="badge" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</span>':''}
+          ${a.benoetigtUpdate?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
+          ${ft}
         </div>
         <div class="ac-footer">
-          <span class="ac-year">\${fmtDate(a.datum)||a.year||'—'}</span>
-          \${a.benoetigtUpdate?'<span class="card-benoetigt"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':'<span class="ac-access">'+(a.storeZugang||'—')+'</span>'}
+          <span class="ac-year">${fmtDate(a.datum)||a.year||'—'}</span>
+          ${a.benoetigtUpdate?'<span class="card-benoetigt"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':'<span class="ac-access">'+(a.storeZugang||'—')+'</span>'}
         </div>
       </div>
-      \${a.imUpdate?'<div class="card-im-update"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</div>':''}
     </div>`;
   });
   grid.innerHTML=html;
@@ -1272,12 +1260,8 @@ function toast(msg){
   t.innerHTML=`<i class="ti ti-check" style="color:#0F6E56"></i> ${msg}`;
   document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
 }
-// Clear old login session data
-sessionStorage.removeItem('crm_logged_in');
 
-document.addEventListener('DOMContentLoaded', function() {
-  initApp();
-});
+document.addEventListener('DOMContentLoaded', function(){ initApp(); });
 
 </script>
 
