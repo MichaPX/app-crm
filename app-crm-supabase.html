@@ -275,7 +275,7 @@ select:focus{border-color:var(--accent)}
 // ════════════════════════════════════════
 // VERSION & CACHE CHECK
 // ════════════════════════════════════════
-const APP_VERSION = '1780580940';
+const APP_VERSION = '1780580950';
 const STORED_VERSION = localStorage.getItem('app_crm_version');
 
 // If running on file:// protocol, show warning
@@ -300,12 +300,13 @@ const SB_KEY = 'sb_publishable_ih7z6TLCcAxMq9TzdMxj0w_dLQ9AOjY';
 
 async function sbFetch(path, opts) {
   opts = opts || {};
+  const token = localStorage.getItem('crm_access_token') || SB_KEY;
   const res = await fetch(SB_URL + '/rest/v1/' + path, {
     method: opts.method || 'GET',
     body: opts.body || undefined,
     headers: {
       'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
+      'Authorization': 'Bearer ' + token,
       'Content-Type': 'application/json',
       'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=representation',
       ...(opts.headers || {})
