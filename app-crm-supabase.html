@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App CRM Supabase v1780580960</title>
+<title>App CRM Supabase v1780580970</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -207,12 +207,12 @@ select:focus{border-color:var(--accent)}
     <div id="hdate" class="hdate"></div>
     <div class="h-right">
       <button class="btn" onclick="openChangelog()"><i class="ti ti-history"></i> Changelog</button>
-      <button class="btn" onclick="backupData()" title="Alle Daten als JSON speichern"><i class="ti ti-database-export"></i> Backup</button>
-      <button class="btn" onclick="document.getElementById('backup-file').click()" style="color:#085041;background:#E1F5EE;border-color:#9FE1CB" title="Backup einspielen"><i class="ti ti-database-import"></i> Backup einspielen</button>
+      <button class="btn admin-only" onclick="backupData()" title="Alle Daten als JSON speichern"><i class="ti ti-database-export"></i> Backup</button>
+      <button class="btn admin-only" onclick="document.getElementById('backup-file').click()" style="color:#085041;background:#E1F5EE;border-color:#9FE1CB" title="Backup einspielen"><i class="ti ti-database-import"></i> Backup einspielen</button>
       <input type="file" id="backup-file" accept=".json" style="display:none" onchange="restoreFromBackup(this)">
-      <button class="btn" onclick="document.getElementById('csv-file').click()"><i class="ti ti-upload"></i> Import CSV</button>
+      <button class="btn admin-only" onclick="document.getElementById('csv-file').click()"><i class="ti ti-upload"></i> Import CSV</button>
       <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="importCSV(this)">
-      <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      <button class="btn admin-only" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
       <button class="btn btn-primary" onclick="openAdd()"><i class="ti ti-plus"></i> App hinzufügen</button>
       <div class="hsep"></div>
       <span id="header-user" style="font-size:11px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
@@ -655,6 +655,18 @@ function resetToOriginal() {
   if (confirm('Alle Daten durch Monday-Daten ersetzen?')) importMondayData();
 }
 
+// ════════════════════════════════════════
+// ADMIN
+// ════════════════════════════════════════
+const ADMIN_EMAIL = 'pmxarbeit@gmail.com';
+
+function applyRole(email) {
+  const isAdmin = email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+}
+
 // ── Supabase Auth ──
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
@@ -713,6 +725,7 @@ function showApp(email) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-layout').style.display = 'flex';
   if (email) document.getElementById('header-user').textContent = email;
+  applyRole(email);
   initApp();
 }
 
