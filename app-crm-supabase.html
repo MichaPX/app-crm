@@ -1272,7 +1272,12 @@ function toast(msg){
   t.innerHTML=`<i class="ti ti-check" style="color:#0F6E56"></i> ${msg}`;
   document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
 }
-initApp();
+// Clear old login session data
+sessionStorage.removeItem('crm_logged_in');
+
+document.addEventListener('DOMContentLoaded', function() {
+  initApp();
+});
 
 </script>
 
