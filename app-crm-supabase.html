@@ -210,7 +210,7 @@ select:focus{border-color:var(--accent)}
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('In Arbeit')"><div class="dc-icon" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-loader"></i></div><div><div class="dc-val" style="color:#854F0B" id="dv-arbeit">—</div><div class="dc-label">In Arbeit</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Blockiert')"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Offen')"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>
-      <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Im Update</div></div></div>
+      <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Update läuft</div></div></div>
       <div class="dash-card" id="dc-benoetigt" style="cursor:pointer;display:none" onclick="setStatusFilter('benoetigtUpdate')"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
     </div>
     <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
@@ -229,7 +229,7 @@ select:focus{border-color:var(--accent)}
     <select id="f-status" onchange="render()">
       <option value="">Alle Status</option>
       <option>Fertig</option><option>In Arbeit</option><option>Offen</option><option>Blockiert</option>
-      <option value="imUpdate">Im Update</option>
+      <option value="imUpdate">Update läuft</option>
       <option value="benoetigtUpdate">Benötigt Update</option>
     </select>
     <select id="f-year" onchange="render()"><option value="">Alle Jahre</option></select>
@@ -807,7 +807,7 @@ function render() {
           ${a.store?`<span class="badge ${storeColor(a.store)}">${a.store}</span>`:''}
           ${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge ${statusColor(a.updateStatus)}">${a.updateStatus}`+'</span>':'<span class="badge b-gray">Offen</span>'}
           ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':''}
-          ${a.imUpdate?'<div style="position:absolute;top:0;right:0;background:#534AB7;color:#fff;font-size:9px;font-weight:500;padding:3px 8px;border-radius:0 0 0 6px;display:flex;align-items:center;gap:3px"><i class=\"ti ti-refresh\" style=\"font-size:9px\"></i> Im Update</div>':''}
+          ${a.imUpdate?'<div style="position:absolute;top:0;right:0;background:#534AB7;color:#fff;font-size:9px;font-weight:500;padding:3px 8px;border-radius:0 0 0 6px;display:flex;align-items:center;gap:3px"><i class=\"ti ti-refresh\" style=\"font-size:9px\"></i> Update läuft</div>':''}
           ${a.benoetigtUpdate?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
           ${ft}
         </div>
@@ -882,7 +882,7 @@ function openDetail(id){
           ${a.inPruefungApple?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-brand-apple" style="font-size:9px"></i> In Prüfung Apple</span>':''}
           ${a.inPruefungGoogle?'<span class="badge" style="background:#E8F5E9;color:#2E7D32"><i class="ti ti-brand-google-play" style="font-size:9px"></i> In Prüfung Google</span>':''}
           ${a.benoetigtUpdate?'<span class="badge b-update-needed"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
-          ${a.imUpdate?'<span class="badge b-in-update"><i class="ti ti-refresh" style="font-size:9px"></i> Im Update</span>':''}
+          ${a.imUpdate?'<span class="badge b-in-update"><i class="ti ti-refresh" style="font-size:9px"></i> Update läuft</span>':''}
           ${fb}
         </div>
       </div>
@@ -909,9 +909,9 @@ function openDetail(id){
       </div>
     </div>
 
-    <!-- Im Update Toggle -->
+    <!-- Update läuft Toggle -->
     <div class="toggle-wrap" style="margin-top:12px">
-      <span class="toggle-label">Im Update</span>
+      <span class="toggle-label">Update läuft</span>
       <label class="toggle">
         <input type="checkbox" id="detail-imUpdate" ${a.imUpdate?'checked':''} onchange="toggleImUpdate('${a.id}',this.checked)">
         <span class="toggle-slider"></span>
@@ -1258,7 +1258,7 @@ async function toggleImUpdate(id, checked) {
     await saveAppSb(apps[idx]);
     // Update badge in header
     const badges = document.querySelectorAll('.badge.b-in-update');
-    toast('Im Update: ' + (checked ? 'Aktiv' : 'Inaktiv'));
+    toast('Update läuft: ' + (checked ? 'Aktiv' : 'Inaktiv'));
   } catch(e) { toast('Fehler: ' + e.message); }
 }
 
