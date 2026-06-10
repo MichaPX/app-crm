@@ -318,12 +318,14 @@ function doLogin() {
   }
 }
 
-// Check existing session
-if (sessionStorage.getItem(LOGIN_KEY) === '1') {
-  document.getElementById('login-overlay').style.display = 'none';
-  document.getElementById('app-layout').style.display = 'flex';
-  initApp();
-}
+// Check existing session - runs after all JS is parsed
+document.addEventListener('DOMContentLoaded', function() {
+  if (sessionStorage.getItem(LOGIN_KEY) === '1') {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-layout').style.display = 'flex';
+    initApp();
+  }
+});
 
 // ════════════════════════════════════════
 // SUPABASE
