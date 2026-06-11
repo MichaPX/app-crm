@@ -1245,7 +1245,7 @@ function readForm(a){
 }
 
 function openAdd(){
-  const a={id:Date.now(),name:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',appManager:'',update:'',blockiert:false,statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}},contactEmail:'';
+  const a={id:Date.now(),name:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',contactEmail:'',appManager:'',update:'',blockiert:false,statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}};
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">${formHTML(a,'Neue App hinzufügen')}<div class="modal-actions"><button class="btn" onclick="closeMod()">Abbrechen</button><button class="btn btn-primary" onclick="saveAdd()"><i class="ti ti-check"></i> Speichern</button></div></div></div>`;
 }
 
