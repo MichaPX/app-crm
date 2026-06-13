@@ -376,7 +376,7 @@ function appToRow(a) {
 
 function rowToApp(r) {
   return {
-    id: String(r.id), _dbId: r.id, name: r.name||'',
+    id: String(r.id), _dbId: r.id, name: r.name||'', company: r.company||'',
     pegasus: r.pegasus||'', vApple: r.v_apple||'', vGoogle: r.v_google||'',
     appleStore: r.apple_store||'', googleStore: r.google_store||'',
     store: r.store||'', year: r.year||'', storeZugang: r.store_zugang||'',
