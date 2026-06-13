@@ -238,6 +238,10 @@ select:focus{border-color:var(--accent)}
       <i class="ti ti-search"></i>
       <input type="search" id="search" placeholder="App suchen… (⌘K)" oninput="render()">
     </div>
+    <div class="search-wrap">
+      <i class="ti ti-building"></i>
+      <input type="search" id="search-company" placeholder="Unternehmen suchen…" oninput="render()">
+    </div>
     <select id="f-store" onchange="render()">
       <option value="">Alle Stores</option>
       <option>verfügbar</option><option>nur Apple</option><option>nur Google</option>
@@ -813,7 +817,9 @@ function render() {
   const cy=ys.value;
   ys.innerHTML='<option value="">Alle Jahre</option>'+years.map(y=>`<option${y===cy?' selected':''}>${y}</option>`).join('');
   let list=apps.filter(a=>{
-    if(q&&!a.name.toLowerCase().includes(q)&&!(a.company||'').toLowerCase().includes(q)) return false;
+    if(q&&!a.name.toLowerCase().includes(q)) return false;
+    const qc=document.getElementById('search-company').value.toLowerCase();
+    if(qc&&!(a.company||'').toLowerCase().includes(qc)) return false;
     if(fs) {
       if(fs==='aus dem Store') { if(a.store!=='Aus dem Store'&&a.store!=='aus dem Store') return false; }
       else { if(a.store!==fs) return false; }
@@ -948,6 +954,7 @@ function render() {
 
 function clearF(){
   document.getElementById('search').value='';
+  document.getElementById('search-company').value='';
   document.getElementById('f-store').value='';
   document.getElementById('f-status').value='';
   document.getElementById('f-year').value='';
