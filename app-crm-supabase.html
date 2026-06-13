@@ -350,7 +350,7 @@ async function sbFetch(path, opts) {
 // ── Data mapping ──
 function appToRow(a) {
   return {
-    app_id: String(a.id), name: a.name||'', pegasus: a.pegasus||'',
+    app_id: String(a.id), name: a.name||'', company: a.company||'', pegasus: a.pegasus||'',
     v_apple: a.vApple||'', v_google: a.vGoogle||'',
     apple_store: a.appleStore||'', google_store: a.googleStore||'',
     store: a.store||'', year: a.year||'', store_zugang: a.storeZugang||'',
