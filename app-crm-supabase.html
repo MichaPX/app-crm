@@ -249,7 +249,7 @@ select:focus{border-color:var(--accent)}
     </select>
     <select id="f-status" onchange="render()">
       <option value="">Alle Status</option>
-      <option>Fertig</option><option>Offen</option><option>Blockiert</option>
+      <option>Fertig</option><option>Offen</option><option>Blockiert</option><option>Gekündigt</option>
       <option value="imUpdate">Update läuft</option>
       <option value="benoetigtUpdate">Benötigt Update</option>
     </select>
@@ -360,6 +360,8 @@ function appToRow(a) {
     login_google: a.loginGoogle||'', contact_email: a.contactEmail||'', app_manager: a.appManager||'',
     update_status: a.updateStatus||'Offen', update_field: a.update||'',
     blockiert: !!a.blockiert,
+    gekuendigt: !!a.gekuendigt,
+    gekuendigt_datum: a.gekuendigtDatum||'',
     feat_login: !!((a.features||{}).login),
     feat_paid: !!((a.features||{}).paid),
     feat_abo: !!((a.features||{}).abo),
@@ -385,7 +387,7 @@ function rowToApp(r) {
     fcs: r.fcs||'', datum: r.datum||'', loginApple: r.login_apple||'',
     loginGoogle: r.login_google||'', contactEmail: r.contact_email||'', appManager: r.app_manager||'',
     updateStatus: r.update_status||'Offen', update: r.update_field||'',
-    blockiert: !!r.blockiert,
+    blockiert: !!r.blockiert, gekuendigt: !!r.gekuendigt, gekuendigtDatum: r.gekuendigt_datum||'',
     features: {
       login: !!r.feat_login, paid: !!r.feat_paid,
       abo: !!r.feat_abo, ai: !!r.feat_ai, ac: r.feat_ac||''
@@ -424,6 +426,8 @@ function backupToApp(a) {
     updateStatus: a.updateStatus||'Offen',
     update: a.update||'',
     blockiert: !!a.blockiert,
+    gekuendigt: !!a.gekuendigt,
+    gekuendigt_datum: a.gekuendigtDatum||'',
     features: a.features || {login:false, paid:false, abo:false, ai:false, ac:false}
   };
 }
@@ -664,7 +668,7 @@ async function saveEdit(id) {
 }
 
 async function saveAdd() {
-  const a = readForm({id:Date.now(),name:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',contactEmail:'',appManager:'',update:'',blockiert:false,statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}});
+  const a = readForm({id:Date.now(),name:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',contactEmail:'',appManager:'',update:'',blockiert:false,gekuendigt:false,gekuendigtDatum:'',statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}});
   if (!a.name) { document.getElementById('f-name').focus(); return; }
   try {
     await saveAppSb(a);
@@ -829,6 +833,7 @@ function render() {
     if(fst==='In Arbeit'&&a.updateStatus!=='In Arbeit') return false;
     if(fst==='Blockiert'&&!a.blockiert) return false;
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
+    if(fst==='Gekündigt'&&!a.gekuendigt) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
     if(fst==='ac'&&!(a.features&&a.features.ac)) return false;
@@ -868,6 +873,12 @@ function render() {
   else if(sortVal==='vapple-desc') list.sort((a,b)=>cmpV(a.vApple,b.vApple,-1));
   else if(sortVal==='vgoogle-asc') list.sort((a,b)=>cmpV(a.vGoogle,b.vGoogle,1));
   else if(sortVal==='vgoogle-desc') list.sort((a,b)=>cmpV(a.vGoogle,b.vGoogle,-1));
+  // Wenn nach Gekündigt gefiltert → automatisch nach Kündigungsdatum aufsteigend
+  if(fst==='Gekündigt') list.sort((a,b)=>{
+    const da=a.gekuendigtDatum||'9999';
+    const db=b.gekuendigtDatum||'9999';
+    return da.localeCompare(db);
+  });
   const total=apps.length,fertig=apps.filter(a=>a.updateStatus==='Fertig').length;
   const inA=apps.filter(a=>a.updateStatus==='In Arbeit').length,block=apps.filter(a=>a.blockiert).length;
   const curStatus = document.getElementById('f-status').value;
@@ -1050,6 +1061,7 @@ function openDetail(id){
         ${ir('Jahr',a.year)}
         ${ir('Store Zugang',a.storeZugang)}
         ${ir('FCS',a.fcs)}
+        ${a.gekuendigt?ir('Gekündigt',a.gekuendigtDatum?new Date(a.gekuendigtDatum).toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'}):'Ja'):''}
         ${ir('Datum',a.datum?new Date(a.datum).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}):a.datum)}
       </div>
       <div>
@@ -1174,7 +1186,7 @@ function formHTML(a,title){
     </div>
     <div class="field"><label>Produkt IDs</label><input id="f-produktIDs" value="${s('produktIDs')}"></div>
     <div class="field"><label>Login Apple</label><input id="f-loginApple" value="${s('loginApple')}"></div>
-    <div class="field"><label>Login Google</label><input id="f-loginGoogle" value="${s('loginGoogle')}"></div>
+    <div class="field full"><label>Login Google</label><input id="f-loginGoogle" value="${s('loginGoogle')}"></div>
     <div class="field full"><label>Ansprechpartner E-Mail</label><input type="email" id="f-contactEmail" value="${s('contactEmail')}" placeholder="ansprechpartner@firma.de"></div>
     <div class="field full"><label>AppManager Link</label><input id="f-appManager" value="${s('appManager')}"></div>
     <div class="fsec">App-Funktionen</div>
@@ -1249,13 +1261,15 @@ function readForm(a){
   };
   a.contactEmail=document.getElementById('f-contactEmail')?document.getElementById('f-contactEmail').value.trim():'';
   a.blockiert=document.getElementById('f-blockiert').checked;
+  a.gekuendigt=document.getElementById('f-gekuendigt')?document.getElementById('f-gekuendigt').checked:false;
+  a.gekuendigtDatum=document.getElementById('f-gekuendigt-datum')?document.getElementById('f-gekuendigt-datum').value:'';
   a.inPruefungApple=document.getElementById('f-inPruefungApple') ? document.getElementById('f-inPruefungApple').checked : (a.inPruefungApple||false);
   a.inPruefungGoogle=document.getElementById('f-inPruefungGoogle') ? document.getElementById('f-inPruefungGoogle').checked : (a.inPruefungGoogle||false);
   return a;
 }
 
 function openAdd(){
-  const a={id:Date.now(),name:'',company:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',contactEmail:'',appManager:'',update:'',blockiert:false,statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}};
+  const a={id:Date.now(),name:'',company:'',pegasus:'',vApple:'',vGoogle:'',appleStore:'',googleStore:'',store:'',year:new Date().getFullYear().toString(),storeZugang:'',deeplinks:'',push:'',produktIDs:'',updateStatus:'Offen',fcs:'',datum:'',loginApple:'',loginGoogle:'',contactEmail:'',appManager:'',update:'',blockiert:false,gekuendigt:false,gekuendigtDatum:'',statistik:'',updateAppManager:'',features:{login:false,paid:false,abo:false,ai:false,ac:''}};
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">${formHTML(a,'Neue App hinzufügen')}<div class="modal-actions"><button class="btn" onclick="closeMod()">Abbrechen</button><button class="btn btn-primary" onclick="saveAdd()"><i class="ti ti-check"></i> Speichern</button></div></div></div>`;
 }
 
