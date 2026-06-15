@@ -1425,7 +1425,6 @@ function updateDashboard() {
   const offen=apps.filter(a=>a.updateStatus==='Offen'&&!a.blockiert).length;
   document.getElementById('dv-total').textContent=total;
   document.getElementById('dv-fertig').textContent=fertig;
-  document.getElementById('dv-arbeit').textContent=inA;
   document.getElementById('dv-block').textContent=block;
   document.getElementById('dv-offen').textContent=offen;
   const imUpdate=apps.filter(a=>a.imUpdate).length;
