@@ -949,6 +949,7 @@ function render() {
           ${a.store?`<span class="badge ${storeColor(a.store)}">${a.store}</span>`:''}
           ${a.updateStatus&&a.updateStatus!=='Offen'?`<span class="badge ${statusColor(a.updateStatus)}">${a.updateStatus}`+'</span>':'<span class="badge b-gray">Offen</span>'}
           ${a.blockiert?'<span class="badge b-red"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':''}
+          ${a.gekuendigt?`<span class="badge" style="background:#FEE2E2;color:#991B1B"><i class="ti ti-scissors" style="font-size:9px"></i> Gekündigt${a.gekuendigtDatum?' · '+new Date(a.gekuendigtDatum).toLocaleDateString('de-DE',{day:'numeric',month:'short'}):''}` + '</span>':''}
           ${a.imUpdate?'<div style="position:absolute;top:0;right:0;background:#534AB7;color:#fff;font-size:9px;font-weight:500;padding:3px 8px;border-radius:0 0 0 6px;display:flex;align-items:center;gap:3px"><i class=\"ti ti-refresh\" style=\"font-size:9px\"></i> Update läuft</div>':''}
           ${a.benoetigtUpdate?'<span class="badge" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':''}
           ${ft}
