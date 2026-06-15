@@ -271,7 +271,7 @@ select:focus{border-color:var(--accent)}
     <button class="btn btn-ghost" onclick="clearF()"><i class="ti ti-x" style="font-size:11px"></i> Filter zurücksetzen</button>
     <span id="count" style="font-size:11px;color:var(--text3)"></span>
   </div>
-  <div class="content"><div class="grid" id="grid"></div></div>
+  <div class="content"><div id="kuendigung-banner" style="display:none;margin-bottom:12px;border-radius:10px;overflow:hidden"></div><div class="grid" id="grid"></div></div>
 </div>
 <div id="mc"></div>
 
@@ -1440,6 +1440,58 @@ function updateDashboard() {
   const gekuendigtCount=apps.filter(a=>a.gekuendigt).length;
   const dcGekuendigt=document.getElementById('dc-gekuendigt');
   if(dcGekuendigt){dcGekuendigt.style.display=gekuendigtCount>0?'flex':'none';document.getElementById('dv-gekuendigt').textContent=gekuendigtCount;}
+
+  // Kündigungs-Benachrichtigung: heute + nächste 30 Tage
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in30 = new Date(today); in30.setDate(in30.getDate()+7);
+  const faellig = apps.filter(a => {
+    if (!a.gekuendigt || !a.gekuendigtDatum) return false;
+    const d = new Date(a.gekuendigtDatum); d.setHours(0,0,0,0);
+    return d >= today && d <= in30;
+  }).sort((a,b) => new Date(a.gekuendigtDatum) - new Date(b.gekuendigtDatum));
+  const banner = document.getElementById('kuendigung-banner');
+  if (banner) {
+    if (faellig.length > 0) {
+      const heute = faellig.filter(a => { const d=new Date(a.gekuendigtDatum); d.setHours(0,0,0,0); return d.getTime()===today.getTime(); });
+      const bald  = faellig.filter(a => { const d=new Date(a.gekuendigtDatum); d.setHours(0,0,0,0); return d.getTime()!==today.getTime(); });
+      let html = `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:${faellig.length>0?'10px':'0'}">
+          <i class="ti ti-alert-triangle" style="color:#DC2626;font-size:16px"></i>
+          <span style="font-weight:600;color:#991B1B;font-size:13px">Kündigungen fällig — nächste 7 Tage (${faellig.length})</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">`;
+      if (heute.length > 0) {
+        heute.forEach(a => {
+          html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#FEE2E2;border-radius:6px">
+            <i class="ti ti-scissors" style="color:#DC2626;font-size:12px"></i>
+            <span style="font-weight:600;color:#991B1B;font-size:12px">HEUTE:</span>
+            <span style="font-size:12px;color:#7F1D1D;font-weight:500">${a.name}</span>
+            ${a.company?`<span style="font-size:11px;color:#991B1B;opacity:0.7">· ${a.company}</span>`:''}
+            <button onclick="openDetail('${a.id}')" style="margin-left:auto;font-size:11px;padding:2px 8px;border:1px solid #DC2626;border-radius:5px;background:white;color:#DC2626;cursor:pointer">Details</button>
+          </div>`;
+        });
+      }
+      if (bald.length > 0) {
+        bald.forEach(a => {
+          const d = new Date(a.gekuendigtDatum);
+          const diffDays = Math.round((d - today) / (1000*60*60*24));
+          const label = diffDays===1 ? 'Morgen' : `In ${diffDays} Tagen`;
+          html += `<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(254,226,226,0.4);border-radius:6px">
+            <i class="ti ti-calendar" style="color:#DC2626;font-size:12px"></i>
+            <span style="font-size:11px;color:#991B1B;font-weight:500;min-width:70px">${label}:</span>
+            <span style="font-size:12px;color:#7F1D1D">${a.name}</span>
+            ${a.company?`<span style="font-size:11px;color:#991B1B;opacity:0.7">· ${a.company}</span>`:''}
+            <span style="margin-left:auto;font-size:11px;color:#991B1B">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}</span>
+          </div>`;
+        });
+      }
+      html += `</div></div>`;
+      banner.innerHTML = html;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
 
   // Store bars
   const storeCounts={};
