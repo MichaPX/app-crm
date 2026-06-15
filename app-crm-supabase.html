@@ -1225,6 +1225,13 @@ function formHTML(a,title){
       </label>
     </div></div>
     <div class="check-field" style="grid-column:1/-1"><input type="checkbox" id="f-blockiert" ${a.blockiert?'checked':''}><label for="f-blockiert">Blockiert</label></div>
+    <div class="check-field" style="grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:#A32D2D"><input type="checkbox" id="f-gekuendigt" ${a.gekuendigt?'checked':''} style="accent-color:#C0392B;width:15px;height:15px" onchange="document.getElementById('f-gekuendigt-datum-wrap').style.display=this.checked?'flex':'none'"> Gekündigt</label>
+      <div id="f-gekuendigt-datum-wrap" style="display:${a.gekuendigt?'flex':'none'};align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text3)">Datum:</span>
+        <input type="date" id="f-gekuendigt-datum" value="${a.gekuendigtDatum||''}" style="font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:4px 8px;background:var(--bg);color:var(--text)">
+      </div>
+    </div>
   </div>`;
 }
 
