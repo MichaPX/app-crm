@@ -224,7 +224,7 @@ select:focus{border-color:var(--accent)}
     <div class="dash-grid">
       <div class="dash-card" id="dc-total" style="cursor:pointer" onclick="clearF()"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Fertig')"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
-      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('In Arbeit')"><div class="dc-icon" style="background:#FAEEDA;color:#854F0B"><i class="ti ti-loader"></i></div><div><div class="dc-val" style="color:#854F0B" id="dv-arbeit">—</div><div class="dc-label">In Arbeit</div></div></div>
+      <div class="dash-card" id="dc-gekuendigt" style="cursor:pointer;display:none" onclick="setStatusFilter('Gekündigt')"><div class="dc-icon" style="background:#FEE2E2;color:#991B1B"><i class="ti ti-scissors"></i></div><div><div class="dc-val" style="color:#991B1B" id="dv-gekuendigt">—</div><div class="dc-label">Gekündigt</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Blockiert')"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Offen')"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>      <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Update läuft</div></div></div>
       <div class="dash-card" id="dc-benoetigt" style="cursor:pointer;display:none" onclick="setStatusFilter('benoetigtUpdate')"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
@@ -1430,6 +1430,9 @@ function updateDashboard() {
   const acCount=apps.filter(a=>a.features&&a.features.ac&&a.features.ac!=='').length;
   const dcAc=document.getElementById('dc-ac');
   if(dcAc){dcAc.style.display=acCount>0?'flex':'none';document.getElementById('dv-ac').textContent=acCount;}
+  const gekuendigtCount=apps.filter(a=>a.gekuendigt).length;
+  const dcGekuendigt=document.getElementById('dc-gekuendigt');
+  if(dcGekuendigt){dcGekuendigt.style.display=gekuendigtCount>0?'flex':'none';document.getElementById('dv-gekuendigt').textContent=gekuendigtCount;}
 
   // Store bars
   const storeCounts={};
