@@ -1445,7 +1445,7 @@ function updateDashboard() {
   const today = new Date(); today.setHours(0,0,0,0);
   const in30 = new Date(today); in30.setDate(in30.getDate()+7);
   const faellig = apps.filter(a => {
-    if (!a.gekuendigt || !a.gekuendigtDatum) return false;
+    if (!a.gekuendigt || !a.gekuendigtDatum || a.blockiert) return false;
     const d = new Date(a.gekuendigtDatum); d.setHours(0,0,0,0);
     return d >= today && d <= in30;
   }).sort((a,b) => new Date(a.gekuendigtDatum) - new Date(b.gekuendigtDatum));
@@ -1457,7 +1457,7 @@ function updateDashboard() {
       let html = `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 16px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:${faellig.length>0?'10px':'0'}">
           <i class="ti ti-alert-triangle" style="color:#DC2626;font-size:16px"></i>
-          <span style="font-weight:600;color:#991B1B;font-size:13px">Kündigungen fällig — nächste 7 Tage (${faellig.length})</span>
+          <span style="font-weight:600;color:#991B1B;font-size:13px">Kündigungen fällig (${faellig.length})</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">`;
       if (heute.length > 0) {
