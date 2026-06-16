@@ -987,6 +987,94 @@ function setStatusFilter(val) {
   render();
 }
 
+function switchDetailTab(tab, appId) {
+  const infoBtn = document.getElementById('tab-info-btn');
+  const pidBtn = document.getElementById('tab-pid-btn');
+  const infoContent = document.getElementById('tab-info-content');
+  const pidContent = document.getElementById('tab-pid-content');
+  if (tab === 'info') {
+    infoBtn.style.color='#534AB7'; infoBtn.style.borderBottom='2px solid #534AB7';
+    pidBtn.style.color='var(--text2)'; pidBtn.style.borderBottom='2px solid transparent';
+    infoContent.style.display=''; pidContent.style.display='none';
+  } else {
+    pidBtn.style.color='#534AB7'; pidBtn.style.borderBottom='2px solid #534AB7';
+    infoBtn.style.color='var(--text2)'; infoBtn.style.borderBottom='2px solid transparent';
+    infoContent.style.display='none'; pidContent.style.display='';
+    loadProduktIDs(appId);
+  }
+}
+
+async function loadProduktIDs(appId) {
+  const wrap = document.getElementById('pid-table-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<i class="ti ti-loader" style="font-size:20px;color:var(--text3)"></i>';
+  try {
+    const rows = await sbFetch('produkt_ids?app_id=eq.' + appId + '&order=jahr.desc');
+    renderProduktIDTable(appId, rows || []);
+  } catch(e) {
+    wrap.innerHTML = '<span style="color:#A32D2D;font-size:12px">Fehler beim Laden</span>';
+  }
+}
+
+function renderProduktIDTable(appId, rows) {
+  const wrap = document.getElementById('pid-table-wrap');
+  if (!wrap) return;
+  const rowsHTML = rows.map(r => `
+    <tr id="pid-row-${r.id}">
+      <td style="padding:7px 8px;font-weight:500;color:var(--text)">${r.jahr}</td>
+      <td style="text-align:center;padding:7px 8px">
+        <input type="checkbox" ${r.apple?'checked':''} onchange="savePidField(${r.id},'apple',this.checked)" style="accent-color:#534AB7;width:14px;height:14px">
+      </td>
+      <td style="text-align:center;padding:7px 8px">
+        <input type="checkbox" ${r.google?'checked':''} onchange="savePidField(${r.id},'google',this.checked)" style="accent-color:#534AB7;width:14px;height:14px">
+      </td>
+      <td style="padding:7px 8px">
+        <input type="text" value="${(r.notiz||'').replace(/"/g,'&quot;')}" onchange="savePidField(${r.id},'notiz',this.value)" placeholder="Notiz…" style="font-size:12px;width:100%;border:0.5px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg);color:var(--text)">
+      </td>
+      <td style="padding:7px 8px;text-align:right">
+        <button onclick="deletePidRow(${r.id},'${appId}')" style="font-size:11px;padding:2px 6px;border:0.5px solid #F7C1C1;border-radius:4px;background:transparent;color:#A32D2D;cursor:pointer"><i class="ti ti-trash" style="font-size:11px"></i></button>
+      </td>
+    </tr>`).join('');
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="color:var(--text2);border-bottom:0.5px solid var(--border)">
+          <th style="text-align:left;padding:6px 8px;font-weight:500">Jahr</th>
+          <th style="text-align:center;padding:6px 8px;font-weight:500"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple</th>
+          <th style="text-align:center;padding:6px 8px;font-weight:500"><i class="ti ti-brand-google" style="font-size:13px"></i> Google</th>
+          <th style="text-align:left;padding:6px 8px;font-weight:500">Notiz</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rowsHTML}</tbody>
+    </table>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+      <input type="number" id="pid-new-jahr" placeholder="${new Date().getFullYear()}" value="${new Date().getFullYear()}" style="width:80px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:5px 8px;background:var(--bg);color:var(--text)">
+      <button onclick="addPidRow('${appId}')" style="font-size:12px;padding:5px 12px;border:0.5px solid var(--border);border-radius:5px;background:var(--bg3);color:var(--text);cursor:pointer"><i class="ti ti-plus" style="font-size:12px"></i> Jahr hinzufügen</button>
+    </div>`;
+}
+
+async function savePidField(id, field, value) {
+  try {
+    await sbFetch('produkt_ids?id=eq.' + id, { method:'PATCH', body: JSON.stringify({[field]: value}), prefer:'' });
+  } catch(e) { toast('Fehler beim Speichern'); }
+}
+
+async function addPidRow(appId) {
+  const jahr = parseInt(document.getElementById('pid-new-jahr').value) || new Date().getFullYear();
+  try {
+    await sbFetch('produkt_ids', { method:'POST', body: JSON.stringify({app_id: appId, jahr, apple:false, google:false, notiz:''}), prefer:'' });
+    loadProduktIDs(appId);
+  } catch(e) { toast('Fehler beim Hinzufügen'); }
+}
+
+async function deletePidRow(id, appId) {
+  try {
+    await sbFetch('produkt_ids?id=eq.' + id, { method:'DELETE', prefer:'' });
+    loadProduktIDs(appId);
+  } catch(e) { toast('Fehler beim Löschen'); }
+}
+
 function filterByFeature(feat) {
   window._featFilter = feat;
   render();
@@ -1056,7 +1144,14 @@ function openDetail(id){
       </div>
       <button class="btn btn-ghost" onclick="closeMod()" style="padding:4px 8px;flex-shrink:0"><i class="ti ti-x"></i></button>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
+
+    <div style="display:flex;border-bottom:0.5px solid var(--border);margin-bottom:14px">
+      <button id="tab-info-btn" onclick="switchDetailTab('info','${a.id}')" style="padding:8px 16px;font-size:12px;font-weight:500;color:#534AB7;border:none;border-bottom:2px solid #534AB7;background:transparent;cursor:pointer"><i class="ti ti-info-circle" style="font-size:12px;margin-right:4px"></i>Info</button>
+      <button id="tab-pid-btn" onclick="switchDetailTab('pid','${a.id}')" style="padding:8px 16px;font-size:12px;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer"><i class="ti ti-package" style="font-size:12px;margin-right:4px"></i>Produkt IDs</button>
+    </div>
+
+    <div id="tab-info-content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">
       <div>
         <div class="sec-head">Store & Status</div>
         ${ir('Jahr',a.year)}
@@ -1101,6 +1196,7 @@ function openDetail(id){
         <span style="font-weight:500;padding:1px 6px;border-radius:3px;background:${a.googleServiceAccount==='hinterlegt'?'#E1F5EE':'#FCEBEB'};color:${a.googleServiceAccount==='hinterlegt'?'#085041':'#A32D2D'}">${a.googleServiceAccount==='hinterlegt'?'✅':'⚠️'}</span>
       </div>`:''}
     </div>
+    </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:0.5px solid #f0f0ec;margin-top:4px">
       ${a.pegasus?`<a href="${a.pegasus}" target="_blank" class="link-btn link-btn-pegasus"><i class="ti ti-link" style="font-size:13px"></i> Pegasus</a>`:''}
@@ -1115,6 +1211,17 @@ function openDetail(id){
       <button class="btn" onclick="closeMod()">Schließen</button>
       <button class="btn btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
     </div>
+    </div>
+
+    <div id="tab-pid-content" style="display:none">
+      <div id="pid-table-wrap" style="min-height:120px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px"><i class="ti ti-loader" style="font-size:20px"></i></div>
+      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeMod()">Schließen</button>
+        <button class="btn btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
+      </div>
+    </div>
+
   </div></div>`;
 }
 
