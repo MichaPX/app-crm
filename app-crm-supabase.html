@@ -992,14 +992,17 @@ function switchDetailTab(tab, appId) {
   const pidBtn = document.getElementById('tab-pid-btn');
   const infoContent = document.getElementById('tab-info-content');
   const pidContent = document.getElementById('tab-pid-content');
+  const pidAddWrap = document.getElementById('pid-add-wrap');
   if (tab === 'info') {
     infoBtn.style.color='#534AB7'; infoBtn.style.borderBottom='2px solid #534AB7';
     pidBtn.style.color='var(--text2)'; pidBtn.style.borderBottom='2px solid transparent';
     infoContent.style.display=''; pidContent.style.display='none';
+    if(pidAddWrap) pidAddWrap.style.display='none';
   } else {
     pidBtn.style.color='#534AB7'; pidBtn.style.borderBottom='2px solid #534AB7';
     infoBtn.style.color='var(--text2)'; infoBtn.style.borderBottom='2px solid transparent';
     infoContent.style.display='none'; pidContent.style.display='';
+    if(pidAddWrap) pidAddWrap.style.display='flex';
     loadProduktIDs(appId);
   }
 }
@@ -1036,11 +1039,6 @@ function renderProduktIDTable(appId, rows) {
       </td>
     </tr>`).join('');
   wrap.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--border)">
-      <span style="font-size:12px;color:var(--text2)">Jahr hinzufügen:</span>
-      <input type="number" id="pid-new-jahr" value="${new Date().getFullYear()}" style="width:75px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:4px 8px;background:var(--bg);color:var(--text)">
-      <button onclick="addPidRow('${appId}')" style="font-size:12px;padding:5px 12px;border:0.5px solid var(--border);border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-plus" style="font-size:12px"></i> Hinzufügen</button>
-    </div>
     <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead>
@@ -1148,9 +1146,13 @@ function openDetail(id){
       <button class="btn btn-ghost" onclick="closeMod()" style="padding:4px 8px;flex-shrink:0"><i class="ti ti-x"></i></button>
     </div>
 
-    <div style="display:flex;border-bottom:0.5px solid var(--border);margin-bottom:14px">
+    <div style="display:flex;align-items:center;border-bottom:0.5px solid var(--border);margin-bottom:14px">
       <button id="tab-info-btn" onclick="switchDetailTab('info','${a.id}')" style="padding:8px 16px;font-size:12px;font-weight:500;color:#534AB7;border:none;border-bottom:2px solid #534AB7;background:transparent;cursor:pointer"><i class="ti ti-info-circle" style="font-size:12px;margin-right:4px"></i>Info</button>
       <button id="tab-pid-btn" onclick="switchDetailTab('pid','${a.id}')" style="padding:8px 16px;font-size:12px;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer"><i class="ti ti-package" style="font-size:12px;margin-right:4px"></i>Produkt IDs</button>
+      <div id="pid-add-wrap" style="display:none;margin-left:auto;display:none;align-items:center;gap:6px;padding-bottom:4px">
+        <input type="number" id="pid-new-jahr" value="${new Date().getFullYear()}" style="width:70px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:4px 6px;background:var(--bg);color:var(--text)">
+        <button onclick="addPidRow('${a.id}')" style="font-size:12px;padding:4px 10px;border:none;border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-plus" style="font-size:12px"></i> Hinzufügen</button>
+      </div>
     </div>
 
     <div id="tab-info-content">
