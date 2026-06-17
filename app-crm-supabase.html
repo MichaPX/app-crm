@@ -231,7 +231,7 @@ select:focus{border-color:var(--accent)}
       <div class="dash-card" id="dc-ac" style="cursor:pointer;display:none" onclick="filterByFeature('ac')"><div class="dc-icon" style="background:#EEF2FF;color:#3730A3"><i class="ti ti-key"></i></div><div><div class="dc-val" style="color:#3730A3" id="dv-ac">—</div><div class="dc-label">A.C</div></div></div>
     </div>
     <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
-    <div class="dash-bars"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
+    <div class="dash-bars admin-only"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
   </div>
   <div class="toolbar">
     <div class="search-wrap">
@@ -1605,10 +1605,13 @@ function updateDashboard() {
   }
 
   // Store bars
+  const storeOrder=['verfügbar','nur Apple','nur Google','Aus dem Store','—'];
+  const storeColors={'verfügbar':'#2dd4bf','nur Apple':'#5aabf5','nur Google':'#34c472','Aus dem Store':'#f06060','—':'#555560'};
   const storeCounts={};
-  apps.forEach(a=>{ const s=a.store||'—'; storeCounts[s]=(storeCounts[s]||0)+1; });
-  const storeOrder=['verfügbar','nur Apple','nur Google','Aus dem Store','aus dem Store','—'];
-  const storeColors={'verfügbar':'#2dd4bf','nur Apple':'#5aabf5','nur Google':'#34c472','Aus dem Store':'#f06060','aus dem Store':'#f06060','—':'#555560'};
+  apps.forEach(a=>{
+    const s = (a.store==='aus dem Store') ? 'Aus dem Store' : (a.store||'—');
+    storeCounts[s]=(storeCounts[s]||0)+1;
+  });
   const maxS=Math.max(...Object.values(storeCounts));
   const allStores=[...new Set([...storeOrder,...Object.keys(storeCounts)])].filter(k=>storeCounts[k]);
   document.getElementById('store-bars').innerHTML=allStores.slice(0,6).map(s=>`
