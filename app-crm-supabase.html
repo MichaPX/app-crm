@@ -1641,12 +1641,35 @@ async function toggleImUpdate(id, checked) {
   if(label) label.textContent = checked ? 'Aktiv' : 'Inaktiv';
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if(idx < 0) return;
+
+  // Warnung wenn Update auf Inaktiv gestellt und noch offene Punkte vorhanden
+  if (!checked) {
+    try {
+      const notizen = await sbFetch('update_notizen?app_id=eq.' + id);
+      if (notizen && notizen[0]) {
+        const n = notizen[0];
+        const offen = [];
+        if (!n.banner) offen.push('Banner');
+        if (!n.login) offen.push('Login');
+        if (!n.freischaltcode) offen.push('Freischaltcode');
+        if (!n.links) offen.push('Links');
+        if (!n.einzelkaeufe) offen.push('Einzelkäufe');
+        if (!n.abos) offen.push('Abos');
+        if (offen.length > 0) {
+          const cb = document.getElementById('detail-imUpdate');
+          if (cb) cb.checked = true;
+          if (label) label.textContent = 'Aktiv';
+          toastWarn('Noch offene Punkte: ' + offen.join(', '));
+          return;
+        }
+      }
+    } catch(e) {}
+  }
+
   apps[idx].imUpdate = checked;
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
     await saveAppSb(apps[idx]);
-    // Update badge in header
-    const badges = document.querySelectorAll('.badge.b-in-update');
     toast('Update läuft: ' + (checked ? 'Aktiv' : 'Inaktiv'));
   } catch(e) { toast('Fehler: ' + e.message); }
 }
@@ -1669,6 +1692,13 @@ function toast(msg){
   const t=document.createElement('div');t.className='toast';
   t.innerHTML=`<i class="ti ti-check" style="color:#0F6E56"></i> ${msg}`;
   document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
+}
+
+function toastWarn(msg){
+  const t=document.createElement('div');t.className='toast';
+  t.style.borderLeft='3px solid #A32D2D';
+  t.innerHTML=`<i class="ti ti-alert-triangle" style="color:#A32D2D"></i> ${msg}`;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
