@@ -1100,9 +1100,9 @@ async function loadUpdateNotizen(appId) {
   const chk = (val) => val ? 'checked' : '';
   const ts = (field) => {
     const last = log.find(l => l.feld === field);
-    if (!last) return '';
+    if (!last) return `<span class="upd-ts" data-ts="${field}" style="margin-left:auto;font-size:10px;color:var(--text3)"></span>`;
     const d = new Date(last.zeitpunkt);
-    return `<span style="margin-left:auto;font-size:10px;color:var(--text3)">${last.aktion==='deaktiviert'?'deakt.':'akt.'} ${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>`;
+    return `<span class="upd-ts" data-ts="${field}" style="margin-left:auto;font-size:10px;color:var(--text3)">${last.aktion==='deaktiviert'?'deakt.':'akt.'} ${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>`;
   };
 
   const recentLog = log.slice(0, 3);
@@ -1216,8 +1216,6 @@ async function onUpdCheck(el, appId) {
         now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' +
         now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     }
-
-    // Changelog UI aktualisieren
     const logRows = await sbFetch('update_notizen_log?app_id=eq.' + appId + '&order=zeitpunkt.desc&limit=50');
     renderChangelogSection(logRows||[]);
 
