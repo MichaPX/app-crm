@@ -990,20 +990,28 @@ function setStatusFilter(val) {
 function switchDetailTab(tab, appId) {
   const infoBtn = document.getElementById('tab-info-btn');
   const pidBtn = document.getElementById('tab-pid-btn');
+  const updBtn = document.getElementById('tab-upd-btn');
   const infoContent = document.getElementById('tab-info-content');
   const pidContent = document.getElementById('tab-pid-content');
+  const updContent = document.getElementById('tab-upd-content');
   const pidAddWrap = document.getElementById('pid-add-wrap');
-  if (tab === 'info') {
-    infoBtn.style.color='#534AB7'; infoBtn.style.borderBottom='2px solid #534AB7';
-    pidBtn.style.color='var(--text2)'; pidBtn.style.borderBottom='2px solid transparent';
-    infoContent.style.display=''; pidContent.style.display='none';
-    if(pidAddWrap) pidAddWrap.style.display='none';
-  } else {
-    pidBtn.style.color='#534AB7'; pidBtn.style.borderBottom='2px solid #534AB7';
-    infoBtn.style.color='var(--text2)'; infoBtn.style.borderBottom='2px solid transparent';
-    infoContent.style.display='none'; pidContent.style.display='';
+  const activeStyle = 'padding:8px 16px;font-size:12px;font-weight:500;color:#534AB7;border:none;border-bottom:2px solid #534AB7;background:transparent;cursor:pointer';
+  const inactiveStyle = 'padding:8px 16px;font-size:12px;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer';
+  [infoBtn,pidBtn,updBtn].forEach(b=>{ if(b) b.style.cssText = inactiveStyle; });
+  [infoContent,pidContent,updContent].forEach(c=>{ if(c) c.style.display='none'; });
+  if(pidAddWrap) pidAddWrap.style.display='none';
+  if (tab==='info') {
+    if(infoBtn) infoBtn.style.cssText = activeStyle;
+    if(infoContent) infoContent.style.display='';
+  } else if (tab==='pid') {
+    if(pidBtn) pidBtn.style.cssText = activeStyle;
+    if(pidContent) pidContent.style.display='';
     if(pidAddWrap) pidAddWrap.style.display='flex';
     loadProduktIDs(appId);
+  } else if (tab==='upd') {
+    if(updBtn) updBtn.style.cssText = activeStyle;
+    if(updContent) updContent.style.display='';
+    loadUpdateNotizen(appId);
   }
 }
 
@@ -1074,6 +1082,157 @@ async function deletePidRow(id, appId) {
     await sbFetch('produkt_ids?id=eq.' + id, { method:'DELETE', prefer:'' });
     loadProduktIDs(appId);
   } catch(e) { toast('Fehler beim Löschen'); }
+}
+
+async function loadUpdateNotizen(appId) {
+  const wrap = document.getElementById('upd-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)"><i class="ti ti-loader" style="font-size:20px"></i></div>';
+  let n = {};
+  let log = [];
+  try {
+    const rows = await sbFetch('update_notizen?app_id=eq.' + appId);
+    if (rows && rows[0]) n = rows[0];
+    const logRows = await sbFetch('update_notizen_log?app_id=eq.' + appId + '&order=zeitpunkt.desc&limit=50');
+    if (logRows) log = logRows;
+  } catch(e) {}
+
+  const chk = (val) => val ? 'checked' : '';
+  const ts = (field) => {
+    const last = log.find(l => l.feld === field);
+    if (!last) return '';
+    const d = new Date(last.zeitpunkt);
+    return `<span style="margin-left:auto;font-size:10px;color:var(--text3)">${last.aktion==='deaktiviert'?'deakt.':'akt.'} ${d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})} ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</span>`;
+  };
+
+  const recentLog = log.slice(0, 3);
+  const olderLog = log.slice(3);
+
+  wrap.innerHTML = `
+    <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em;margin-bottom:8px">VOR DEM UPDATE DEAKTIVIEREN</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+      ${['banner','login','freischaltcode','einzelkaeufe','abos'].map(f => {
+        const label = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',einzelkaeufe:'Einzelkäufe',abos:'Abos'}[f];
+        const icon = {banner:'ti-speakerphone',login:'ti-login',freischaltcode:'ti-key',einzelkaeufe:'ti-shopping-cart',abos:'ti-refresh'}[f];
+        const done = !!n[f];
+        return `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:0.5px solid var(--border);border-radius:6px;cursor:pointer;${done?'background:var(--bg2)':''}">
+          <input type="checkbox" data-field="${f}" ${chk(n[f])} style="accent-color:var(--accent);width:15px;height:15px;flex-shrink:0" onchange="onUpdCheck(this,'${appId}')">
+          <i class="ti ${icon}" style="font-size:14px;color:var(--text2)"></i>
+          <span style="font-size:13px;${done?'color:var(--text3);text-decoration:line-through':'color:var(--text)'}">${label}</span>
+          ${ts(f)}
+        </label>`;
+      }).join('')}
+      <div style="border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
+        <label style="display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;${n.links?'background:var(--bg2)':''}">
+          <input type="checkbox" data-field="links" ${chk(n.links)} style="accent-color:var(--accent);width:15px;height:15px;flex-shrink:0" onchange="onUpdCheck(this,'${appId}')">
+          <i class="ti ti-link" style="font-size:14px;color:var(--text2)"></i>
+          <span style="font-size:13px;${n.links?'color:var(--text3);text-decoration:line-through':'color:var(--text)'}">Links</span>
+          ${ts('links')}
+        </label>
+        <div style="padding:0 12px 10px">
+          <input type="text" id="upd-links-notiz" placeholder="Notiz zu Links…" value="${(n.links_notiz||'').replace(/"/g,'&quot;')}" style="width:100%;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:6px 10px;background:var(--bg2);color:var(--text);box-sizing:border-box">
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em;margin-bottom:10px">LOGINDATEN FÜR UPDATE</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-mail" style="font-size:15px;color:var(--text2);flex-shrink:0"></i>
+          <input type="email" id="upd-email" placeholder="E-Mail" value="${(n.update_email||'').replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:7px 10px;background:var(--bg2);color:var(--text)">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="ti ti-lock" style="font-size:15px;color:var(--text2);flex-shrink:0"></i>
+          <input type="password" id="upd-pw" placeholder="Passwort" value="${(n.update_pw||'').replace(/"/g,'&quot;')}" style="flex:1;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:7px 10px;background:var(--bg2);color:var(--text)">
+          <button onclick="navigator.clipboard.writeText(document.getElementById('upd-pw').value).then(()=>toast('Passwort kopiert ✓'))" style="font-size:11px;padding:6px 10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0"><i class="ti ti-copy" style="font-size:12px"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em;margin-bottom:8px">NOTIZEN</div>
+      <textarea id="upd-notiz" placeholder="Zusätzliche Hinweise…" style="width:100%;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:8px 10px;resize:vertical;min-height:60px;font-family:inherit;box-sizing:border-box;background:var(--bg2);color:var(--text)">${n.notiz||''}</textarea>
+    </div>
+
+    ${log.length > 0 ? `
+    <div style="border-top:0.5px solid var(--border);padding-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em">CHANGELOG <span style="background:#EEEDFE;color:#534AB7;padding:1px 7px;border-radius:4px;font-size:10px;margin-left:6px">${log.length} Einträge</span></div>
+        ${olderLog.length > 0 ? `<button id="upd-cl-toggle" onclick="var el=document.getElementById('upd-cl-more');var btn=document.getElementById('upd-cl-toggle');var open=el.style.display!=='none';el.style.display=open?'none':'flex';btn.textContent=open?'Alle anzeigen':'Einklappen';" style="font-size:11px;color:#534AB7;border:none;background:transparent;cursor:pointer;padding:0">Alle anzeigen</button>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
+        ${recentLog.map((l,i) => {
+          const d = new Date(l.zeitpunkt);
+          const isDeakt = l.aktion === 'deaktiviert';
+          return `<div style="display:flex;gap:12px;padding:9px 12px;${i<recentLog.length-1||olderLog.length>0?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
+            <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:12px;color:var(--text);font-weight:500">${{banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'}[l.feld]||l.feld} ${l.aktion}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
+            </div>
+            <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${olderLog.length > 0 ? `
+      <div id="upd-cl-more" style="display:none;flex-direction:column;border:0.5px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden">
+        ${olderLog.map((l,i) => {
+          const d = new Date(l.zeitpunkt);
+          const isDeakt = l.aktion === 'deaktiviert';
+          return `<div style="display:flex;gap:12px;padding:9px 12px;${i<olderLog.length-1?'border-bottom:0.5px solid var(--border)':''}${i%2===0?'background:var(--bg2)':''}">
+            <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-size:12px;color:var(--text);font-weight:500">${{banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'}[l.feld]||l.feld} ${l.aktion}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
+            </div>
+            <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+    </div>` : ''}
+  `;
+
+  document.getElementById('upd-save-btn').onclick = () => saveUpdateNotizen(appId, n.id);
+}
+
+async function onUpdCheck(el, appId) {
+  const field = el.dataset.field;
+  const checked = el.checked;
+  const aktion = checked ? 'deaktiviert' : 'zurückgestellt';
+  try {
+    await sbFetch('update_notizen_log', {
+      method: 'POST',
+      body: JSON.stringify({app_id: String(appId), feld: field, aktion}),
+      prefer: ''
+    });
+  } catch(e) {}
+  loadUpdateNotizen(appId);
+}
+
+async function saveUpdateNotizen(appId, existingId) {
+  const data = {
+    app_id: String(appId),
+    banner: document.querySelector('[data-field="banner"]')?.checked||false,
+    login: document.querySelector('[data-field="login"]')?.checked||false,
+    freischaltcode: document.querySelector('[data-field="freischaltcode"]')?.checked||false,
+    links: document.querySelector('[data-field="links"]')?.checked||false,
+    links_notiz: document.getElementById('upd-links-notiz')?.value||'',
+    einzelkaeufe: document.querySelector('[data-field="einzelkaeufe"]')?.checked||false,
+    abos: document.querySelector('[data-field="abos"]')?.checked||false,
+    update_email: document.getElementById('upd-email')?.value||'',
+    update_pw: document.getElementById('upd-pw')?.value||'',
+    notiz: document.getElementById('upd-notiz')?.value||'',
+    updated_at: new Date().toISOString()
+  };
+  try {
+    if (existingId) {
+      await sbFetch('update_notizen?id=eq.' + existingId, {method:'PATCH', body:JSON.stringify(data), prefer:''});
+    } else {
+      await sbFetch('update_notizen', {method:'POST', body:JSON.stringify(data), prefer:''});
+    }
+    toast('Update-Notizen gespeichert ✓');
+  } catch(e) { toast('Fehler: ' + e.message); }
 }
 
 function filterByFeature(feat) {
@@ -1149,6 +1308,7 @@ function openDetail(id){
     <div style="display:flex;align-items:center;border-bottom:0.5px solid var(--border);margin-bottom:14px">
       <button id="tab-info-btn" onclick="switchDetailTab('info','${a.id}')" style="padding:8px 16px;font-size:12px;font-weight:500;color:#534AB7;border:none;border-bottom:2px solid #534AB7;background:transparent;cursor:pointer"><i class="ti ti-info-circle" style="font-size:12px;margin-right:4px"></i>Info</button>
       <button id="tab-pid-btn" onclick="switchDetailTab('pid','${a.id}')" style="padding:8px 16px;font-size:12px;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer"><i class="ti ti-package" style="font-size:12px;margin-right:4px"></i>Produkt IDs</button>
+      <button id="tab-upd-btn" onclick="switchDetailTab('upd','${a.id}')" style="padding:8px 16px;font-size:12px;color:var(--text2);border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer"><i class="ti ti-checklist" style="font-size:12px;margin-right:4px"></i>Update-Notizen</button>
       <div id="pid-add-wrap" style="display:none;margin-left:auto;display:none;align-items:center;gap:6px;padding-bottom:4px">
         <input type="number" id="pid-new-jahr" value="${new Date().getFullYear()}" style="width:70px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:4px 6px;background:var(--bg);color:var(--text)">
         <button onclick="addPidRow('${a.id}')" style="font-size:12px;padding:4px 10px;border:none;border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-plus" style="font-size:12px"></i> Hinzufügen</button>
@@ -1223,6 +1383,15 @@ function openDetail(id){
         <div style="flex:1"></div>
         <button class="btn" onclick="closeMod()">Schließen</button>
         <button class="btn btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
+      </div>
+    </div>
+
+    <div id="tab-upd-content" style="display:none">
+      <div id="upd-wrap" style="min-height:100px"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeMod()">Schließen</button>
+        <button class="btn btn-primary" id="upd-save-btn"><i class="ti ti-device-floppy" style="font-size:12px"></i> Speichern</button>
       </div>
     </div>
 
