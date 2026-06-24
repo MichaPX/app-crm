@@ -1156,59 +1156,104 @@ async function loadUpdateNotizen(appId) {
     </div>
 
     ${log.length > 0 ? `
-    <div style="border-top:0.5px solid var(--border);padding-top:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em">CHANGELOG <span style="background:#EEEDFE;color:#534AB7;padding:1px 7px;border-radius:4px;font-size:10px;margin-left:6px">${log.length} Einträge</span></div>
-        ${olderLog.length > 0 ? `<button id="upd-cl-toggle" onclick="var el=document.getElementById('upd-cl-more');var btn=document.getElementById('upd-cl-toggle');var open=el.style.display!=='none';el.style.display=open?'none':'flex';btn.textContent=open?'Alle anzeigen':'Einklappen';" style="font-size:11px;color:#534AB7;border:none;background:transparent;cursor:pointer;padding:0">Alle anzeigen</button>` : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
-        ${recentLog.map((l,i) => {
-          const d = new Date(l.zeitpunkt);
-          const isDeakt = l.aktion === 'deaktiviert';
-          return `<div style="display:flex;gap:12px;padding:9px 12px;${i<recentLog.length-1||olderLog.length>0?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
-            <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
-            <div style="flex:1">
-              <div style="font-size:12px;color:var(--text);font-weight:500">${{banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'}[l.feld]||l.feld} ${l.aktion}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
-            </div>
-            <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
-          </div>`;
-        }).join('')}
-      </div>
-      ${olderLog.length > 0 ? `
-      <div id="upd-cl-more" style="display:none;flex-direction:column;border:0.5px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden">
-        ${olderLog.map((l,i) => {
-          const d = new Date(l.zeitpunkt);
-          const isDeakt = l.aktion === 'deaktiviert';
-          return `<div style="display:flex;gap:12px;padding:9px 12px;${i<olderLog.length-1?'border-bottom:0.5px solid var(--border)':''}${i%2===0?'background:var(--bg2)':''}">
-            <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
-            <div style="flex:1">
-              <div style="font-size:12px;color:var(--text);font-weight:500">${{banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'}[l.feld]||l.feld} ${l.aktion}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
-            </div>
-            <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
-          </div>`;
-        }).join('')}
-      </div>` : ''}
-    </div>` : ''}
+    <div id="upd-changelog" style="border-top:0.5px solid var(--border);padding-top:14px"></div>` : '<div id="upd-changelog"></div>'}
   `;
 
   document.getElementById('upd-save-btn').onclick = () => saveUpdateNotizen(appId, n.id);
+  renderChangelogSection(log);
 }
 
 async function onUpdCheck(el, appId) {
   const field = el.dataset.field;
   const checked = el.checked;
   const aktion = checked ? 'deaktiviert' : 'zurückgestellt';
+
+  // Styling sofort aktualisieren
+  const label = el.closest('label');
+  if (label) {
+    const textSpan = label.querySelector('span');
+    if (textSpan) {
+      textSpan.style.color = checked ? 'var(--text3)' : 'var(--text)';
+      textSpan.style.textDecoration = checked ? 'line-through' : '';
+    }
+    label.style.background = checked ? 'var(--bg2)' : '';
+  }
+
   try {
+    // Aktuellen Stand holen
+    const rows = await sbFetch('update_notizen?app_id=eq.' + appId);
+    const existing = rows && rows[0];
+
+    // Nur dieses eine Feld updaten
+    const patch = {[field]: checked, updated_at: new Date().toISOString()};
+
+    if (existing) {
+      await sbFetch('update_notizen?id=eq.' + existing.id, {method:'PATCH', body:JSON.stringify(patch), prefer:''});
+    } else {
+      const newData = {app_id:String(appId), banner:false, login:false, freischaltcode:false, links:false, links_notiz:'', einzelkaeufe:false, abos:false, update_email:'', update_pw:'', notiz:''};
+      newData[field] = checked;
+      await sbFetch('update_notizen', {method:'POST', body:JSON.stringify(newData), prefer:''});
+    }
+
+    // Changelog Eintrag
     await sbFetch('update_notizen_log', {
       method: 'POST',
       body: JSON.stringify({app_id: String(appId), feld: field, aktion}),
       prefer: ''
     });
-  } catch(e) {}
-  loadUpdateNotizen(appId);
+
+    // Zeitstempel auf der Checkbox aktualisieren
+    if (label) {
+      let ts = label.querySelector('.upd-ts');
+      if (!ts) {
+        ts = document.createElement('span');
+        ts.className = 'upd-ts';
+        ts.style.cssText = 'margin-left:auto;font-size:10px;color:var(--text3)';
+        label.appendChild(ts);
+      }
+      const now = new Date();
+      ts.textContent = (checked?'deakt.':'akt.') + ' ' +
+        now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' +
+        now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+    }
+
+    // Changelog UI aktualisieren
+    const logRows = await sbFetch('update_notizen_log?app_id=eq.' + appId + '&order=zeitpunkt.desc&limit=50');
+    renderChangelogSection(logRows||[]);
+
+  } catch(e) { console.error(e); }
 }
+
+function renderChangelogSection(log) {
+  const wrap = document.getElementById('upd-changelog');
+  if (!wrap) return;
+  const recentLog = log.slice(0,3);
+  const olderLog = log.slice(3);
+  const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'};
+  const row = (l,i,borderBottom) => {
+    const d = new Date(l.zeitpunkt);
+    const isDeakt = l.aktion==='deaktiviert';
+    return `<div style="display:flex;gap:12px;padding:9px 12px;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
+      <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--text);font-weight:500">${fieldLabels[l.feld]||l.feld} ${l.aktion}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
+      </div>
+      <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
+    </div>`;
+  };
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em">CHANGELOG <span style="background:#EEEDFE;color:#534AB7;padding:1px 7px;border-radius:4px;font-size:10px;margin-left:6px">${log.length} Einträge</span></div>
+      ${olderLog.length>0?`<button id="upd-cl-toggle" onclick="var el=document.getElementById('upd-cl-more');var btn=document.getElementById('upd-cl-toggle');var open=el.style.display!=='none';el.style.display=open?'none':'flex';btn.textContent=open?'Alle anzeigen':'Einklappen';" style="font-size:11px;color:#534AB7;border:none;background:transparent;cursor:pointer;padding:0">Alle anzeigen</button>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;border:0.5px solid var(--border);border-radius:6px;overflow:hidden">
+      ${recentLog.map((l,i)=>row(l,i,i<recentLog.length-1||olderLog.length>0)).join('')}
+    </div>
+    ${olderLog.length>0?`<div id="upd-cl-more" style="display:none;flex-direction:column;border:0.5px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden">${olderLog.map((l,i)=>row(l,i,i<olderLog.length-1)).join('')}</div>`:''}`;
+}
+
+function updateChangelogUI(log, changedField, checked) {}
 
 async function saveUpdateNotizen(appId, existingId) {
   const data = {
