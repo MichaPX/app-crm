@@ -1867,7 +1867,9 @@ async function toggleImUpdate(id, checked) {
         if (!n.links) offen.push('Links');
         if (!n.einzelkaeufe) offen.push('Einzelkäufe');
         if (!n.abos) offen.push('Abos');
-        if (offen.length > 0) {
+        const gesamt = [n.banner, n.login, n.freischaltcode, n.links, n.einzelkaeufe, n.abos];
+        const irgendwasAktiviert = gesamt.some(v => v === true);
+        if (irgendwasAktiviert && offen.length > 0) {
           const cb = document.getElementById('detail-imUpdate');
           if (cb) cb.checked = true;
           if (label) label.textContent = 'Aktiv';
