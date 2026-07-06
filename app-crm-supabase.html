@@ -232,6 +232,7 @@ select:focus{border-color:var(--accent)}
     </div>
     <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
     <div class="dash-bars admin-only"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
+    <div class="dash-bars admin-only"><div class="db-title">Nach Version</div><div id="version-bars"></div></div>
   </div>
   <div class="toolbar">
     <div class="search-wrap">
@@ -256,8 +257,6 @@ select:focus{border-color:var(--accent)}
     <select id="f-year" onchange="render()"><option value="">Alle Jahre</option></select>
     <select id="f-maxver" onchange="render()">
       <option value="">Alle Versionen</option>
-      <option value="old">Nur veraltete (&lt; 5.2)</option>
-      <option value="5.2">5.2.x</option><option value="5.3">5.3.x</option><option value="5.4">5.4.x</option>
     </select>
     <select id="f-sort" onchange="render()">
       <option value="name-asc" selected>Name (A → Z)</option>
@@ -820,6 +819,12 @@ function render() {
   const ys=document.getElementById('f-year');
   const cy=ys.value;
   ys.innerHTML='<option value="">Alle Jahre</option>'+years.map(y=>`<option${y===cy?' selected':''}>${y}</option>`).join('');
+  // Versions-Dropdown dynamisch befüllen
+  const verSel = document.getElementById('f-maxver');
+  const curVer = verSel.value;
+  const allVers = [...new Set(apps.flatMap(a=>[a.vApple,a.vGoogle].filter(v=>v&&v.trim()&&v!=='—')))].sort((a,b)=>b.localeCompare(a,undefined,{numeric:true}));
+  verSel.innerHTML = '<option value="">Alle Versionen</option>' + allVers.map(v=>`<option value="${v}"${v===curVer?' selected':''}>${v}</option>`).join('');
+
   let list=apps.filter(a=>{
     if(q&&!a.name.toLowerCase().includes(q)) return false;
     const qc=document.getElementById('search-company').value.toLowerCase();
@@ -840,18 +845,9 @@ function render() {
     if(window._featFilter==='ac'&&!(a.features&&a.features.ac&&a.features.ac!=='')) return false;
     const fmv=document.getElementById('f-maxver').value;
     if(fmv){
-      function parseVer(v){if(!v) return null;const p=v.split('.').map(n=>parseInt(n)||0);return p;}
-      const av=parseVer(a.vApple), gv=parseVer(a.vGoogle);
-      if(fmv==='old'){
-        const aOld=!av||(av[0]<5||(av[0]===5&&av[1]<2));
-        const gOld=!gv||(gv[0]<5||(gv[0]===5&&gv[1]<2));
-        if(!aOld&&!gOld) return false;
-      } else {
-        const [maj,min]=fmv.split('.').map(Number);
-        const aMatch=av&&av[0]===maj&&av[1]===min;
-        const gMatch=gv&&gv[0]===maj&&gv[1]===min;
-        if(!aMatch&&!gMatch) return false;
-      }
+      const aMatch=a.vApple&&a.vApple.trim()===fmv;
+      const gMatch=a.vGoogle&&a.vGoogle.trim()===fmv;
+      if(!aMatch&&!gMatch) return false;
     }
     return true;
   });
@@ -1835,7 +1831,7 @@ function updateDashboard() {
 
   // Year bars
   const yearCounts={};
-  apps.forEach(a=>{ const y=a.year||'—'; yearCounts[y]=(yearCounts[y]||0)+1; });
+  apps.forEach(a=>{ const y=a.year||'—'; if(y==='Kündigung') return; yearCounts[y]=(yearCounts[y]||0)+1; });
   const years=Object.keys(yearCounts).sort((a,b)=>b.localeCompare(a)).slice(0,7);
   const maxY=Math.max(...years.map(y=>yearCounts[y]));
   document.getElementById('year-bars').innerHTML=years.map(y=>`
@@ -1843,6 +1839,21 @@ function updateDashboard() {
       <span class="db-label">${y}</span>
       <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(yearCounts[y]/maxY*100)}%;background:#7c6af7"></div></div>
       <span class="db-count">${yearCounts[y]}</span>
+    </div>`).join('');
+
+  // Version bars
+  const verCounts={};
+  apps.forEach(a=>{
+    if(a.vApple&&a.vApple.trim()&&a.vApple!=='—') verCounts[a.vApple.trim()]=(verCounts[a.vApple.trim()]||0)+1;
+    if(a.vGoogle&&a.vGoogle.trim()&&a.vGoogle!=='—'&&a.vGoogle!==a.vApple) verCounts[a.vGoogle.trim()]=(verCounts[a.vGoogle.trim()]||0)+1;
+  });
+  const versions=Object.keys(verCounts).sort((a,b)=>b.localeCompare(a,undefined,{numeric:true})).slice(0,8);
+  const maxV=Math.max(...versions.map(v=>verCounts[v]));
+  document.getElementById('version-bars').innerHTML=versions.map(v=>`
+    <div class="db-row" style="cursor:pointer" onclick="document.getElementById('f-maxver').value='${v}';render()">
+      <span class="db-label">${v}</span>
+      <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(verCounts[v]/maxV*100)}%;background:#2dd4bf"></div></div>
+      <span class="db-count">${verCounts[v]}</span>
     </div>`).join('');
 }
 
