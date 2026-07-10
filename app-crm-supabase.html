@@ -630,97 +630,111 @@ async function logChange(appId, appName, changes) {
 
 // ── Store Notizen ──
 async function openStoreNotizen() {
-  let val = '';
+  let notizen = [];
   try {
-    const rows = await sbFetch('global_settings?key=eq.store_notizen');
-    if (rows && rows[0]) val = rows[0].value || '';
+    const rows = await sbFetch('global_settings?key=like.notiz_%&order=key.asc');
+    if (rows) notizen = rows.map(r => ({key: r.key, ...JSON.parse(r.value||'{}')}));
   } catch(e) {}
+
+  const renderNotizen = (list) => list.map((n,i) => `
+    <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--bg2)">
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <input type="text" id="notiz-title-${i}" value="${(n.title||'').replace(/"/g,'&quot;')}" placeholder="Titel…" style="flex:1;font-size:12px;font-weight:500;border:0.5px solid var(--border);border-radius:5px;padding:5px 8px;background:var(--bg);color:var(--text)">
+        <button onclick="deleteGlobalSetting('${n.key}');openStoreNotizen()" style="padding:4px 8px;border:0.5px solid #F7C1C1;border-radius:5px;background:transparent;color:#A32D2D;cursor:pointer"><i class="ti ti-trash" style="font-size:12px"></i></button>
+      </div>
+      <textarea id="notiz-text-${i}" placeholder="Notiz…" style="width:100%;min-height:80px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:7px 10px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;box-sizing:border-box">${(n.text||'').replace(/</g,'&lt;')}</textarea>
+      <div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">
+        <button onclick="navigator.clipboard.writeText(document.getElementById('notiz-text-${i}').value).then(()=>toast('Kopiert ✓'))" style="font-size:11px;padding:4px 10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer"><i class="ti ti-copy" style="font-size:11px"></i> Kopieren</button>
+        <button onclick="saveNotizEntry('${n.key}',${i}).then(()=>toast('Gespeichert ✓'))" style="font-size:11px;padding:4px 10px;border:none;border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-device-floppy" style="font-size:11px"></i> Speichern</button>
+      </div>
+    </div>`).join('');
+
   document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
   <div class="modal" style="max-width:500px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
       <h3 style="font-size:15px;font-weight:600"><i class="ti ti-notes" style="margin-right:6px"></i>Store Notizen</h3>
       <button class="btn btn-ghost" onclick="closeMod()" style="padding:4px 8px"><i class="ti ti-x"></i></button>
     </div>
-    <textarea id="store-notizen-txt" style="width:100%;min-height:180px;font-size:13px;border:0.5px solid var(--border);border-radius:6px;padding:10px;background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="Notizen zu Store-Zugängen, wichtige Infos…">${val.replace(/</g,'&lt;')}</textarea>
-    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
-      <button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('store-notizen-txt').value).then(()=>toast('Kopiert ✓'))"><i class="ti ti-copy"></i> Kopieren</button>
+    <div id="notizen-list" style="max-height:60vh;overflow-y:auto">${renderNotizen(notizen)}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" style="flex:1" onclick="addNewNotiz()"><i class="ti ti-plus"></i> Neue Notiz</button>
       <button class="btn" onclick="closeMod()">Schließen</button>
-      <button class="btn btn-primary" onclick="saveGlobalSetting('store_notizen',document.getElementById('store-notizen-txt').value).then(()=>toast('Gespeichert ✓'))"><i class="ti ti-device-floppy"></i> Speichern</button>
     </div>
   </div></div>`;
 }
 
+async function saveNotizEntry(key, idx) {
+  const title = document.getElementById('notiz-title-' + idx)?.value || '';
+  const text = document.getElementById('notiz-text-' + idx)?.value || '';
+  await saveGlobalSetting(key, JSON.stringify({title, text}));
+}
+
+async function addNewNotiz() {
+  const key = 'notiz_' + Date.now();
+  await saveGlobalSetting(key, JSON.stringify({title:'', text:''}));
+  openStoreNotizen();
+}
+
+async function deleteGlobalSetting(key) {
+  try {
+    await sbFetch('global_settings?key=eq.' + key, {method:'DELETE', prefer:''});
+  } catch(e) {}
+}
+
 // ── Store PW ──
 async function openStorePW() {
-  let apple = {url:'',mail:'',pw:''};
-  let google = {url:'',mail:'',pw:''};
+  let eintraege = [];
   try {
-    const rows = await sbFetch('global_settings?key=like.store_%');
-    rows?.forEach(r => {
-      if(r.key==='store_apple_url') apple.url=r.value||'';
-      if(r.key==='store_apple_mail') apple.mail=r.value||'';
-      if(r.key==='store_apple_pw') apple.pw=r.value||'';
-      if(r.key==='store_google_url') google.url=r.value||'';
-      if(r.key==='store_google_mail') google.mail=r.value||'';
-      if(r.key==='store_google_pw') google.pw=r.value||'';
-    });
+    const rows = await sbFetch('global_settings?key=like.pw_%&order=key.asc');
+    if (rows) eintraege = rows.map(r => ({key: r.key, ...JSON.parse(r.value||'{}')}));
   } catch(e) {}
 
-  const field = (id, label, val, type='text') => `
-    <div style="margin-bottom:8px">
-      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;font-weight:500">${label}</div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <input type="${type}" id="${id}" value="${(val||'').replace(/"/g,'&quot;')}" placeholder="${label}…" style="flex:1;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:6px 10px;background:var(--bg2);color:var(--text)">
-        <button onclick="navigator.clipboard.writeText(document.getElementById('${id}').value).then(()=>toast('Kopiert ✓'))" style="padding:5px 9px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0"><i class="ti ti-copy" style="font-size:12px"></i></button>
+  const renderPW = (list) => list.map((e,i) => `
+    <div style="border:0.5px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--bg2)">
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+        <input type="text" id="pw-name-${i}" value="${(e.name||'').replace(/"/g,'&quot;')}" placeholder="Bezeichnung (z.B. Firebase)…" style="flex:1;font-size:13px;font-weight:500;border:0.5px solid var(--border);border-radius:5px;padding:5px 8px;background:var(--bg);color:var(--text)">
+        <button onclick="deleteGlobalSetting('${e.key}');openStorePW()" style="padding:4px 8px;border:0.5px solid #F7C1C1;border-radius:5px;background:transparent;color:#A32D2D;cursor:pointer"><i class="ti ti-trash" style="font-size:12px"></i></button>
       </div>
-    </div>`;
-
-  const genPW = () => {
-    const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-    let pw=''; for(let i=0;i<16;i++) pw+=chars[Math.floor(Math.random()*chars.length)];
-    document.getElementById('pw-apple-pw').value=pw;
-  };
-  const genPWG = () => {
-    const chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
-    let pw=''; for(let i=0;i<16;i++) pw+=chars[Math.floor(Math.random()*chars.length)];
-    document.getElementById('pw-google-pw').value=pw;
-  };
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+        <i class="ti ti-mail" style="font-size:13px;color:var(--text3);flex-shrink:0"></i>
+        <input type="text" id="pw-login-${i}" value="${(e.login||'').replace(/"/g,'&quot;')}" placeholder="Login / E-Mail…" style="flex:1;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:6px 10px;background:var(--bg);color:var(--text)">
+        <button onclick="navigator.clipboard.writeText(document.getElementById('pw-login-${i}').value).then(()=>toast('Kopiert ✓'))" style="padding:5px 8px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0"><i class="ti ti-copy" style="font-size:12px"></i></button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <i class="ti ti-lock" style="font-size:13px;color:var(--text3);flex-shrink:0"></i>
+        <input type="password" id="pw-pw-${i}" value="${(e.pw||'').replace(/"/g,'&quot;')}" placeholder="Passwort…" style="flex:1;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:6px 10px;background:var(--bg);color:var(--text)">
+        <button onclick="navigator.clipboard.writeText(document.getElementById('pw-pw-${i}').value).then(()=>toast('Kopiert ✓'))" style="padding:5px 8px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0"><i class="ti ti-copy" style="font-size:12px"></i></button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <button onclick="savePWEntry('${e.key}',${i}).then(()=>toast('Gespeichert ✓'))" style="font-size:11px;padding:4px 12px;border:none;border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-device-floppy" style="font-size:11px"></i> Speichern</button>
+      </div>
+    </div>`).join('');
 
   document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
-  <div class="modal" style="max-width:520px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h3 style="font-size:15px;font-weight:600"><i class="ti ti-key" style="margin-right:6px"></i>Store Zugangsdaten</h3>
+  <div class="modal" style="max-width:480px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="font-size:15px;font-weight:600"><i class="ti ti-key" style="margin-right:6px"></i>Zugangsdaten</h3>
       <button class="btn btn-ghost" onclick="closeMod()" style="padding:4px 8px"><i class="ti ti-x"></i></button>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:14px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
-          <i class="ti ti-brand-apple" style="font-size:15px"></i>
-          <span style="font-size:13px;font-weight:600">Apple</span>
-        </div>
-        ${field('pw-apple-url','Seite',apple.url)}
-        ${field('pw-apple-mail','Login Mail',apple.mail)}
-        ${field('pw-apple-pw','Passwort',apple.pw,'password')}
-        <button onclick="(${genPW})()" style="font-size:11px;padding:4px 10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;margin-top:4px"><i class="ti ti-refresh" style="font-size:11px"></i> PW generieren</button>
-      </div>
-      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:14px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">
-          <i class="ti ti-brand-google" style="font-size:15px"></i>
-          <span style="font-size:13px;font-weight:600">Google</span>
-        </div>
-        ${field('pw-google-url','Seite',google.url)}
-        ${field('pw-google-mail','Login Mail',google.mail)}
-        ${field('pw-google-pw','Passwort',google.pw,'password')}
-        <button onclick="(${genPWG})()" style="font-size:11px;padding:4px 10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer;margin-top:4px"><i class="ti ti-refresh" style="font-size:11px"></i> PW generieren</button>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+    <div id="pw-list" style="max-height:60vh;overflow-y:auto">${renderPW(eintraege)}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" style="flex:1" onclick="addNewPW()"><i class="ti ti-plus"></i> Eintrag hinzufügen</button>
       <button class="btn" onclick="closeMod()">Schließen</button>
-      <button class="btn btn-primary" onclick="saveStorePW()"><i class="ti ti-device-floppy"></i> Speichern</button>
     </div>
   </div></div>`;
+}
+
+async function savePWEntry(key, idx) {
+  const name = document.getElementById('pw-name-' + idx)?.value || '';
+  const login = document.getElementById('pw-login-' + idx)?.value || '';
+  const pw = document.getElementById('pw-pw-' + idx)?.value || '';
+  await saveGlobalSetting(key, JSON.stringify({name, login, pw}));
+}
+
+async function addNewPW() {
+  const key = 'pw_' + Date.now();
+  await saveGlobalSetting(key, JSON.stringify({name:'', login:'', pw:''}));
+  openStorePW();
 }
 
 async function saveGlobalSetting(key, value) {
@@ -731,23 +745,6 @@ async function saveGlobalSetting(key, value) {
     } else {
       await sbFetch('global_settings', {method:'POST', body:JSON.stringify({key, value}), prefer:''});
     }
-  } catch(e) { toast('Fehler: ' + e.message); }
-}
-
-async function saveStorePW() {
-  const fields = {
-    store_apple_url: document.getElementById('pw-apple-url')?.value||'',
-    store_apple_mail: document.getElementById('pw-apple-mail')?.value||'',
-    store_apple_pw: document.getElementById('pw-apple-pw')?.value||'',
-    store_google_url: document.getElementById('pw-google-url')?.value||'',
-    store_google_mail: document.getElementById('pw-google-mail')?.value||'',
-    store_google_pw: document.getElementById('pw-google-pw')?.value||'',
-  };
-  try {
-    for (const [key, value] of Object.entries(fields)) {
-      await saveGlobalSetting(key, value);
-    }
-    toast('Zugangsdaten gespeichert ✓');
   } catch(e) { toast('Fehler: ' + e.message); }
 }
 
