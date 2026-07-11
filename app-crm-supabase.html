@@ -150,9 +150,10 @@ select:focus{border-color:var(--accent)}
 .cl-arrow{color:#aaa;margin:0 3px;font-size:10px}
 .cl-val-old{color:#A32D2D;text-decoration:line-through;font-size:10px}
 .cl-val-new{color:#085041;font-size:10px;font-weight:500}
-.dashboard{display:flex;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:#fff;flex-wrap:wrap;align-items:flex-start}
-.dash-grid{display:flex;gap:8px;flex-wrap:wrap}
-.dash-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;min-width:120px;cursor:pointer;transition:border-color .12s}
+.dashboard{display:flex;flex-direction:column;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:#fff}
+.dash-grid{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.dash-stats{display:flex;gap:8px}
+.dash-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .12s;flex:1}
 .dash-card:hover{border-color:var(--border2)}
 .dash-card.active{border-color:var(--accent)}
 .dc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
@@ -224,17 +225,20 @@ select:focus{border-color:var(--accent)}
   
   <div class="dashboard" id="dashboard">
     <div class="dash-grid">
-      <div class="dash-card" id="dc-total" style="cursor:pointer" onclick="clearF()"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
-      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Fertig')"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
-      <div class="dash-card" id="dc-gekuendigt" style="cursor:pointer;display:none" onclick="setStatusFilter('Gekündigt')"><div class="dc-icon" style="background:#FEE2E2;color:#991B1B"><i class="ti ti-scissors"></i></div><div><div class="dc-val" style="color:#991B1B" id="dv-gekuendigt">—</div><div class="dc-label">Gekündigt</div></div></div>
-      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Blockiert')"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
-      <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Offen')"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>      <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Update läuft</div></div></div>
-      <div class="dash-card" id="dc-benoetigt" style="cursor:pointer;display:none" onclick="setStatusFilter('benoetigtUpdate')"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
-      <div class="dash-card" id="dc-ac" style="cursor:pointer;display:none" onclick="filterByFeature('ac')"><div class="dc-icon" style="background:#EEF2FF;color:#3730A3"><i class="ti ti-key"></i></div><div><div class="dc-val" style="color:#3730A3" id="dv-ac">—</div><div class="dc-label">A.C</div></div></div>
-      <div class="dash-card" id="dc-prodids" style="cursor:pointer;display:none" onclick="setFeatFilter('prodIds')"><div class="dc-icon" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-package"></i></div><div><div class="dc-val" style="color:#534AB7" id="dv-prodids">—</div><div class="dc-label">Prod. IDs</div></div></div>
+      <div class="dash-card" id="dc-total" onclick="clearF()"><div class="dc-icon" style="background:rgba(83,74,183,0.12);color:#534AB7"><i class="ti ti-device-mobile"></i></div><div><div class="dc-val" id="dv-total">—</div><div class="dc-label">Apps gesamt</div></div></div>
+      <div class="dash-card" onclick="setStatusFilter('Fertig')"><div class="dc-icon" style="background:#E1F5EE;color:#085041"><i class="ti ti-check"></i></div><div><div class="dc-val" style="color:#085041" id="dv-fertig">—</div><div class="dc-label">Fertig</div></div></div>
+      <div class="dash-card" id="dc-gekuendigt" style="display:none" onclick="setStatusFilter('Gekündigt')"><div class="dc-icon" style="background:#FEE2E2;color:#991B1B"><i class="ti ti-scissors"></i></div><div><div class="dc-val" style="color:#991B1B" id="dv-gekuendigt">—</div><div class="dc-label">Gekündigt</div></div></div>
+      <div class="dash-card" onclick="setStatusFilter('Blockiert')"><div class="dc-icon" style="background:#FCEBEB;color:#A32D2D"><i class="ti ti-lock"></i></div><div><div class="dc-val" style="color:#A32D2D" id="dv-block">—</div><div class="dc-label">Blockiert</div></div></div>
+      <div class="dash-card" onclick="setStatusFilter('Offen')"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>
+      <div class="dash-card" id="dc-imupdate" style="display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Update läuft</div></div></div>
+      <div class="dash-card" id="dc-benoetigt" style="display:none" onclick="setStatusFilter('benoetigtUpdate')"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
+      <div class="dash-card" id="dc-ac" style="display:none;flex:0;padding:10px 12px;gap:8px" onclick="filterByFeature('ac')"><div class="dc-icon" style="background:#EEF2FF;color:#3730A3;width:28px;height:28px;font-size:13px"><i class="ti ti-key"></i></div><div><div class="dc-val" style="color:#3730A3;font-size:17px" id="dv-ac">—</div><div class="dc-label">A.C</div></div></div>
+      <div class="dash-card" id="dc-prodids" style="display:none;flex:0;padding:10px 12px;gap:8px" onclick="setFeatFilter('prodIds')"><div class="dc-icon" style="background:#EEEDFE;color:#534AB7;width:28px;height:28px;font-size:13px"><i class="ti ti-package"></i></div><div><div class="dc-val" style="color:#534AB7;font-size:17px" id="dv-prodids">—</div><div class="dc-label">Prod. IDs</div></div></div>
     </div>
-    <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
-    <div class="dash-bars admin-only"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
+    <div class="dash-stats">
+      <div class="dash-bars" style="flex:1"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
+      <div class="dash-bars admin-only" style="flex:1"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
+    </div>
   </div>
   <div class="toolbar">
     <div class="search-wrap">
