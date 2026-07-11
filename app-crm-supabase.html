@@ -231,6 +231,7 @@ select:focus{border-color:var(--accent)}
       <div class="dash-card" style="cursor:pointer" onclick="setStatusFilter('Offen')"><div class="dc-icon" style="background:#F1EFE8;color:#5F5E5A"><i class="ti ti-clock"></i></div><div><div class="dc-val" id="dv-offen">—</div><div class="dc-label">Offen</div></div></div>      <div class="dash-card" id="dc-imupdate" style="cursor:pointer;display:none" onclick="setStatusFilter('imUpdate')"><div class="dc-icon" style="background:#EDE7F6;color:#4527A0"><i class="ti ti-refresh"></i></div><div><div class="dc-val" style="color:#4527A0" id="dv-imupdate">—</div><div class="dc-label">Update läuft</div></div></div>
       <div class="dash-card" id="dc-benoetigt" style="cursor:pointer;display:none" onclick="setStatusFilter('benoetigtUpdate')"><div class="dc-icon" style="background:#FFF3E0;color:#E65100"><i class="ti ti-refresh-alert"></i></div><div><div class="dc-val" style="color:#E65100" id="dv-benoetigt">—</div><div class="dc-label">Benötigt Update</div></div></div>
       <div class="dash-card" id="dc-ac" style="cursor:pointer;display:none" onclick="filterByFeature('ac')"><div class="dc-icon" style="background:#EEF2FF;color:#3730A3"><i class="ti ti-key"></i></div><div><div class="dc-val" style="color:#3730A3" id="dv-ac">—</div><div class="dc-label">A.C</div></div></div>
+      <div class="dash-card" id="dc-prodids" style="cursor:pointer;display:none" onclick="setFeatFilter('prodIds')"><div class="dc-icon" style="background:#EEEDFE;color:#534AB7"><i class="ti ti-package"></i></div><div><div class="dc-val" style="color:#534AB7" id="dv-prodids">—</div><div class="dc-label">Prod. IDs</div></div></div>
     </div>
     <div class="dash-bars"><div class="db-title">Store-Verteilung</div><div id="store-bars"></div></div>
     <div class="dash-bars admin-only"><div class="db-title">Nach Jahr</div><div id="year-bars"></div></div>
@@ -957,8 +958,9 @@ function render() {
     if(fst==='In Arbeit'&&a.updateStatus!=='In Arbeit') return false;
     if(fst==='Blockiert'&&!a.blockiert) return false;
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
-    if(fst==='Gekündigt'&&!a.gekuendigt) return false;
+    if(fst==='Gekündigt'&&(!a.gekuendigt||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
+    if(window._featFilter==='prodIds'&&!a.produktIdsRequired) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
     if(fst==='ac'&&!(a.features&&a.features.ac)) return false;
     if(window._featFilter==='ac'&&!(a.features&&a.features.ac&&a.features.ac!=='')) return false;
@@ -1096,6 +1098,7 @@ function clearF(){
   document.getElementById('f-year').value='';
   document.getElementById('f-maxver').value='';
   document.getElementById('f-sort').value='name-asc';
+  window._featFilter = null;
   window._featFilter = null;
   render();
 }
@@ -1422,6 +1425,11 @@ async function savePidRequired(appId, checked) {
     updateDashboard();
     render();
   } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+function setFeatFilter(feat) {
+  window._featFilter = window._featFilter === feat ? null : feat;
+  render();
 }
 
 function filterByFeature(feat) {
@@ -1904,9 +1912,12 @@ async function updateDashboard() {
   if(dcIm){dcIm.style.display=imUpdate>0?'flex':'none';document.getElementById('dv-imupdate').textContent=imUpdate;}
   if(dcBen){dcBen.style.display=benoetigt>0?'flex':'none';document.getElementById('dv-benoetigt').textContent=benoetigt;}
   const acCount=apps.filter(a=>a.features&&a.features.ac&&a.features.ac!=='').length;
+  const prodIdsCount=apps.filter(a=>a.produktIdsRequired).length;
+  const dcProdIds=document.getElementById('dc-prodids');
+  if(dcProdIds){dcProdIds.style.display=prodIdsCount>0?'flex':'none';document.getElementById('dv-prodids').textContent=prodIdsCount;}
+  const gekuendigtCount=apps.filter(a=>a.gekuendigt&&!a.blockiert).length;
   const dcAc=document.getElementById('dc-ac');
   if(dcAc){dcAc.style.display=acCount>0?'flex':'none';document.getElementById('dv-ac').textContent=acCount;}
-  const gekuendigtCount=apps.filter(a=>a.gekuendigt).length;
   const dcGekuendigt=document.getElementById('dc-gekuendigt');
   if(dcGekuendigt){dcGekuendigt.style.display=gekuendigtCount>0?'flex':'none';document.getElementById('dv-gekuendigt').textContent=gekuendigtCount;}
 
