@@ -273,7 +273,7 @@ select:focus{border-color:var(--accent)}
     <button class="btn btn-ghost" onclick="clearF()"><i class="ti ti-x" style="font-size:11px"></i> Filter zurücksetzen</button>
     <span id="count" style="font-size:11px;color:var(--text3)"></span>
   </div>
-  <div class="content"><div id="kuendigung-banner" style="display:none;margin-bottom:12px;border-radius:10px;overflow:hidden"></div><div class="grid" id="grid"></div></div>
+  <div class="content"><div id="kuendigung-banner" style="display:none;margin-bottom:12px;border-radius:10px;overflow:hidden"></div><div id="prodids-banner" style="display:none;margin-bottom:12px;border-radius:10px;overflow:hidden"></div><div class="grid" id="grid"></div></div>
 </div>
 <div id="mc"></div>
 
@@ -371,6 +371,7 @@ function appToRow(a) {
     feat_ac: (a.features||{}).ac||'',
     im_update: !!a.imUpdate,
     benoetigt_update: !!a.benoetigtUpdate,
+    produkt_ids_required: !!a.produktIdsRequired,
     in_pruefung_apple: !!a.inPruefungApple,
     in_pruefung_google: !!a.inPruefungGoogle,
     shared_secret: a.sharedSecret||'',
@@ -396,6 +397,7 @@ function rowToApp(r) {
     },
     imUpdate: !!r.im_update,
     benoetigtUpdate: !!r.benoetigt_update,
+    produktIdsRequired: !!r.produkt_ids_required,
     inPruefungApple: !!r.in_pruefung_apple,
     inPruefungGoogle: !!r.in_pruefung_google,
   };
@@ -1169,6 +1171,13 @@ function renderProduktIDTable(appId, rows) {
       </td>
     </tr>`).join('');
   wrap.innerHTML = `
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EEEDFE;border:0.5px solid #AFA9EC;border-radius:8px;cursor:pointer;margin-bottom:14px">
+      <input type="checkbox" id="pid-required-chk" ${a.produktIdsRequired?'checked':''} style="accent-color:#534AB7;width:15px;height:15px;flex-shrink:0" onchange="savePidRequired('${a.id}',this.checked)">
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#3C3489">Produkt IDs erforderlich</div>
+        <div style="font-size:11px;color:#534AB7;margin-top:1px">Diese App wird im Jahres-Banner berücksichtigt</div>
+      </div>
+    </label>
     <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
       <thead>
@@ -1400,6 +1409,19 @@ async function saveUpdateNotizen(appId, existingId) {
   } catch(e) { toast('Fehler: ' + e.message); }
 }
 
+async function savePidRequired(appId, checked) {
+  const idx = apps.findIndex(x => String(x.id)===String(appId)||String(x._dbId)===String(appId));
+  if (idx < 0) return;
+  apps[idx].produktIdsRequired = checked;
+  sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
+  try {
+    await saveAppSb(apps[idx]);
+    toast(checked ? 'Produkt IDs erforderlich markiert ✓' : 'Markierung entfernt ✓');
+    updateDashboard();
+    render();
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
 function filterByFeature(feat) {
   window._featFilter = feat;
   render();
@@ -1447,7 +1469,7 @@ function openDetail(id){
   const sc={'verfügbar':'b-teal','nur Apple':'b-blue','nur Google':'b-green','Aus dem Store':'b-red','aus dem Store':'b-red'};
   const uc={'Fertig':'b-green','In Arbeit':'b-orange','Offen':'b-gray'};
   const feats=a.features||{};
-  const fb=[feats.login?'<span class="badge b-blue">Login</span>':'',feats.paid?'<span class="badge b-orange">Paid</span>':'',feats.abo?'<span class="badge b-purple">Abo</span>':'',feats.ai?'<span class="badge b-teal">AI</span>':'',feats.ac?`<span class="badge b-gray">A.C${feats.ac!==true&&feats.ac?' ('+feats.ac+')':''}</span>`:''].filter(Boolean).join(' ');
+  const fb=[feats.login?'<span class="badge b-blue">Login</span>':'',feats.paid?'<span class="badge b-orange">Paid</span>':'',feats.abo?'<span class="badge b-purple">Abo</span>':'',feats.ai?'<span class="badge b-teal">AI</span>':'',feats.ac?`<span class="badge b-gray">A.C${feats.ac!==true&&feats.ac?' ('+feats.ac+')':''}</span>`:'',a.produktIdsRequired?'<span class="badge" style="background:#EEEDFE;color:#3C3489"><i class="ti ti-package" style="font-size:9px;margin-right:2px"></i>Prod. IDs</span>':''].filter(Boolean).join(' ');
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">
   <div class="modal">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px">
@@ -1938,7 +1960,51 @@ function updateDashboard() {
     }
   }
 
-  // Store bars
+  // Produkt IDs Banner
+  const prodIdsBanner = document.getElementById('prodids-banner');
+  if (prodIdsBanner) {
+    const curYear = new Date().getFullYear();
+    const required = apps.filter(a => a.produktIdsRequired);
+    if (required.length > 0) {
+      // Lade alle produkt_ids für das aktuelle Jahr
+      try {
+        const pidRows = await sbFetch('produkt_ids?jahr=eq.' + curYear);
+        const doneAppleIds = new Set((pidRows||[]).filter(r=>r.apple).map(r=>String(r.app_id)));
+        const doneGoogleIds = new Set((pidRows||[]).filter(r=>r.google).map(r=>String(r.app_id)));
+        const fehlend = required.filter(a => !doneAppleIds.has(String(a.id)) || !doneGoogleIds.has(String(a.id)));
+        if (fehlend.length > 0) {
+          let html = `<div style="background:#FEF9EE;border:1px solid #FAC775;border-radius:10px;padding:12px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <i class="ti ti-alert-triangle" style="color:#854F0B;font-size:16px"></i>
+              <span style="font-weight:600;color:#633806;font-size:13px">Produkt IDs fehlen für ${curYear} (${fehlend.length})</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">`;
+          fehlend.forEach(a => {
+            const appleOk = doneAppleIds.has(String(a.id));
+            const googleOk = doneGoogleIds.has(String(a.id));
+            const fehltLabel = (!appleOk && !googleOk) 
+              ? '<i class="ti ti-brand-apple" style="font-size:10px"></i> & <i class="ti ti-brand-google" style="font-size:10px"></i> fehlt'
+              : !appleOk ? '<i class="ti ti-brand-apple" style="font-size:10px"></i> fehlt'
+              : '<i class="ti ti-brand-google" style="font-size:10px"></i> fehlt';
+            html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(250,238,218,0.4);border-radius:6px">
+              <i class="ti ti-package" style="color:#854F0B;font-size:12px;flex-shrink:0"></i>
+              <span style="font-size:12px;color:#412402;font-weight:500;flex:1">${a.name}</span>
+              ${a.company?`<span style="font-size:11px;color:#633806;opacity:0.7;margin-right:8px">· ${a.company}</span>`:''}
+              <span style="font-size:11px;background:#FCEBEB;color:#A32D2D;padding:2px 8px;border-radius:4px;white-space:nowrap">${fehltLabel}</span>
+              <button onclick="openDetail('${a.id}')" style="font-size:11px;padding:2px 8px;border:1px solid #854F0B;border-radius:5px;background:white;color:#854F0B;cursor:pointer;flex-shrink:0">Details</button>
+            </div>`;
+          });
+          html += `</div></div>`;
+          prodIdsBanner.innerHTML = html;
+          prodIdsBanner.style.display = 'block';
+        } else {
+          prodIdsBanner.style.display = 'none';
+        }
+      } catch(e) { prodIdsBanner.style.display = 'none'; }
+    } else {
+      prodIdsBanner.style.display = 'none';
+    }
+  }
   const storeOrder=['verfügbar','nur Apple','nur Google','Aus dem Store','—'];
   const storeColors={'verfügbar':'#2dd4bf','nur Apple':'#5aabf5','nur Google':'#34c472','Aus dem Store':'#f06060','—':'#555560'};
   const storeCounts={};
