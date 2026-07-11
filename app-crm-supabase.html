@@ -1885,7 +1885,7 @@ function parseCSVLine(line) {
   return result;
 }
 
-function updateDashboard() {
+async function updateDashboard() {
   const total=apps.length;
   const fertig=apps.filter(a=>a.updateStatus==='Fertig').length;
   const inA=apps.filter(a=>a.updateStatus==='In Arbeit').length;
