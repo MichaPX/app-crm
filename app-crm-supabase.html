@@ -595,7 +595,7 @@ async function doRestore(backup) {
   closeMod();
   showLoader('Alte Daten löschen…');
   try {
-    await sbFetch('apps?id=gt.0', { method:'DELETE', prefer:'' });
+    await sbFetch('apps?id=gt.0', { method:'DELETE' });
     const rows = backup.apps.map(a => appToRow(backupToApp(a)));
     for (let i = 0; i < rows.length; i += 50) {
       await sbFetch('apps', { method:'POST', body: JSON.stringify(rows.slice(i,i+50)), prefer:'' });
@@ -619,7 +619,7 @@ async function saveAppSb(a) {
 }
 
 async function deleteAppSb(dbId) {
-  await sbFetch('apps?id=eq.' + dbId, { method:'DELETE', prefer:'' });
+  await sbFetch('apps?id=eq.' + dbId, { method:'DELETE' });
 }
 
 async function logChange(appId, appName, changes) {
@@ -1201,7 +1201,7 @@ async function addPidRow(appId) {
 
 async function deletePidRow(id, appId) {
   try {
-    await sbFetch('produkt_ids?id=eq.' + id, { method:'DELETE', prefer:'' });
+    await sbFetch('produkt_ids?id=eq.' + id, { method:'DELETE' });
     loadProduktIDs(appId);
   } catch(e) { toast('Fehler beim Löschen'); }
 }
