@@ -1988,7 +1988,15 @@ async function updateDashboard() {
         const pidRows = await sbFetch('produkt_ids?jahr=eq.' + curYear);
         const doneAppleIds = new Set((pidRows||[]).filter(r=>r.apple).map(r=>String(r.app_id)));
         const doneGoogleIds = new Set((pidRows||[]).filter(r=>r.google).map(r=>String(r.app_id)));
-        const fehlend = required.filter(a => !doneAppleIds.has(String(a.id)) || !doneGoogleIds.has(String(a.id)));
+        const fehlend = required.filter(a => {
+          const ac = (a.features && a.features.ac) ? a.features.ac.toLowerCase() : '';
+          if (!ac) return false; // Kein A.C = keine Produkt IDs möglich
+          const nurApple = ac.includes('apple') && !ac.includes('google');
+          const nurGoogle = ac.includes('google') && !ac.includes('apple');
+          const appleOk = nurGoogle || doneAppleIds.has(String(a.id));
+          const googleOk = nurApple || doneGoogleIds.has(String(a.id));
+          return !appleOk || !googleOk;
+        });
         if (fehlend.length > 0) {
           let html = `<div style="background:#FEF9EE;border:1px solid #FAC775;border-radius:10px;padding:12px 16px">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -1997,9 +2005,12 @@ async function updateDashboard() {
             </div>
             <div style="display:flex;flex-direction:column;gap:4px">`;
           fehlend.forEach(a => {
-            const appleOk = doneAppleIds.has(String(a.id));
-            const googleOk = doneGoogleIds.has(String(a.id));
-            const fehltLabel = (!appleOk && !googleOk) 
+            const ac = (a.features && a.features.ac) ? a.features.ac.toLowerCase() : '';
+            const nurApple = ac.includes('apple') && !ac.includes('google');
+            const nurGoogle = ac.includes('google') && !ac.includes('apple');
+            const appleOk = nurGoogle || doneAppleIds.has(String(a.id));
+            const googleOk = nurApple || doneGoogleIds.has(String(a.id));
+            const fehltLabel = (!appleOk && !googleOk)
               ? '<i class="ti ti-brand-apple" style="font-size:10px"></i> & <i class="ti ti-brand-google" style="font-size:10px"></i> fehlt'
               : !appleOk ? '<i class="ti ti-brand-apple" style="font-size:10px"></i> fehlt'
               : '<i class="ti ti-brand-google" style="font-size:10px"></i> fehlt';
