@@ -1145,13 +1145,15 @@ async function loadProduktIDs(appId) {
   wrap.innerHTML = '<i class="ti ti-loader" style="font-size:20px;color:var(--text3)"></i>';
   try {
     const rows = await sbFetch('produkt_ids?app_id=eq.' + appId + '&order=jahr.desc');
-    renderProduktIDTable(appId, rows || []);
+    const app = apps.find(x => String(x.id)===String(appId)||String(x._dbId)===String(appId));
+    renderProduktIDTable(appId, rows || [], app);
   } catch(e) {
     wrap.innerHTML = '<span style="color:#A32D2D;font-size:12px">Fehler beim Laden</span>';
   }
 }
 
-function renderProduktIDTable(appId, rows) {
+function renderProduktIDTable(appId, rows, app) {
+  app = app || {};
   const wrap = document.getElementById('pid-table-wrap');
   if (!wrap) return;
   const rowsHTML = rows.map(r => `
@@ -1172,7 +1174,7 @@ function renderProduktIDTable(appId, rows) {
     </tr>`).join('');
   wrap.innerHTML = `
     <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EEEDFE;border:0.5px solid #AFA9EC;border-radius:8px;cursor:pointer;margin-bottom:14px">
-      <input type="checkbox" id="pid-required-chk" ${a.produktIdsRequired?'checked':''} style="accent-color:#534AB7;width:15px;height:15px;flex-shrink:0" onchange="savePidRequired('${a.id}',this.checked)">
+      <input type="checkbox" id="pid-required-chk" ${app.produktIdsRequired?'checked':''} style="accent-color:#534AB7;width:15px;height:15px;flex-shrink:0" onchange="savePidRequired('${appId}',this.checked)">
       <div>
         <div style="font-size:13px;font-weight:500;color:#3C3489">Produkt IDs erforderlich</div>
         <div style="font-size:11px;color:#534AB7;margin-top:1px">Diese App wird im Jahres-Banner berücksichtigt</div>
