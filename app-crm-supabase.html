@@ -632,8 +632,8 @@ async function logChange(appId, appName, changes) {
 async function openStoreNotizen() {
   let notizen = [];
   try {
-    const rows = await sbFetch('global_settings?key=like.notiz_%&order=key.asc');
-    if (rows) notizen = rows.map(r => ({key: r.key, ...JSON.parse(r.value||'{}')}));
+    const rows = await sbFetch('global_settings?order=key.asc');
+    if (rows) notizen = rows.filter(r=>r.key.startsWith('notiz_')).map(r => { try { return {key: r.key, ...JSON.parse(r.value||'{}')}; } catch(e) { return {key:r.key,title:'',text:r.value||''}; }});
   } catch(e) {}
 
   const renderNotizen = (list) => list.map((n,i) => `
@@ -685,8 +685,8 @@ async function deleteGlobalSetting(key) {
 async function openStorePW() {
   let eintraege = [];
   try {
-    const rows = await sbFetch('global_settings?key=like.pw_%&order=key.asc');
-    if (rows) eintraege = rows.map(r => ({key: r.key, ...JSON.parse(r.value||'{}')}));
+    const rows = await sbFetch('global_settings?order=key.asc');
+    if (rows) eintraege = rows.filter(r=>r.key.startsWith('pw_')).map(r => { try { return {key: r.key, ...JSON.parse(r.value||'{}')}; } catch(e) { return {key:r.key,name:'',login:'',pw:''}; }});
   } catch(e) {}
 
   const renderPW = (list) => list.map((e,i) => `
