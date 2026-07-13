@@ -75,9 +75,13 @@
   }
   .seg button.active{background:var(--accent);color:#fff}
 
-  .feature-only{display:none}
+  .feature-only,.icon-only{display:none}
   body.feature .feature-only{display:block}
+  body.icon .icon-only{display:block}
   body.feature .shots-only{display:none}
+  body.icon .shots-only{display:none}
+  body.icon .no-icon{display:none}
+  body.icon .thumbs{display:none}
 
   .drop{
     border:2px dashed var(--border);border-radius:var(--radius);
@@ -142,9 +146,10 @@
 
 <header>
   <h1>📱 Store Screenshot Studio</h1>
-  <div class="seg" id="modeSeg" style="width:300px">
+  <div class="seg" id="modeSeg" style="width:430px">
     <button data-v="shots" class="active">Store-Screenshots</button>
     <button data-v="feature">Feature-Grafik</button>
+    <button data-v="icon">Adaptive Icon</button>
   </div>
   <span class="badge" id="sizeBadge">–</span>
   <div class="spacer"></div>
@@ -155,7 +160,7 @@
 <main>
   <aside>
 
-    <div class="group">
+    <div class="group no-icon">
       <h2>Screenshot</h2>
       <div class="drop" id="drop" onclick="fileInput.click()">
         Screenshots hierher ziehen<br>oder klicken zum Auswählen (mehrere möglich)
@@ -260,6 +265,38 @@
       </div>
     </div>
 
+    <div class="group icon-only">
+      <h2>Adaptive Icon (Android)</h2>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="iconLogoInput.click()">Logo (Vordergrund) hochladen</button></div>
+      <input type="file" id="iconLogoInput" accept="image/*" hidden>
+      <div class="row">
+        <label>Logo-Größe</label>
+        <input type="range" id="iScale" min="30" max="100" value="55">
+        <span class="val" id="iScaleVal">55%</span>
+      </div>
+      <div class="seg" id="iMaskSeg" style="margin-bottom:8px">
+        <button data-v="circle" class="active">Kreis</button>
+        <button data-v="squircle">Squircle</button>
+        <button data-v="rounded">Abgerundet</button>
+      </div>
+      <div class="row">
+        <label>Safe-Zone anzeigen (nur Vorschau)</label>
+        <input type="checkbox" id="iSafe" checked style="width:auto">
+      </div>
+      <div class="row">
+        <label>Exportgröße</label>
+        <select id="iSize" style="flex:1.4">
+          <option value="432" selected>432 × 432 (Standard)</option>
+          <option value="512">512 × 512</option>
+          <option value="1024">1024 × 1024</option>
+        </select>
+      </div>
+      <div class="row"><button class="btn" id="iconZipBtn" style="width:100%" onclick="exportIconZip()">Beide Ebenen als ZIP exportieren</button></div>
+      <div class="row" style="font-size:11px;color:var(--muted)">
+        Hintergrund-Ebene = Einstellungen unter „Hintergrund". Die Maske dient nur der Vorschau – exportiert werden Vordergrund und Hintergrund unmaskiert, wie es Android erwartet.
+      </div>
+    </div>
+
     <div class="group">
       <h2>Hintergrund</h2>
       <div class="row">
@@ -355,6 +392,11 @@ const state = {
   fLogo:null,
   fLogoScale:100,
   fDeco:false,
+  iLogo:null,
+  iScale:55,
+  iMask:'circle',
+  iSafe:true,
+  iSize:432,
   slides:[],       // {img, name, headline, subline, thumb}
   cur:0,
   devScale:78,
@@ -405,6 +447,7 @@ function segInit(id, key){
       }
       if(key==='mode'){
         document.body.classList.toggle('feature', state.mode==='feature');
+        document.body.classList.toggle('icon', state.mode==='icon');
         state.cur = 0;
         rebuildThumbs();
         syncInputs();
@@ -417,6 +460,27 @@ segInit('platformSeg','platform');
 segInit('deviceSeg','form');
 segInit('modeSeg','mode');
 segInit('fLayoutSeg','fLayout');
+segInit('iMaskSeg','iMask');
+
+/* Adaptive-Icon-Bindings */
+[['iScale','%'],['iSafe']].forEach(([id,suffix])=>{
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    state[id] = el.type==='checkbox' ? el.checked : +el.value;
+    if(suffix) $(id+'Val').textContent = el.value + suffix;
+    draw();
+  });
+});
+$('iSize').addEventListener('change', e=>{ state.iSize = +e.target.value; draw(); });
+const iconLogoInput = $('iconLogoInput');
+iconLogoInput.addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = ()=>{ state.iLogo = img; draw(); };
+  img.src = URL.createObjectURL(file);
+  iconLogoInput.value = '';
+});
 
 /* Feature-Grafik-Bindings */
 [['fApp'],['fHead'],['fSub'],['fShowDev'],['fScale','%'],['fTilt','°'],['fSafe'],['fLogoScale','%'],['fDeco']].forEach(([id,suffix])=>{
@@ -710,6 +774,120 @@ function drawFeatureDeco(c, W, H){
   dots(W*0.72, H*0.16, W*0.075);
   dots(W*0.95, H*0.85, W*0.075);
   c.restore();
+}
+
+/* --- Adaptive Icon (Android): Ebenen, Maske, Vorschau --- */
+function iconMaskPath(c, S){
+  if(state.iMask === 'circle'){
+    c.beginPath();
+    c.arc(S/2, S/2, S/2 * 0.94, 0, Math.PI*2);
+  } else if(state.iMask === 'rounded'){
+    roundRect(c, S*0.04, S*0.04, S*0.92, S*0.92, S*0.17);
+  } else { // squircle (angenähert)
+    roundRect(c, S*0.03, S*0.03, S*0.94, S*0.94, S*0.30);
+  }
+}
+
+function drawIconLogo(c, S){
+  if(!state.iLogo) return;
+  const li = state.iLogo;
+  const box = S * state.iScale/100;
+  const ir = li.width / li.height;
+  let dw, dh;
+  if(ir > 1){ dw = box; dh = box/ir; } else { dh = box; dw = box*ir; }
+  c.drawImage(li, S/2 - dw/2, S/2 - dh/2, dw, dh);
+}
+
+function drawIconPreview(c, S){
+  // 1) Ebenen in voller Fläche, gedimmt (zeigt den Beschnitt-Bereich)
+  drawBG(c, S, S);
+  drawIconLogo(c, S);
+  c.fillStyle = 'rgba(12,13,16,0.78)';
+  c.fillRect(0, 0, S, S);
+
+  // 2) maskierter Bereich in voller Deckkraft
+  c.save();
+  iconMaskPath(c, S);
+  c.clip();
+  drawBG(c, S, S);
+  drawIconLogo(c, S);
+  c.restore();
+
+  // 3) Maskenkontur
+  iconMaskPath(c, S);
+  c.strokeStyle = 'rgba(255,255,255,0.5)';
+  c.lineWidth = Math.max(1, S*0.004);
+  c.stroke();
+
+  // 4) Safe-Zone (innerer Kreis: 66 von 108 dp)
+  if(state.iSafe){
+    c.beginPath();
+    c.arc(S/2, S/2, S * (33/108), 0, Math.PI*2);
+    c.setLineDash([S*0.02, S*0.015]);
+    c.strokeStyle = 'rgba(255,255,255,0.65)';
+    c.lineWidth = Math.max(1, S*0.003);
+    c.stroke();
+    c.setLineDash([]);
+    if(state.iLogo && !logoInSafeZone(S)){
+      c.fillStyle = 'rgba(255,90,90,0.95)';
+      c.font = '600 ' + (S*0.035) + 'px -apple-system, sans-serif';
+      c.textAlign = 'center';
+      c.fillText('⚠ Logo ragt über die Safe-Zone hinaus', S/2, S*0.965);
+    }
+  }
+}
+
+function logoInSafeZone(S){
+  // Logo-Box (quadratisch umschrieben) muss in den Safe-Kreis passen
+  const box = S * state.iScale/100;
+  const li = state.iLogo;
+  const ir = li.width / li.height;
+  let dw, dh;
+  if(ir > 1){ dw = box; dh = box/ir; } else { dh = box; dw = box*ir; }
+  const halfDiag = Math.hypot(dw/2, dh/2);
+  return halfDiag <= S * (33/108) + 0.5;
+}
+
+async function exportIconZip(){
+  const btn = $('iconZipBtn');
+  btn.disabled = true;
+  const S = state.iSize;
+  try {
+    const off = document.createElement('canvas');
+    off.width = S; off.height = S;
+    const oc = off.getContext('2d');
+    const files = [];
+    const grab = ()=> new Promise(r=>off.toBlob(async b=>r(new Uint8Array(await b.arrayBuffer())), 'image/png'));
+
+    // Hintergrund-Ebene (deckend)
+    oc.clearRect(0,0,S,S);
+    drawBG(oc, S, S);
+    files.push({ name:'adaptive-icon-hintergrund_'+S+'x'+S+'.png', data: await grab() });
+
+    // Vordergrund-Ebene (Logo auf Transparenz)
+    oc.clearRect(0,0,S,S);
+    drawIconLogo(oc, S);
+    files.push({ name:'adaptive-icon-vordergrund_'+S+'x'+S+'.png', data: await grab() });
+
+    // Vorschau (maskiert, außen transparent)
+    oc.clearRect(0,0,S,S);
+    oc.save();
+    iconMaskPath(oc, S);
+    oc.clip();
+    drawBG(oc, S, S);
+    drawIconLogo(oc, S);
+    oc.restore();
+    files.push({ name:'vorschau-maskiert_'+S+'x'+S+'.png', data: await grab() });
+
+    const zip = buildZip(files);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zip);
+    a.download = 'adaptive-icon-' + S + 'px.zip';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 /* Feature-Grafik für Google Play (1024 × 500) */
@@ -1111,6 +1289,13 @@ function drawScene(c, W, H, slide){
 }
 
 function draw(){
+  if(state.mode === 'icon'){
+    const S = state.iSize;
+    cv.width = S; cv.height = S;
+    $('sizeBadge').textContent = S+' × '+S+' px (Adaptive Icon)';
+    drawIconPreview(ctx, S);
+    return;
+  }
   if(state.mode === 'feature'){
     cv.width = 1024; cv.height = 500;
     $('sizeBadge').textContent = '1024 × 500 px (Feature-Grafik)';
@@ -1143,6 +1328,26 @@ function draw(){
 /* ================= Export ================= */
 
 function exportPNG(){
+  if(state.mode === 'icon'){
+    const S = state.iSize;
+    cv.width = S; cv.height = S;
+    ctx.clearRect(0,0,S,S);
+    ctx.save();
+    iconMaskPath(ctx, S);
+    ctx.clip();
+    drawBG(ctx, S, S);
+    drawIconLogo(ctx, S);
+    ctx.restore();
+    cv.toBlob(blob=>{
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = ($('fileName').value || 'adaptive-icon') + '_vorschau_' + S + 'x' + S + '.png';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+      draw();
+    }, 'image/png');
+    return;
+  }
   if(state.mode === 'feature'){
     cv.width = 1024; cv.height = 500;
     drawFeature(ctx, 1024, 500, curSlide(), false); // ohne Safe-Zone
