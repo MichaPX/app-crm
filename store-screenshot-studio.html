@@ -157,9 +157,13 @@
 
     <div class="group">
       <h2>Gerät &amp; Format</h2>
+      <div class="seg" id="platformSeg" style="margin-bottom:8px">
+        <button data-v="apple" class="active">Apple</button>
+        <button data-v="android">Android</button>
+      </div>
       <div class="seg" id="deviceSeg" style="margin-bottom:8px">
-        <button data-v="iphone" class="active">iPhone</button>
-        <button data-v="ipad">iPad</button>
+        <button data-v="phone" class="active">Smartphone</button>
+        <button data-v="tablet">Tablet</button>
       </div>
       <div class="row">
         <select id="sizeSel"></select>
@@ -245,7 +249,19 @@ const SIZES = {
   ],
   ipad: [
     {label:'📌 iPad 13″ – 2048 × 2732 (PFLICHT Apple & Google)', w:2048, h:2732},
+  ],
+  android: [
+    {label:'📌 Google Play Phone – 1242 × 2688', w:1242, h:2688},
+    {label:'Google Play Phone – 1242 × 2208 (optional)', w:1242, h:2208},
+  ],
+  androidtab: [
+    {label:'📌 Google Play Tablet – 2048 × 2732', w:2048, h:2732},
   ]
+};
+
+const DEVICE_MAP = {
+  apple:   { phone:'iphone',  tablet:'ipad' },
+  android: { phone:'android', tablet:'androidtab' },
 };
 
 const PRESETS = [
@@ -265,7 +281,9 @@ const PRESETS = [
 ];
 
 const state = {
-  device:'iphone',
+  platform:'apple',   // apple | android
+  form:'phone',       // phone | tablet
+  device:'iphone',    // abgeleitet aus platform + form
   sizeIdx:0,
   slides:[],       // {img, name, headline, subline, thumb}
   cur:0,
@@ -307,9 +325,10 @@ function segInit(id, key){
       $(id).querySelectorAll('button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
       state[key] = b.dataset.v;
-      if(key==='device'){
+      if(key==='platform' || key==='form'){
+        state.device = DEVICE_MAP[state.platform][state.form];
         fillSizes();
-        state.cur = 0;
+        if(key==='form') state.cur = 0;
         rebuildThumbs();
         syncInputs();
       }
@@ -317,7 +336,8 @@ function segInit(id, key){
     };
   });
 }
-segInit('deviceSeg','device');
+segInit('platformSeg','platform');
+segInit('deviceSeg','form');
 segInit('textPosSeg','textPos');
 
 function bind(id, key, suffix, fmt){
@@ -329,10 +349,6 @@ function bind(id, key, suffix, fmt){
     draw();
   });
 }
-bind('devScale','devScale','%');
-bind('tilt','tilt','°');
-bind('devY','devY','');
-bind('cropBottom','cropBottom');
 bind('textColor','textColor');
 bind('textScale','textScale','%');
 bind('bg1','bg1');
@@ -340,8 +356,27 @@ bind('bg2','bg2');
 bind('bgAngle','bgAngle','°');
 
 /* Headline/Subline gehören zum aktuell gewählten Bild */
-function visibleSlides(){ return state.slides.filter(s=>s.type === state.device); }
+function visibleSlides(){ return state.slides.filter(s=>s.type === state.form); }
 function curSlide(){ return visibleSlides()[state.cur] || null; }
+
+/* Geometrie-Regler gelten ebenfalls pro Bild */
+const PER_SLIDE = [
+  { id:'devScale',  suffix:'%' },
+  { id:'tilt',      suffix:'°' },
+  { id:'devY',      suffix:'' },
+  { id:'cropBottom' },
+];
+PER_SLIDE.forEach(({id,suffix})=>{
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    const v = el.type==='checkbox' ? el.checked : +el.value;
+    const s = curSlide();
+    if(s) s[id] = v; else state[id] = v;
+    if(suffix !== undefined) $(id+'Val').textContent = v + suffix;
+    draw();
+  });
+});
+
 ['headline','subline'].forEach(k=>{
   $(k).addEventListener('input', ()=>{
     const s = curSlide();
@@ -358,6 +393,11 @@ function syncInputs(){
   $('headline').value = s ? s.headline : state.headline;
   $('subline').value  = s ? s.subline  : state.subline;
   if(s) $('fileName').value = s.name;
+  const src = s || state;
+  $('devScale').value = src.devScale;   $('devScaleVal').textContent = src.devScale + '%';
+  $('tilt').value = src.tilt;           $('tiltVal').textContent = src.tilt + '°';
+  $('devY').value = src.devY;           $('devYVal').textContent = src.devY;
+  $('cropBottom').checked = src.cropBottom;
 }
 
 $('sizeSel').addEventListener('change', e=>{ state.sizeIdx = +e.target.value; draw(); });
@@ -405,7 +445,7 @@ function loadImg(file){
   const img = new Image();
   img.onload = ()=>{
     // Automatische Erkennung: Tablet-Screenshots sind deutlich breiter (Verhältnis ~0,75)
-    const type = (img.width / img.height) > 0.6 ? 'ipad' : 'iphone';
+    const type = (img.width / img.height) > 0.6 ? 'tablet' : 'phone';
     const idx = state.slides.filter(s=>s.type===type).length;
     const dt = DEFAULT_TEXTS[idx % DEFAULT_TEXTS.length];
     state.slides.push({
@@ -414,11 +454,16 @@ function loadImg(file){
       name: (file.name||'').replace(/\.[^.]+$/,'') || ('bild-'+(state.slides.length+1)),
       headline: dt.h,
       subline: dt.s,
+      devScale: state.devScale,
+      tilt: state.tilt,
+      devY: state.devY,
+      cropBottom: state.cropBottom,
       thumb: null,
     });
-    // In den passenden Gerätemodus wechseln, damit das neue Bild sichtbar ist
-    if(state.device !== type){
-      state.device = type;
+    // In den passenden Typ wechseln (Plattform Apple/Android bleibt erhalten)
+    if(state.form !== type){
+      state.form = type;
+      state.device = DEVICE_MAP[state.platform][state.form];
       document.querySelectorAll('#deviceSeg button').forEach(b=>b.classList.toggle('active', b.dataset.v===type));
       fillSizes();
     }
@@ -432,11 +477,11 @@ function loadImg(file){
 }
 
 function updateDrop(){
-  const nP = state.slides.filter(s=>s.type==='iphone').length;
-  const nT = state.slides.filter(s=>s.type==='ipad').length;
+  const nP = state.slides.filter(s=>s.type==='phone').length;
+  const nT = state.slides.filter(s=>s.type==='tablet').length;
   if(nP + nT){
     drop.classList.add('hasimg');
-    drop.innerHTML = '✓ '+nP+'× iPhone · '+nT+'× iPad erkannt<br><span style="font-size:11px">Zuordnung automatisch nach Seitenverhältnis · Klicken für weitere</span>';
+    drop.innerHTML = '✓ '+nP+'× Smartphone · '+nT+'× Tablet erkannt<br><span style="font-size:11px">Zuordnung automatisch nach Seitenverhältnis · Klicken für weitere</span>';
   } else {
     drop.classList.remove('hasimg');
     drop.innerHTML = 'Screenshots hierher ziehen<br>oder klicken zum Auswählen (mehrere möglich)';
@@ -485,6 +530,8 @@ function drawScene(c, W, H, slide){
   const img = slide ? slide.img : null;
   const headline = slide ? slide.headline : state.headline;
   const subline = slide ? slide.subline : state.subline;
+  const g_ = slide || state; // Geometrie: pro Bild, sonst globale Defaults
+  const devScaleP = g_.devScale, tiltP = g_.tilt, devYP = g_.devY, cropP = g_.cropBottom;
 
   /* --- Hintergrund --- */
   const ang = state.bgAngle * Math.PI/180;
@@ -499,7 +546,9 @@ function drawScene(c, W, H, slide){
   c.fillStyle = g;
   c.fillRect(0,0,W,H);
 
-  const isPad = state.device === 'ipad';
+
+  const isPad = state.form === 'tablet';
+  const isAndroid = state.platform === 'android';
   const hasText = state.textPos !== 'none' && (headline || subline);
 
   /* --- Textbereich --- */
@@ -539,7 +588,7 @@ function drawScene(c, W, H, slide){
   }
 
   /* --- Geräteposition --- */
-  const devScale = state.devScale/100;
+  const devScale = devScaleP/100;
   let devW, devH, screenRatio, bezel, radius;
 
   if(isPad){
@@ -554,10 +603,10 @@ function drawScene(c, W, H, slide){
   let screenW = devW * (1 - bezel*2);
   let screenH = screenW / screenRatio;
   devH = screenH + devW*bezel*2;
-  radius = devW * (isPad ? 0.055 : 0.16);
+  radius = devW * (isPad ? 0.055 : (isAndroid ? 0.125 : 0.16));
 
   // Automatisch verkleinern, falls das Gerät sonst unten abgeschnitten würde
-  if(!state.cropBottom){
+  if(!cropP){
     const avail = (H - textH) * 0.96;
     if(devH > avail){
       const f = avail / devH;
@@ -567,13 +616,13 @@ function drawScene(c, W, H, slide){
 
   let devX = (W - devW)/2;
   let devY;
-  if(state.cropBottom){
+  if(cropP){
     devY = (hasText && state.textPos==='top' ? H*0.06 + textH : H*0.12);
   } else {
     const rest = H - textH;
     devY = textH + (rest - devH)/2;
   }
-  devY += H * (state.devY/100);
+  devY += H * (devYP/100);
 
   /* --- Text links (Layout wie LOK-Report-Kachel 1) --- */
   if(hasText && state.textPos === 'left'){
@@ -605,7 +654,7 @@ function drawScene(c, W, H, slide){
   c.save();
   const dcx = devX + devW/2, dcy = devY + devH/2;
   c.translate(dcx, dcy);
-  c.rotate(state.tilt * Math.PI/180);
+  c.rotate(tiltP * Math.PI/180);
   c.translate(-dcx, -dcy);
 
   // Schatten
@@ -618,15 +667,20 @@ function drawScene(c, W, H, slide){
   c.fill();
   c.restore();
 
-  // Seitentasten (iPhone: links Mute + Lautstärke, rechts Power)
+  // Seitentasten (iPhone: links Mute + Lautstärke, rechts Power · Android: rechts Lautstärke + Power)
   if(!isPad){
     const btnW = devW*0.014;
     c.fillStyle = '#2a2c33';
     const btn = (x,y,h)=>{ roundRect(c, x, y, btnW, h, btnW/2); c.fill(); };
-    btn(devX - btnW*0.6, devY + devH*0.155, devH*0.030);  // Mute
-    btn(devX - btnW*0.6, devY + devH*0.225, devH*0.055);  // Lauter
-    btn(devX - btnW*0.6, devY + devH*0.300, devH*0.055);  // Leiser
-    btn(devX + devW - btnW*0.4, devY + devH*0.245, devH*0.085); // Power
+    if(isAndroid){
+      btn(devX + devW - btnW*0.4, devY + devH*0.170, devH*0.105); // Lautstärke-Wippe
+      btn(devX + devW - btnW*0.4, devY + devH*0.295, devH*0.050); // Power
+    } else {
+      btn(devX - btnW*0.6, devY + devH*0.155, devH*0.030);  // Mute
+      btn(devX - btnW*0.6, devY + devH*0.225, devH*0.055);  // Lauter
+      btn(devX - btnW*0.6, devY + devH*0.300, devH*0.055);  // Leiser
+      btn(devX + devW - btnW*0.4, devY + devH*0.245, devH*0.085); // Power
+    }
   }
 
   // Rahmen (Titan-Look mit Kantenlicht)
@@ -683,22 +737,31 @@ function drawScene(c, W, H, slide){
   }
   c.restore();
 
-  // Dynamic Island (iPhone) / Kamera (iPad)
+  // Dynamic Island (iPhone) / Punch-Hole (Android) / Kamera (Tablet)
   if(!isPad){
-    const iw = screenW*0.265, ih = screenW*0.078;
-    const ix = sx+screenW/2-iw/2, iy = sy+screenW*0.028;
-    roundRect(c, ix, iy, iw, ih, ih/2);
-    c.fillStyle = '#000';
-    c.fill();
-    // Kamera-Linse rechts in der Insel
-    c.beginPath();
-    c.arc(ix+iw-ih/2, iy+ih/2, ih*0.30, 0, Math.PI*2);
-    c.fillStyle = '#101318';
-    c.fill();
-    c.beginPath();
-    c.arc(ix+iw-ih/2, iy+ih/2, ih*0.13, 0, Math.PI*2);
-    c.fillStyle = '#1c2a4a';
-    c.fill();
+    if(isAndroid){
+      // mittiges Kameraloch wie bei Samsung/Pixel
+      const px = sx + screenW/2, py = sy + screenW*0.045;
+      c.beginPath(); c.arc(px, py, screenW*0.026, 0, Math.PI*2);
+      c.fillStyle = '#000'; c.fill();
+      c.beginPath(); c.arc(px, py, screenW*0.012, 0, Math.PI*2);
+      c.fillStyle = '#16233d'; c.fill();
+    } else {
+      const iw = screenW*0.265, ih = screenW*0.078;
+      const ix = sx+screenW/2-iw/2, iy = sy+screenW*0.028;
+      roundRect(c, ix, iy, iw, ih, ih/2);
+      c.fillStyle = '#000';
+      c.fill();
+      // Kamera-Linse rechts in der Insel
+      c.beginPath();
+      c.arc(ix+iw-ih/2, iy+ih/2, ih*0.30, 0, Math.PI*2);
+      c.fillStyle = '#101318';
+      c.fill();
+      c.beginPath();
+      c.arc(ix+iw-ih/2, iy+ih/2, ih*0.13, 0, Math.PI*2);
+      c.fillStyle = '#1c2a4a';
+      c.fill();
+    }
   } else {
     c.beginPath();
     c.arc(devX+devW/2, devY+devW*bezel/2, devW*0.006, 0, Math.PI*2);
