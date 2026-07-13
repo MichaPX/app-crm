@@ -1436,6 +1436,31 @@ function setFeatFilter(feat) {
   render();
 }
 
+
+function openScreenshotStudio(appName) {
+  const existing = document.getElementById('screenshot-studio-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'screenshot-studio-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="width:95vw;height:92vh;background:#101216;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#191c22;border-bottom:1px solid #2d323c;flex-shrink:0">
+        <span style="color:#e8eaf0;font-size:14px;font-weight:600"><i class="ti ti-photo" style="margin-right:6px"></i>Screenshot Studio — ${appName}</span>
+        <button onclick="document.getElementById('screenshot-studio-modal').remove()" style="background:transparent;border:0.5px solid #2d323c;color:#8b92a1;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px"><i class="ti ti-x"></i> Schließen</button>
+      </div>
+      <iframe id="screenshot-studio-frame" style="flex:1;border:none;width:100%" src="store-screenshot-studio.html"></iframe>
+    </div>`;
+  document.body.appendChild(modal);
+  const frame = document.getElementById('screenshot-studio-frame');
+  frame.onload = () => {
+    try {
+      const fn = frame.contentDocument.getElementById('fileName');
+      if (fn) { fn.value = appName; fn.dispatchEvent(new Event('input')); }
+    } catch(e) {}
+  };
+}
+
 function filterByFeature(feat) {
   window._featFilter = feat;
   render();
@@ -1568,6 +1593,7 @@ function openDetail(id){
       ${a.appManager?`<a href="${a.appManager}" target="_blank" class="link-btn link-btn-appmanager"><i class="ti ti-device-mobile-cog" style="font-size:13px"></i> AppManager</a>`:''}
       ${a.appleStore?`<a href="${a.appleStore}" target="_blank" class="link-btn link-btn-apple"><i class="ti ti-brand-apple" style="font-size:13px"></i> Apple Store</a>`:''}
       ${a.googleStore?`<a href="${a.googleStore}" target="_blank" class="link-btn link-btn-google"><i class="ti ti-brand-google-play" style="font-size:13px"></i> Google Play</a>`:''}
+      <button onclick="openScreenshotStudio('${a.name.replace(/'/g,"\\'")}')" class="link-btn" style="background:#E6F1FB;color:#185FA5;border:0.5px solid #85B7EB"><i class="ti ti-photo" style="font-size:13px"></i> Screenshots</button>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:16px;align-items:center">
