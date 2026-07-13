@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store Screenshot Studio</title>
+<style>
+  :root{
+    --bg:#101216;
+    --panel:#191c22;
+    --panel2:#22262e;
+    --border:#2d323c;
+    --text:#e8eaf0;
+    --muted:#8b92a1;
+    --accent:#4f8cff;
+    --accent2:#3b6fd4;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--text);
+    height:100vh;display:flex;flex-direction:column;overflow:hidden;
+  }
+  header{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 20px;border-bottom:1px solid var(--border);
+    background:var(--panel);flex-shrink:0;
+  }
+  header h1{font-size:16px;font-weight:700;letter-spacing:.3px}
+  header .badge{
+    font-size:11px;color:var(--muted);border:1px solid var(--border);
+    padding:2px 8px;border-radius:20px;
+  }
+  header .spacer{flex:1}
+  .btn{
+    background:var(--accent);color:#fff;border:none;cursor:pointer;
+    padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;
+    transition:background .15s;
+  }
+  .btn:hover{background:var(--accent2)}
+  .btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+  .btn.secondary:hover{background:#2a2f39}
+
+  main{flex:1;display:flex;overflow:hidden}
+
+  /* ---------- Sidebar ---------- */
+  aside{
+    width:320px;flex-shrink:0;background:var(--panel);
+    border-right:1px solid var(--border);overflow-y:auto;padding:16px;
+  }
+  .group{margin-bottom:22px}
+  .group h2{
+    font-size:11px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);margin-bottom:10px;font-weight:600;
+  }
+  .row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .row label{font-size:12px;color:var(--muted);flex:1}
+  select,input[type=text],input[type=number]{
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    border-radius:7px;padding:7px 10px;font-size:13px;width:100%;
+    font-family:inherit;
+  }
+  input[type=color]{
+    width:34px;height:30px;border:1px solid var(--border);border-radius:7px;
+    background:var(--panel2);padding:2px;cursor:pointer;flex-shrink:0;
+  }
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{font-size:11px;color:var(--muted);width:40px;text-align:right;flex-shrink:0}
+
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .seg button{
+    flex:1;background:transparent;border:none;color:var(--muted);
+    padding:8px 4px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit;
+  }
+  .seg button.active{background:var(--accent);color:#fff}
+
+  .drop{
+    border:2px dashed var(--border);border-radius:var(--radius);
+    padding:22px 12px;text-align:center;color:var(--muted);font-size:12.5px;
+    cursor:pointer;transition:border-color .15s,background .15s;
+  }
+  .drop:hover,.drop.over{border-color:var(--accent);background:rgba(79,140,255,.06)}
+  .drop.hasimg{border-style:solid;border-color:#3a7a4f;color:#7bcf97}
+
+  .presets{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .preset{
+    height:30px;border-radius:6px;cursor:pointer;border:2px solid transparent;
+  }
+  .preset:hover{border-color:#fff}
+
+  /* ---------- Canvas area ---------- */
+  .stage{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;overflow:hidden;position:relative;
+    background:
+      linear-gradient(45deg,#15181d 25%,transparent 25%,transparent 75%,#15181d 75%),
+      linear-gradient(45deg,#15181d 25%,#121419 25%,#121419 75%,#15181d 75%);
+    background-size:24px 24px;background-position:0 0,12px 12px;
+  }
+  .thumbs{
+    display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    margin-bottom:14px;max-height:170px;overflow-y:auto;flex-shrink:0;
+  }
+  .thumbs:empty{display:none}
+  .thumb{
+    position:relative;cursor:pointer;border:2px solid transparent;
+    border-radius:9px;padding:3px;background:rgba(255,255,255,.05);
+    transition:border-color .12s;
+  }
+  .thumb:hover{border-color:#3c4250}
+  .thumb.active{border-color:var(--accent)}
+  .thumb canvas{
+    display:block;width:64px;height:auto;border-radius:5px;
+    max-width:none;max-height:none;box-shadow:none;
+  }
+  .thumb .del{
+    position:absolute;top:-7px;right:-7px;width:18px;height:18px;
+    border-radius:50%;background:#c0392b;color:#fff;font-size:12px;
+    line-height:17px;text-align:center;display:none;font-weight:700;
+  }
+  .thumb:hover .del{display:block}
+  .preview{
+    flex:1;min-height:0;width:100%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  canvas{
+    max-width:100%;max-height:100%;
+    box-shadow:0 12px 50px rgba(0,0,0,.55);border-radius:4px;
+  }
+  .hint{
+    position:absolute;bottom:12px;left:0;right:0;text-align:center;
+    font-size:11.5px;color:var(--muted);pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📱 Store Screenshot Studio</h1>
+  <span class="badge" id="sizeBadge">–</span>
+  <div class="spacer"></div>
+  <button class="btn secondary" onclick="fileInput.click()">Screenshot laden</button>
+  <button class="btn" onclick="exportPNG()">PNG exportieren</button>
+</header>
+
+<main>
+  <aside>
+
+    <div class="group">
+      <h2>Screenshot</h2>
+      <div class="drop" id="drop" onclick="fileInput.click()">
+        Screenshots hierher ziehen<br>oder klicken zum Auswählen (mehrere möglich)
+      </div>
+      <input type="file" id="fileInput" accept="image/*" multiple hidden>
+    </div>
+
+    <div class="group">
+      <h2>Gerät &amp; Format</h2>
+      <div class="seg" id="deviceSeg" style="margin-bottom:8px">
+        <button data-v="iphone" class="active">iPhone</button>
+        <button data-v="ipad">iPad</button>
+      </div>
+      <div class="row">
+        <select id="sizeSel"></select>
+      </div>
+      <div class="row">
+        <label>Geräte-Größe</label>
+        <input type="range" id="devScale" min="40" max="120" value="78">
+        <span class="val" id="devScaleVal">78%</span>
+      </div>
+      <div class="row">
+        <label>Neigung</label>
+        <input type="range" id="tilt" min="-20" max="20" value="0">
+        <span class="val" id="tiltVal">0°</span>
+      </div>
+      <div class="row">
+        <label>Vertikal verschieben</label>
+        <input type="range" id="devY" min="-30" max="60" value="0">
+        <span class="val" id="devYVal">0</span>
+      </div>
+      <div class="row">
+        <label>Unten anschneiden</label>
+        <input type="checkbox" id="cropBottom" style="width:auto">
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Text</h2>
+      <div class="row"><input type="text" id="headline" placeholder="Headline, z.B. IMMER DABEI" value="IMMER DABEI"></div>
+      <div class="row"><input type="text" id="subline" placeholder="Subline" value="Alle Ausgaben jederzeit im Original-Layout"></div>
+      <div class="row">
+        <label>Textfarbe</label>
+        <input type="color" id="textColor" value="#ffffff">
+      </div>
+      <div class="row">
+        <label>Textgröße</label>
+        <input type="range" id="textScale" min="50" max="180" value="100">
+        <span class="val" id="textScaleVal">100%</span>
+      </div>
+      <div class="seg" id="textPosSeg">
+        <button data-v="top" class="active">Oben</button>
+        <button data-v="left">Links</button>
+        <button data-v="none">Kein Text</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Hintergrund</h2>
+      <div class="row">
+        <label>Farbe 1</label><input type="color" id="bg1" value="#1e6fe0">
+        <label style="text-align:right">Farbe 2</label><input type="color" id="bg2" value="#4aa3ff">
+      </div>
+      <div class="row">
+        <label>Verlauf-Winkel</label>
+        <input type="range" id="bgAngle" min="0" max="360" value="135">
+        <span class="val" id="bgAngleVal">135°</span>
+      </div>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="group">
+      <h2>Export</h2>
+      <div class="row"><input type="text" id="fileName" value="store-screenshot-1"></div>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="exportAll()">Alle Größen exportieren</button></div>
+      <div class="row"><button class="btn" id="zipBtn" style="width:100%" onclick="exportAllSlides()">Alle Bilder als ZIP exportieren</button></div>
+    </div>
+
+  </aside>
+
+  <div class="stage">
+    <div class="thumbs" id="thumbs"></div>
+    <div class="preview"><canvas id="cv"></canvas></div>
+    <div class="hint">Vorschau · Export erfolgt in voller Store-Auflösung</div>
+  </div>
+</main>
+
+<script>
+/* ================= Konfiguration ================= */
+
+const SIZES = {
+  iphone: [
+    {label:'📌 6,5″ – 1242 × 2688 (PFLICHT Apple & Google)', w:1242, h:2688},
+    {label:'5,5″ – 1242 × 2208 (optional)', w:1242, h:2208},
+  ],
+  ipad: [
+    {label:'📌 iPad 13″ – 2048 × 2732 (PFLICHT Apple & Google)', w:2048, h:2732},
+  ]
+};
+
+const PRESETS = [
+  ['#0d47c9','#3f7bf0'], // connect-Blau (wie die App)
+  ['#1e6fe0','#4aa3ff'], // Store-Blau (wie LOK Report)
+  ['#0f2027','#2c5364'], // Dunkelblau-Grau
+  ['#134e5e','#71b280'], // Grün
+  ['#41295a','#2f0743'], // Violett
+  ['#c31432','#240b36'], // Rot-Dunkel
+  ['#141e30','#243b55'], // Nachtblau
+  ['#1d976c','#93f9b9'], // Mint
+  ['#f2994a','#f2c94c'], // Orange
+  ['#000000','#434343'], // Schwarz
+  ['#ffffff','#e6e9f0'], // Hell
+  ['#0d324d','#7f5a83'], // Dämmerung
+  ['#232526','#414345'], // Anthrazit
+];
+
+const state = {
+  device:'iphone',
+  sizeIdx:0,
+  slides:[],       // {img, name, headline, subline, thumb}
+  cur:0,
+  devScale:78,
+  tilt:0,
+  devY:0,
+  cropBottom:false,
+  headline:'IMMER DABEI',
+  subline:'Alle Ausgaben jederzeit im Original-Layout',
+  textColor:'#ffffff',
+  textScale:100,
+  textPos:'top',
+  bg1:'#1e6fe0',
+  bg2:'#4aa3ff',
+  bgAngle:135,
+};
+
+/* ================= UI-Verdrahtung ================= */
+
+const $ = id => document.getElementById(id);
+const cv = $('cv');
+const ctx = cv.getContext('2d');
+
+function fillSizes(){
+  const sel = $('sizeSel');
+  sel.innerHTML = '';
+  SIZES[state.device].forEach((s,i)=>{
+    const o = document.createElement('option');
+    o.value = i; o.textContent = s.label;
+    sel.appendChild(o);
+  });
+  state.sizeIdx = 0;
+  sel.value = 0;
+}
+
+function segInit(id, key){
+  $(id).querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      $(id).querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      state[key] = b.dataset.v;
+      if(key==='device'){
+        fillSizes();
+        state.cur = 0;
+        rebuildThumbs();
+        syncInputs();
+      }
+      draw();
+    };
+  });
+}
+segInit('deviceSeg','device');
+segInit('textPosSeg','textPos');
+
+function bind(id, key, suffix, fmt){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    state[key] = el.type==='checkbox' ? el.checked :
+                 el.type==='range' || el.type==='number' ? +el.value : el.value;
+    if(suffix) $(id+'Val').textContent = (fmt?fmt(el.value):el.value)+suffix;
+    draw();
+  });
+}
+bind('devScale','devScale','%');
+bind('tilt','tilt','°');
+bind('devY','devY','');
+bind('cropBottom','cropBottom');
+bind('textColor','textColor');
+bind('textScale','textScale','%');
+bind('bg1','bg1');
+bind('bg2','bg2');
+bind('bgAngle','bgAngle','°');
+
+/* Headline/Subline gehören zum aktuell gewählten Bild */
+function visibleSlides(){ return state.slides.filter(s=>s.type === state.device); }
+function curSlide(){ return visibleSlides()[state.cur] || null; }
+['headline','subline'].forEach(k=>{
+  $(k).addEventListener('input', ()=>{
+    const s = curSlide();
+    if(s) s[k] = $(k).value; else state[k] = $(k).value;
+    draw();
+  });
+});
+$('fileName').addEventListener('input', ()=>{
+  const s = curSlide();
+  if(s) s.name = $('fileName').value;
+});
+function syncInputs(){
+  const s = curSlide();
+  $('headline').value = s ? s.headline : state.headline;
+  $('subline').value  = s ? s.subline  : state.subline;
+  if(s) $('fileName').value = s.name;
+}
+
+$('sizeSel').addEventListener('change', e=>{ state.sizeIdx = +e.target.value; draw(); });
+
+/* Presets */
+const pr = $('presets');
+PRESETS.forEach(([a,b])=>{
+  const d = document.createElement('div');
+  d.className = 'preset';
+  d.style.background = `linear-gradient(135deg, ${a}, ${b})`;
+  d.onclick = ()=>{
+    state.bg1=a; state.bg2=b;
+    $('bg1').value=a; $('bg2').value=b;
+    draw();
+  };
+  pr.appendChild(d);
+});
+
+/* Bilder laden (mehrere möglich) */
+const drop = $('drop');
+const fileInput = $('fileInput');
+fileInput.addEventListener('change', e=>{ loadFiles(e.target.files); fileInput.value=''; });
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop', e=>loadFiles(e.dataTransfer.files));
+document.addEventListener('paste', e=>{
+  for(const item of e.clipboardData.items){
+    if(item.type.startsWith('image/')){ loadFiles([item.getAsFile()]); break; }
+  }
+});
+
+function loadFiles(files){
+  [...files].filter(f=>f && f.type.startsWith('image/')).forEach(loadImg);
+}
+
+/* Standard-Texte: werden neuen Bildern der Reihe nach zugewiesen (pro Gerät gezählt) */
+const DEFAULT_TEXTS = [
+  { h:'IMMER DABEI',      s:'Alle Ausgaben jederzeit im Original-Layout' },
+  { h:'ÜBERSICHTLICH',    s:'Suchfunktion, Lesezeichen & individuelle Einstellungen' },
+  { h:'OFFLINE LESEN',    s:'Ausgaben herunterladen und ohne Internet genießen' },
+  { h:'SCHNELL GEFUNDEN', s:'Seitenübersicht und Volltextsuche in jeder Ausgabe' },
+];
+
+function loadImg(file){
+  const img = new Image();
+  img.onload = ()=>{
+    // Automatische Erkennung: Tablet-Screenshots sind deutlich breiter (Verhältnis ~0,75)
+    const type = (img.width / img.height) > 0.6 ? 'ipad' : 'iphone';
+    const idx = state.slides.filter(s=>s.type===type).length;
+    const dt = DEFAULT_TEXTS[idx % DEFAULT_TEXTS.length];
+    state.slides.push({
+      img,
+      type,
+      name: (file.name||'').replace(/\.[^.]+$/,'') || ('bild-'+(state.slides.length+1)),
+      headline: dt.h,
+      subline: dt.s,
+      thumb: null,
+    });
+    // In den passenden Gerätemodus wechseln, damit das neue Bild sichtbar ist
+    if(state.device !== type){
+      state.device = type;
+      document.querySelectorAll('#deviceSeg button').forEach(b=>b.classList.toggle('active', b.dataset.v===type));
+      fillSizes();
+    }
+    state.cur = visibleSlides().length - 1;
+    rebuildThumbs();
+    syncInputs();
+    updateDrop();
+    draw();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+function updateDrop(){
+  const nP = state.slides.filter(s=>s.type==='iphone').length;
+  const nT = state.slides.filter(s=>s.type==='ipad').length;
+  if(nP + nT){
+    drop.classList.add('hasimg');
+    drop.innerHTML = '✓ '+nP+'× iPhone · '+nT+'× iPad erkannt<br><span style="font-size:11px">Zuordnung automatisch nach Seitenverhältnis · Klicken für weitere</span>';
+  } else {
+    drop.classList.remove('hasimg');
+    drop.innerHTML = 'Screenshots hierher ziehen<br>oder klicken zum Auswählen (mehrere möglich)';
+  }
+}
+
+function rebuildThumbs(){
+  const wrap = $('thumbs');
+  wrap.innerHTML = '';
+  const vis = visibleSlides();
+  if(state.cur >= vis.length) state.cur = Math.max(0, vis.length-1);
+  vis.forEach((s,i)=>{
+    const d = document.createElement('div');
+    d.className = 'thumb'+(i===state.cur?' active':'');
+    const tc = document.createElement('canvas');
+    s.thumb = tc;
+    d.appendChild(tc);
+    const del = document.createElement('div');
+    del.className = 'del';
+    del.textContent = '×';
+    del.title = 'Bild entfernen';
+    del.onclick = e=>{
+      e.stopPropagation();
+      state.slides.splice(state.slides.indexOf(s), 1);
+      rebuildThumbs(); syncInputs(); updateDrop(); draw();
+    };
+    d.appendChild(del);
+    d.onclick = ()=>{ state.cur = i; rebuildThumbs(); syncInputs(); draw(); };
+    wrap.appendChild(d);
+  });
+}
+
+/* ================= Zeichnen ================= */
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r);
+  c.arcTo(x,y,x+w,y,r);
+  c.closePath();
+}
+
+function drawScene(c, W, H, slide){
+  const img = slide ? slide.img : null;
+  const headline = slide ? slide.headline : state.headline;
+  const subline = slide ? slide.subline : state.subline;
+
+  /* --- Hintergrund --- */
+  const ang = state.bgAngle * Math.PI/180;
+  const r = Math.sqrt(W*W+H*H)/2;
+  const cx = W/2, cy = H/2;
+  const g = c.createLinearGradient(
+    cx - Math.cos(ang)*r, cy - Math.sin(ang)*r,
+    cx + Math.cos(ang)*r, cy + Math.sin(ang)*r
+  );
+  g.addColorStop(0, state.bg1);
+  g.addColorStop(1, state.bg2);
+  c.fillStyle = g;
+  c.fillRect(0,0,W,H);
+
+  const isPad = state.device === 'ipad';
+  const hasText = state.textPos !== 'none' && (headline || subline);
+
+  /* --- Textbereich --- */
+  let textH = 0;
+  const ts = state.textScale/100;
+  const hlSize = W * (isPad ? 0.055 : 0.075) * ts;
+  const slSize = hlSize * 0.48;
+
+  if(hasText && state.textPos === 'top'){
+    textH = H * 0.03;
+    c.fillStyle = state.textColor;
+    c.textAlign = 'center';
+    if(headline){
+      c.font = '800 '+hlSize+'px -apple-system, "Segoe UI", Roboto, sans-serif';
+      textH += hlSize;
+      c.fillText(headline, W/2, H*0.05 + hlSize*0.9);
+    }
+    if(subline){
+      c.font = '500 '+slSize+'px -apple-system, "Segoe UI", Roboto, sans-serif';
+      const words = subline.split(' ');
+      let line = '', lines = [];
+      const maxW = W*0.84;
+      for(const w of words){
+        const t = line ? line+' '+w : w;
+        if(c.measureText(t).width > maxW && line){ lines.push(line); line = w; }
+        else line = t;
+      }
+      if(line) lines.push(line);
+      let y = H*0.05 + (headline ? hlSize*1.55 : slSize);
+      for(const l of lines){
+        c.fillText(l, W/2, y);
+        y += slSize*1.35;
+        textH += slSize*1.35;
+      }
+    }
+    textH += H*0.04;
+  }
+
+  /* --- Geräteposition --- */
+  const devScale = state.devScale/100;
+  let devW, devH, screenRatio, bezel, radius;
+
+  if(isPad){
+    screenRatio = 2064/2752;       // exakt Michas Tablet-Screenshots (0,75)
+    bezel = 0.045;                 // Rand relativ zur Gerätebreite
+  } else {
+    screenRatio = 1290/2796;       // exakt Michas Phone-Screenshots (0,4614)
+    bezel = 0.026;                 // sehr dünner Rand wie iPhone Pro
+  }
+
+  devW = W * devScale;
+  let screenW = devW * (1 - bezel*2);
+  let screenH = screenW / screenRatio;
+  devH = screenH + devW*bezel*2;
+  radius = devW * (isPad ? 0.055 : 0.16);
+
+  // Automatisch verkleinern, falls das Gerät sonst unten abgeschnitten würde
+  if(!state.cropBottom){
+    const avail = (H - textH) * 0.96;
+    if(devH > avail){
+      const f = avail / devH;
+      devW *= f; screenW *= f; screenH *= f; devH *= f; radius *= f;
+    }
+  }
+
+  let devX = (W - devW)/2;
+  let devY;
+  if(state.cropBottom){
+    devY = (hasText && state.textPos==='top' ? H*0.06 + textH : H*0.12);
+  } else {
+    const rest = H - textH;
+    devY = textH + (rest - devH)/2;
+  }
+  devY += H * (state.devY/100);
+
+  /* --- Text links (Layout wie LOK-Report-Kachel 1) --- */
+  if(hasText && state.textPos === 'left'){
+    devX = W*0.42;
+    devW && (c.textAlign = 'left');
+    c.fillStyle = state.textColor;
+    let y = H*0.28;
+    if(headline){
+      c.font = '800 '+(hlSize*0.85)+'px -apple-system, "Segoe UI", Roboto, sans-serif';
+      c.fillText(headline, W*0.07, y);
+      y += hlSize*1.1;
+    }
+    if(subline){
+      c.font = '500 '+(slSize*0.9)+'px -apple-system, "Segoe UI", Roboto, sans-serif';
+      const words = subline.split(' ');
+      let line='', lines=[];
+      const maxW = W*0.32;
+      for(const w of words){
+        const t = line ? line+' '+w : w;
+        if(c.measureText(t).width > maxW && line){ lines.push(line); line=w; }
+        else line = t;
+      }
+      if(line) lines.push(line);
+      for(const l of lines){ c.fillText(l, W*0.07, y); y += slSize*1.25; }
+    }
+  }
+
+  /* --- Gerät zeichnen (ggf. geneigt) --- */
+  c.save();
+  const dcx = devX + devW/2, dcy = devY + devH/2;
+  c.translate(dcx, dcy);
+  c.rotate(state.tilt * Math.PI/180);
+  c.translate(-dcx, -dcy);
+
+  // Schatten
+  c.save();
+  c.shadowColor = 'rgba(0,0,0,0.45)';
+  c.shadowBlur = devW*0.12;
+  c.shadowOffsetY = devW*0.05;
+  roundRect(c, devX, devY, devW, devH, radius);
+  c.fillStyle = '#0c0d10';
+  c.fill();
+  c.restore();
+
+  // Seitentasten (iPhone: links Mute + Lautstärke, rechts Power)
+  if(!isPad){
+    const btnW = devW*0.014;
+    c.fillStyle = '#2a2c33';
+    const btn = (x,y,h)=>{ roundRect(c, x, y, btnW, h, btnW/2); c.fill(); };
+    btn(devX - btnW*0.6, devY + devH*0.155, devH*0.030);  // Mute
+    btn(devX - btnW*0.6, devY + devH*0.225, devH*0.055);  // Lauter
+    btn(devX - btnW*0.6, devY + devH*0.300, devH*0.055);  // Leiser
+    btn(devX + devW - btnW*0.4, devY + devH*0.245, devH*0.085); // Power
+  }
+
+  // Rahmen (Titan-Look mit Kantenlicht)
+  const fg = c.createLinearGradient(devX, devY, devX+devW, devY+devH);
+  if(isPad){
+    fg.addColorStop(0,'#3a3d44');
+    fg.addColorStop(0.5,'#111318');
+    fg.addColorStop(1,'#2c2f36');
+  } else {
+    fg.addColorStop(0,'#6b6e78');
+    fg.addColorStop(0.18,'#2e3138');
+    fg.addColorStop(0.5,'#17191e');
+    fg.addColorStop(0.82,'#2e3138');
+    fg.addColorStop(1,'#5c5f69');
+  }
+  roundRect(c, devX, devY, devW, devH, radius);
+  c.fillStyle = fg;
+  c.fill();
+
+  // feines Kantenlicht außen
+  roundRect(c, devX+devW*0.002, devY+devW*0.002, devW-devW*0.004, devH-devW*0.004, radius - devW*0.002);
+  c.lineWidth = devW*0.003;
+  c.strokeStyle = 'rgba(255,255,255,0.22)';
+  c.stroke();
+
+  roundRect(c, devX+devW*0.008, devY+devW*0.008, devW-devW*0.016, devH-devW*0.016, radius - devW*0.008);
+  c.fillStyle = '#050608';
+  c.fill();
+
+  // Bildschirmbereich
+  const sx = devX + devW*bezel;
+  const sy = devY + devW*bezel;
+  const sr = Math.max(radius - devW*bezel, devW*0.012);
+
+  roundRect(c, sx, sy, screenW, screenH, sr);
+  c.save();
+  c.clip();
+
+  if(img){
+    // cover-fit
+    const ir = img.width / img.height;
+    const tr = screenW / screenH;
+    let dw, dh, dx, dy;
+    if(ir > tr){ dh = screenH; dw = dh*ir; dx = sx-(dw-screenW)/2; dy = sy; }
+    else { dw = screenW; dh = dw/ir; dx = sx; dy = sy-(dh-screenH)/2; }
+    c.drawImage(img, dx, dy, dw, dh);
+  } else {
+    c.fillStyle = '#1a1d23';
+    c.fillRect(sx, sy, screenW, screenH);
+    c.fillStyle = '#5a6170';
+    c.font = '500 '+(screenW*0.05)+'px -apple-system, sans-serif';
+    c.textAlign = 'center';
+    c.fillText('Screenshot laden…', sx+screenW/2, sy+screenH/2);
+  }
+  c.restore();
+
+  // Dynamic Island (iPhone) / Kamera (iPad)
+  if(!isPad){
+    const iw = screenW*0.265, ih = screenW*0.078;
+    const ix = sx+screenW/2-iw/2, iy = sy+screenW*0.028;
+    roundRect(c, ix, iy, iw, ih, ih/2);
+    c.fillStyle = '#000';
+    c.fill();
+    // Kamera-Linse rechts in der Insel
+    c.beginPath();
+    c.arc(ix+iw-ih/2, iy+ih/2, ih*0.30, 0, Math.PI*2);
+    c.fillStyle = '#101318';
+    c.fill();
+    c.beginPath();
+    c.arc(ix+iw-ih/2, iy+ih/2, ih*0.13, 0, Math.PI*2);
+    c.fillStyle = '#1c2a4a';
+    c.fill();
+  } else {
+    c.beginPath();
+    c.arc(devX+devW/2, devY+devW*bezel/2, devW*0.006, 0, Math.PI*2);
+    c.fillStyle = '#1e2126';
+    c.fill();
+  }
+
+  c.restore();
+}
+
+function draw(){
+  const s = SIZES[state.device][state.sizeIdx];
+  cv.width = s.w;
+  cv.height = s.h;
+  $('sizeBadge').textContent = s.w+' × '+s.h+' px';
+  drawScene(ctx, s.w, s.h, curSlide());
+
+  // Thumbnails als Mini-Mockups aktualisieren
+  const tw = 110, th = Math.round(tw * s.h / s.w);
+  visibleSlides().forEach(sl=>{
+    if(!sl.thumb) return;
+    sl.thumb.width = tw;
+    sl.thumb.height = th;
+    drawScene(sl.thumb.getContext('2d'), tw, th, sl);
+  });
+}
+
+/* ================= Export ================= */
+
+function exportPNG(){
+  const s = SIZES[state.device][state.sizeIdx];
+  draw(); // sicherstellen, dass aktuell
+  const base = (curSlide() && curSlide().name) || $('fileName').value || 'store-screenshot';
+  cv.toBlob(blob=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = base + '_' + s.w + 'x' + s.h + '.png';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }, 'image/png');
+}
+
+async function exportAll(){
+  const keep = state.sizeIdx;
+  const list = SIZES[state.device];
+  const base = (curSlide() && curSlide().name) || $('fileName').value || 'store-screenshot';
+  for(let i=0; i<list.length; i++){
+    state.sizeIdx = i;
+    draw();
+    await new Promise(res=>{
+      cv.toBlob(blob=>{
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = base + '_' + list[i].w + 'x' + list[i].h + '.png';
+        a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(a.href); res(); }, 400);
+      }, 'image/png');
+    });
+  }
+  state.sizeIdx = keep;
+  $('sizeSel').value = keep;
+  draw();
+}
+
+/* --- Mini-ZIP-Packer (ohne Kompression, keine externe Bibliothek nötig) --- */
+const CRC_TABLE = (()=>{
+  const t = new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; t[n]=c; }
+  return t;
+})();
+function crc32(u8){
+  let c = 0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function buildZip(files){ // files: [{name, data:Uint8Array}]
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  for(const f of files){
+    const nameB = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);
+    lh.setUint16(4, 20, true);
+    lh.setUint32(14, crc, true);
+    lh.setUint32(18, f.data.length, true);
+    lh.setUint32(22, f.data.length, true);
+    lh.setUint16(26, nameB.length, true);
+    parts.push(lh.buffer, nameB, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);
+    ch.setUint16(4, 20, true);
+    ch.setUint16(6, 20, true);
+    ch.setUint32(16, crc, true);
+    ch.setUint32(20, f.data.length, true);
+    ch.setUint32(24, f.data.length, true);
+    ch.setUint16(28, nameB.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(ch.buffer, nameB);
+    offset += 30 + nameB.length + f.data.length;
+  }
+  const centralSize = central.reduce((a,b)=>a + (b.byteLength || b.length), 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, files.length, true);
+  end.setUint16(10, files.length, true);
+  end.setUint32(12, centralSize, true);
+  end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end.buffer], {type:'application/zip'});
+}
+
+async function exportAllSlides(){
+  const vis = visibleSlides();
+  if(!vis.length){ alert('Keine passenden Screenshots für dieses Gerät geladen.'); return; }
+  const btn = $('zipBtn');
+  btn.disabled = true;
+  const sizes = SIZES[state.device];
+  const files = [];
+  let n = 1;
+  try {
+    for(const sl of vis){
+      const base = sl.name || ('bild-'+n);
+      for(const s of sizes){
+        btn.textContent = 'Rendere '+base+' ('+s.w+'×'+s.h+')…';
+        cv.width = s.w; cv.height = s.h;
+        drawScene(ctx, s.w, s.h, sl);
+        const blob = await new Promise(r=>cv.toBlob(r, 'image/png'));
+        files.push({ name: base+'_'+s.w+'x'+s.h+'.png', data: new Uint8Array(await blob.arrayBuffer()) });
+      }
+      n++;
+    }
+    const zip = buildZip(files);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zip);
+    a.download = 'store-screenshots-' + state.device + '.zip';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Alle Bilder als ZIP exportieren';
+    draw();
+  }
+}
+
+fillSizes();
+draw();
+</script>
+</body>
+</html>
