@@ -376,6 +376,7 @@ function appToRow(a) {
     feat_ac: (a.features||{}).ac||'',
     im_update: !!a.imUpdate,
     benoetigt_update: !!a.benoetigtUpdate,
+    zendesk_nr: a.zendeskNr||'',
     produkt_ids_required: !!a.produktIdsRequired,
     in_pruefung_apple: !!a.inPruefungApple,
     in_pruefung_google: !!a.inPruefungGoogle,
@@ -402,6 +403,7 @@ function rowToApp(r) {
     },
     imUpdate: !!r.im_update,
     benoetigtUpdate: !!r.benoetigt_update,
+    zendeskNr: r.zendesk_nr||'',
     produktIdsRequired: !!r.produkt_ids_required,
     inPruefungApple: !!r.in_pruefung_apple,
     inPruefungGoogle: !!r.in_pruefung_google,
@@ -1461,6 +1463,17 @@ function openScreenshotStudio(appName) {
   };
 }
 
+async function saveZendeskNr(appId, value) {
+  const idx = apps.findIndex(x => String(x.id)===String(appId)||String(x._dbId)===String(appId));
+  if (idx < 0) return;
+  apps[idx].zendeskNr = value;
+  sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
+  try {
+    await saveAppSb(apps[idx]);
+    toast('Zendesk # gespeichert ✓');
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
 function filterByFeature(feat) {
   window._featFilter = feat;
   render();
@@ -1570,6 +1583,9 @@ function openDetail(id){
         <span class="toggle-slider"></span>
       </label>
       <span class="toggle-value" id="detail-imUpdate-label">${a.imUpdate?'Aktiv':'Inaktiv'}</span>
+      <input type="text" id="detail-zendesk-nr" value="${a.zendeskNr||''}" placeholder="Zendesk #" 
+        style="display:${a.imUpdate?'block':'none'};width:90px;font-size:13px;font-weight:500;border:1.5px solid #E53E3E;border-radius:6px;padding:4px 10px;color:#E53E3E;background:transparent;text-align:center"
+        onchange="saveZendeskNr('${a.id}',this.value)">
     </div>
 
     <!-- Benötigt Update Button -->
@@ -2093,6 +2109,8 @@ function closeMod(){document.getElementById('mc').innerHTML='';}
 async function toggleImUpdate(id, checked) {
   const label = document.getElementById('detail-imUpdate-label');
   if(label) label.textContent = checked ? 'Aktiv' : 'Inaktiv';
+  const zField = document.getElementById('detail-zendesk-nr');
+  if(zField) zField.style.display = checked ? 'block' : 'none';
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if(idx < 0) return;
 
