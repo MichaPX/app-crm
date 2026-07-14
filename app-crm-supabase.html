@@ -2141,10 +2141,29 @@ async function toggleImUpdate(id, checked) {
   }
 
   apps[idx].imUpdate = checked;
+  // Datum automatisch auf heute setzen
+  const heute = new Date().toISOString().split('T')[0];
+  apps[idx].datum = heute;
+  // Datum im Detail-View aktualisieren
+  const datumEl = document.querySelector('.info-row-datum');
+  if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'});
+
+  // Zendesk-Nummer in Changelog speichern
+  const zNr = zField ? zField.value.trim() : '';
+  if (zNr) {
+    try {
+      await sbFetch('update_notizen_log', {
+        method: 'POST',
+        body: JSON.stringify({app_id: String(id), feld: 'zendesk', aktion: (checked ? 'Update gestartet' : 'Update abgeschlossen') + ' #' + zNr}),
+        prefer: ''
+      });
+    } catch(e) {}
+  }
+
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
     await saveAppSb(apps[idx]);
-    toast('Update läuft: ' + (checked ? 'Aktiv' : 'Inaktiv'));
+    toast('Update läuft: ' + (checked ? 'Aktiv' : 'Inaktiv') + ' · Datum aktualisiert');
   } catch(e) { toast('Fehler: ' + e.message); }
 }
 
