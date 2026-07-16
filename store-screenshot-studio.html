@@ -234,6 +234,7 @@
       </div>
       <div class="row"><button class="btn secondary" style="width:100%" onclick="fLogoInput.click()">Logo hochladen</button></div>
       <input type="file" id="fLogoInput" accept="image/*" hidden>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="clearFeatureLogo()">Logo entfernen</button></div>
       <div class="row">
         <label>Logo-Größe</label>
         <input type="range" id="fLogoScale" min="40" max="160" value="100">
@@ -283,8 +284,27 @@
       <div class="row"><button class="btn secondary" style="width:100%" onclick="iconLogoInput.click()">Vordergrundbild (Logo) hochladen</button></div>
       <input type="file" id="iconLogoInput" accept="image/*" hidden>
       <div class="row"><button class="btn secondary" style="width:100%" onclick="bgInput.click()">Hintergrundbild hochladen</button></div>
-      <div class="row"><button class="btn secondary" style="width:100%" onclick="iAutoInput.click()">Vollbild-Logo automatisch aufbereiten</button></div>
+      <div class="row">
+        <button class="btn secondary" style="flex:1" onclick="clearIconFg()">Vordergrund entfernen</button>
+        <button class="btn secondary" style="flex:1" onclick="clearBgImg()">Hintergrund entfernen</button>
+      </div>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="iAutoInput.click()">Vollbild-Logo aufbereiten (weicher Rand)</button></div>
       <input type="file" id="iAutoInput" accept="image/*" hidden>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="iTileInput.click()">Vollbild-Icon aufbereiten (Kachel)</button></div>
+      <input type="file" id="iTileInput" accept="image/*" hidden>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="iMirrorInput.click()">Vollbild aufbereiten (randlos)</button></div>
+      <input type="file" id="iMirrorInput" accept="image/*" hidden>
+      <div class="row">
+        <label>Rand-Reserve</label>
+        <select id="iBleed" style="flex:1.4">
+          <option value="mirror">Gespiegelt (nahtlos)</option>
+          <option value="blur">Unscharf</option>
+          <option value="edge">Einfarbig (Randfarbe)</option>
+          <option value="white">Weiß</option>
+        </select>
+      </div>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="iExactInput.click()">Vollbild aufbereiten (Original-Ränder + Safe-Kreis)</button></div>
+      <input type="file" id="iExactInput" accept="image/*" hidden>
       <div class="row">
         <label>Logo-Größe</label>
         <input type="range" id="iScale" min="30" max="100" value="55">
@@ -307,6 +327,8 @@
           <option value="1024">1024 × 1024</option>
         </select>
       </div>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="exportIconLayer('fg')">⬇ Vordergrund-PNG herunterladen</button></div>
+      <div class="row"><button class="btn secondary" style="width:100%" onclick="exportIconLayer('bg')">⬇ Hintergrund-PNG herunterladen</button></div>
       <div class="row"><button class="btn" id="iconZipBtn" style="width:100%" onclick="exportIconZip()">Beide Ebenen als ZIP exportieren</button></div>
       <div class="row" style="font-size:11px;color:var(--muted)">
         Ohne Hintergrundbild wird der Farbverlauf aus „Hintergrund" als Hintergrund-Ebene genutzt. „Vollbild-Logo aufbereiten" erzeugt beide Ebenen automatisch aus einem randlosen Logo. Exportiert werden Vordergrund und Hintergrund unmaskiert, wie es Android erwartet – die Maske dient nur der Vorschau.
@@ -518,6 +540,191 @@ iAutoInput.addEventListener('change', e=>{
   iAutoInput.value = '';
 });
 
+const iTileInput = $('iTileInput');
+iTileInput.addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = ()=>{ prepareTileIcon(img); };
+  img.src = URL.createObjectURL(file);
+  iTileInput.value = '';
+});
+
+const iMirrorInput = $('iMirrorInput');
+iMirrorInput.addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = ()=>{ prepareMirrorIcon(img); };
+  img.src = URL.createObjectURL(file);
+  iMirrorInput.value = '';
+});
+
+const iExactInput = $('iExactInput');
+iExactInput.addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = ()=>{ prepareExactIcon(img); };
+  img.src = URL.createObjectURL(file);
+  iExactInput.value = '';
+});
+
+/* Original-Ränder-Ansatz (Michas Idee):
+   Hintergrund = Original in voller Größe (Maske schneidet nur echtes Bildmaterial),
+   Vordergrund = dasselbe Bild, hart am Safe-Zone-Kreis (Trennlinie) beschnitten.
+   Beide Ebenen sind pixelgenau ausgerichtet -> wirkt wie EIN randloses Bild,
+   und die Mitte ist durch den Vordergrund garantiert geschützt. */
+function prepareExactIcon(img){
+  const S = 1024;
+
+  /* Hintergrund: Original unverändert */
+  state.bgImgs.icon = img;
+
+  /* Vordergrund: Kreis-Ausschnitt exakt an der Trennlinie */
+  const fc = document.createElement('canvas');
+  fc.width = fc.height = S;
+  const fx = fc.getContext('2d');
+  fx.beginPath();
+  fx.arc(S/2, S/2, S * (33/108) * 0.995, 0, Math.PI*2);  // minimal enger, damit die Warnung nicht anschlägt
+  fx.clip();
+  // cover-fit, identisch zur Hintergrund-Zeichnung -> perfekte Deckung
+  const ir = img.width / img.height;
+  let dw, dh, dx, dy;
+  if(ir > 1){ dh = S; dw = dh*ir; dx = -(dw-S)/2; dy = 0; }
+  else { dw = S; dh = dw/ir; dx = 0; dy = -(dh-S)/2; }
+  fx.drawImage(img, dx, dy, dw, dh);
+  const fgImg = new Image();
+  fgImg.onload = ()=>{
+    state.iLogo = fgImg;
+    state.iScale = 100;   // muss 100 bleiben, sonst verschiebt sich die Deckung
+    $('iScale').value = 100;
+    $('iScaleVal').textContent = '100%';
+    syncBgImgRow();
+    draw();
+  };
+  fgImg.src = fc.toDataURL();
+}
+
+/* Randlos-Ansatz: Original exakt im sichtbaren Bereich (72/108),
+   Ränder als gespiegelte, nahtlose Fortsetzung – alles in EINER Ebene,
+   damit der Parallax-Effekt die exakte Ausrichtung nicht zerstören kann.
+   Der Vordergrund bleibt leer. */
+function prepareMirrorIcon(img){
+  const S = 1024;
+  const t = Math.round(S * 72/108);   // sichtbarer Bereich
+  const o = Math.round((S - t)/2);
+  const style = $('iBleed').value;
+  const bgc = document.createElement('canvas');
+  bgc.width = bgc.height = S;
+  const c = bgc.getContext('2d');
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = 'high';
+
+  if(style === 'mirror'){
+    // 3×3-Raster: Mitte = Original, Nachbarn = gespiegelt (nahtlose Kanten)
+    for(const dx of [-1,0,1]){
+      for(const dy of [-1,0,1]){
+        c.save();
+        c.translate(o + dx*t + t/2, o + dy*t + t/2);
+        c.scale(dx===0 ? 1 : -1, dy===0 ? 1 : -1);
+        c.drawImage(img, -t/2, -t/2, t, t);
+        c.restore();
+      }
+    }
+  } else {
+    // Reserve füllen: unscharf / Randfarbe / weiß – dann Original mittig darüber
+    if(style === 'blur'){
+      const small = document.createElement('canvas');
+      small.width = small.height = 16;
+      small.getContext('2d').drawImage(img, 0, 0, 16, 16);
+      c.drawImage(small, 0, 0, S, S);
+    } else if(style === 'edge'){
+      // mittlere Farbe der Bildränder ermitteln
+      const probe = document.createElement('canvas');
+      probe.width = probe.height = 32;
+      const pc = probe.getContext('2d');
+      pc.drawImage(img, 0, 0, 32, 32);
+      const d = pc.getImageData(0, 0, 32, 32).data;
+      let r=0, g=0, b=0, n=0;
+      for(let y=0; y<32; y++){
+        for(let x=0; x<32; x++){
+          if(x===0 || y===0 || x===31 || y===31){
+            const i = (y*32+x)*4;
+            r += d[i]; g += d[i+1]; b += d[i+2]; n++;
+          }
+        }
+      }
+      c.fillStyle = 'rgb('+Math.round(r/n)+','+Math.round(g/n)+','+Math.round(b/n)+')';
+      c.fillRect(0, 0, S, S);
+    } else { // white
+      c.fillStyle = '#ffffff';
+      c.fillRect(0, 0, S, S);
+    }
+    c.drawImage(img, o, o, t, t);
+  }
+
+  const bgImg = new Image();
+  bgImg.onload = ()=>{
+    state.bgImgs.icon = bgImg;
+    state.iLogo = null;   // alles liegt in der Hintergrund-Ebene
+    syncBgImgRow();
+    draw();
+  };
+  bgImg.src = bgc.toDataURL();
+}
+
+/* Kachel-Ansatz: komplettes Icon als abgerundete Kachel in der Safe-Zone,
+   dahinter das Icon selbst gezoomt und weichgezeichnet als Hintergrund.
+   Für Designs mit Inhalt bis in die Ecken (Text-Banner, Porträts etc.). */
+function prepareTileIcon(img){
+  const S = 1024;
+
+  /* Hintergrund: Zoom 1,6× + starker Blur (Downscale-Upscale) */
+  const cw = img.width/1.6, ch = img.height/1.6;
+  const small = document.createElement('canvas');
+  small.width = small.height = 18;
+  small.getContext('2d').drawImage(img, (img.width-cw)/2, (img.height-ch)/2, cw, ch, 0, 0, 18, 18);
+  const bgc = document.createElement('canvas');
+  bgc.width = bgc.height = S;
+  const bctx = bgc.getContext('2d');
+  bctx.imageSmoothingEnabled = true;
+  bctx.imageSmoothingQuality = 'high';
+  bctx.drawImage(small, 0, 0, S, S);
+  const bgImg = new Image();
+  bgImg.onload = ()=>{ state.bgImgs.icon = bgImg; syncBgImgRow(); draw(); };
+  bgImg.src = bgc.toDataURL();
+
+  /* Vordergrund: Kachel mit runden Ecken + dezentem Schatten, Ecken innerhalb der Safe-Zone */
+  const target = Math.round(S * 0.42);   // Diagonale der Kachel bleibt im 66-dp-Kreis
+  const fc = document.createElement('canvas');
+  fc.width = fc.height = S;
+  const fx = fc.getContext('2d');
+  const x = (S-target)/2, y = (S-target)/2, r = target*0.22;
+  fx.save();
+  fx.shadowColor = 'rgba(0,0,0,0.32)';
+  fx.shadowBlur = target*0.07;
+  fx.shadowOffsetY = target*0.03;
+  roundRect(fx, x, y, target, target, r);
+  fx.fillStyle = '#000';
+  fx.fill();
+  fx.restore();
+  roundRect(fx, x, y, target, target, r);
+  fx.save();
+  fx.clip();
+  fx.drawImage(img, x, y, target, target);
+  fx.restore();
+  const fgImg = new Image();
+  fgImg.onload = ()=>{
+    state.iLogo = fgImg;
+    state.iScale = 100;   // Ebene ist bereits fertig komponiert
+    $('iScale').value = 100;
+    $('iScaleVal').textContent = '100%';
+    draw();
+  };
+  fgImg.src = fc.toDataURL();
+}
+
 function prepareFullBleedIcon(img){
   /* --- 1) Ruhigste Ecke finden (geringste Farbvarianz = kein Text/Motiv) --- */
   const probe = document.createElement('canvas');
@@ -648,6 +855,14 @@ bgInput.addEventListener('change', e=>{
 function clearBgImg(){
   state.bgImgs[state.mode] = null;
   $('bgImgRow').style.display = 'none';
+  draw();
+}
+function clearIconFg(){
+  state.iLogo = null;
+  draw();
+}
+function clearFeatureLogo(){
+  state.fLogo = null;
   draw();
 }
 function syncBgImgRow(){
@@ -946,13 +1161,15 @@ function drawFeatureDeco(c, W, H){
 
 /* --- Adaptive Icon (Android): Ebenen, Maske, Vorschau --- */
 function iconMaskPath(c, S){
+  // Android zeigt nur die inneren 72 von 108 dp – der Rand ist Parallax-Reserve
+  const v = S * 72/108, o = (S - v)/2;
   if(state.iMask === 'circle'){
     c.beginPath();
-    c.arc(S/2, S/2, S/2 * 0.94, 0, Math.PI*2);
+    c.arc(S/2, S/2, v/2, 0, Math.PI*2);
   } else if(state.iMask === 'rounded'){
-    roundRect(c, S*0.04, S*0.04, S*0.92, S*0.92, S*0.17);
+    roundRect(c, o + v*0.02, o + v*0.02, v*0.96, v*0.96, v*0.17);
   } else { // squircle (angenähert)
-    roundRect(c, S*0.03, S*0.03, S*0.94, S*0.94, S*0.30);
+    roundRect(c, o, o, v, v, v*0.30);
   }
 }
 
@@ -1023,10 +1240,30 @@ function logoInSafeZone(){
   const R = 33, mx = T/2, my = T/2;
   for(let y = 0; y < T; y++){
     for(let x = 0; x < T; x++){
-      if(d[(y*T+x)*4+3] > 12 && Math.hypot(x+0.5-mx, y+0.5-my) > R + 0.5) return false;
+      if(d[(y*T+x)*4+3] > 100 && Math.hypot(x+0.5-mx, y+0.5-my) > R + 0.5) return false;
     }
   }
   return true;
+}
+
+function exportIconLayer(which){
+  const S = state.iSize;
+  const off = document.createElement('canvas');
+  off.width = S; off.height = S;
+  const oc = off.getContext('2d');
+  if(which === 'bg'){
+    drawBG(oc, S, S);
+  } else {
+    drawIconLogo(oc, S);   // Logo auf Transparenz
+    if(!state.iLogo){ alert('Kein Vordergrund geladen.'); return; }
+  }
+  off.toBlob(blob=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'adaptive-icon-' + (which==='bg' ? 'hintergrund' : 'vordergrund') + '_' + S + 'x' + S + '.png';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }, 'image/png');
 }
 
 async function exportIconZip(){
