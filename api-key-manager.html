@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Key Manager</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f7f7f5;--bg2:#fff;--bg3:#f0f0ee;
+    --text:#1a1a18;--text2:#6b6b68;--text3:#9b9b97;
+    --border:#e5e5e2;--border2:#c8c8c4;
+    --accent:#534AB7;--accent-light:#EEEDFE;
+    --red:#A32D2D;--red-light:#FCEBEB;
+    --green:#085041;--green-light:#E1F5EE;
+    --radius:8px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+  /* Header */
+  .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:36px;height:36px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+  .logo-text{font-size:15px;font-weight:600;color:var(--text)}
+  .logo-sub{font-size:11px;color:var(--text3);margin-left:6px}
+  .header-actions{display:flex;align-items:center;gap:8px}
+
+  /* Login */
+  .login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 61px)}
+  .login-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:16px;padding:32px;width:360px;text-align:center}
+  .login-box h2{font-size:18px;margin-bottom:20px;color:var(--text)}
+  .login-box input{width:100%;padding:10px 14px;border:0.5px solid var(--border);border-radius:var(--radius);font-size:14px;margin-bottom:10px;background:var(--bg3);color:var(--text);font-family:inherit}
+  .login-box input:focus{outline:none;border-color:var(--accent)}
+
+  /* Buttons */
+  .btn{padding:8px 16px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .12s}
+  .btn:hover{background:var(--bg3)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-primary:hover{background:#4540a0}
+  .btn-danger{color:var(--red);border-color:#F7C1C1}
+  .btn-danger:hover{background:var(--red-light)}
+  .btn-sm{padding:5px 10px;font-size:11px}
+
+  /* Main */
+  .main{max-width:800px;margin:0 auto;padding:24px}
+  .page-title{font-size:18px;font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+
+  /* Cards */
+  .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  .card-header{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid var(--border);background:var(--bg3)}
+  .card-title{font-size:14px;font-weight:600;flex:1}
+  .card-body{padding:16px}
+
+  /* Fields */
+  .field-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .field-label{font-size:11px;color:var(--text3);font-weight:500;width:90px;flex-shrink:0}
+  .field-value{flex:1;font-size:13px;color:var(--text);background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:6px 10px;font-family:inherit}
+  .field-value.mono{font-family:monospace;font-size:12px}
+  .field-value.p8{font-size:11px;font-family:monospace;min-height:80px;resize:vertical}
+  .field-value:focus{outline:none;border-color:var(--accent)}
+  .copy-btn{padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0;font-size:12px}
+  .copy-btn:hover{background:var(--bg3)}
+
+  /* Form */
+  .form-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:center;justify-content:center}
+  .form-box{background:var(--bg2);border-radius:14px;padding:24px;width:540px;max-height:90vh;overflow-y:auto}
+  .form-box h3{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+  .form-field{margin-bottom:14px}
+  .form-field label{font-size:11px;color:var(--text3);font-weight:500;display:block;margin-bottom:4px}
+  .form-field input,.form-field textarea{width:100%;padding:8px 12px;border:0.5px solid var(--border);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--bg3);color:var(--text)}
+  .form-field input:focus,.form-field textarea:focus{outline:none;border-color:var(--accent)}
+  .form-field textarea{min-height:120px;resize:vertical;font-family:monospace;font-size:12px}
+  .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:0.5px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.1);display:flex;align-items:center;gap:8px;z-index:999}
+
+  /* Empty */
+  .empty{text-align:center;padding:60px 20px;color:var(--text3)}
+  .empty i{font-size:40px;margin-bottom:12px;display:block}
+
+  /* Spinner */
+  .spinner{text-align:center;padding:40px;color:var(--text3);font-size:24px}
+
+  textarea{box-sizing:border-box}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon"><i class="ti ti-key"></i></div>
+    <span class="logo-text">API Key Manager</span>
+    <span class="logo-sub">Micha Notebook</span>
+  </div>
+  <div class="header-actions" id="header-actions" style="display:none">
+    <span id="user-email" style="font-size:12px;color:var(--text3)"></span>
+    <button class="btn" onclick="doLogout()"><i class="ti ti-logout"></i> Abmelden</button>
+  </div>
+</div>
+
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div style="width:48px;height:48px;background:var(--accent-light);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><i class="ti ti-key" style="font-size:24px;color:var(--accent)"></i></div>
+    <h2>API Key Manager</h2>
+    <input type="email" id="login-email" placeholder="E-Mail" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="password" id="login-pw" placeholder="Passwort" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()"><i class="ti ti-login"></i> Einloggen</button>
+    <div id="login-error" style="color:var(--red);font-size:12px;margin-top:10px"></div>
+  </div>
+</div>
+
+<div id="main-screen" style="display:none">
+  <div class="main">
+    <div class="page-title">
+      <i class="ti ti-key" style="color:var(--accent)"></i>
+      API Keys
+      <button class="btn btn-primary" style="margin-left:auto" onclick="openForm()"><i class="ti ti-plus"></i> Neuer Eintrag</button>
+    </div>
+    <div id="keys-list"><div class="spinner"><i class="ti ti-loader"></i></div></div>
+  </div>
+</div>
+
+<div id="form-overlay" class="form-overlay" style="display:none">
+  <div class="form-box">
+    <h3><i class="ti ti-key" style="color:var(--accent)"></i><span id="form-title">Neuer API Key</span></h3>
+    <input type="hidden" id="form-id">
+    <div class="form-field">
+      <label>Name / Bezeichnung</label>
+      <input type="text" id="form-name" placeholder="z.B. Apple App Store Connect – Micha">
+    </div>
+    <div class="form-field">
+      <label>Key ID</label>
+      <input type="text" id="form-key-id" placeholder="z.B. ABC123DEFG" class="mono">
+    </div>
+    <div class="form-field">
+      <label>Issuer ID</label>
+      <input type="text" id="form-issuer-id" placeholder="z.B. 12345678-abcd-..." class="mono">
+    </div>
+    <div class="form-field">
+      <label>.p8 Datei Inhalt</label>
+      <textarea id="form-p8" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Notiz</label>
+      <input type="text" id="form-notiz" placeholder="Optionale Notiz…">
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeForm()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveKey()"><i class="ti ti-device-floppy"></i> Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://womcbvvcmtmqpdhbukzw.supabase.co';
+const SB_KEY = 'sb_publishable_ih7z6TLCcAxMq9TzdMxj0w_dLQ9AOjY';
+
+async function sbFetch(path, opts) {
+  opts = opts || {};
+  const token = localStorage.getItem('crm_access_token');
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + (token || SB_KEY),
+    'Content-Type': 'application/json',
+    'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=representation',
+    ...(opts.headers || {})
+  };
+  let res = await fetch(SB_URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    body: opts.body,
+    headers
+  });
+  if (res.status === 401) {
+    const ok = await refreshToken();
+    if (!ok) return null;
+    res = await fetch(SB_URL + '/rest/v1/' + path, {
+      method: opts.method || 'GET',
+      body: opts.body,
+      headers: {...headers, 'Authorization': 'Bearer ' + localStorage.getItem('crm_access_token')}
+    });
+  }
+  if (!res.ok && res.status !== 204) throw new Error(await res.text());
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function refreshToken() {
+  const refresh = localStorage.getItem('crm_refresh_token');
+  if (!refresh) { doLogout(); return false; }
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: {'apikey': SB_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({refresh_token: refresh})
+    });
+    const data = await res.json();
+    if (!res.ok) { doLogout(); return false; }
+    localStorage.setItem('crm_access_token', data.access_token);
+    localStorage.setItem('crm_refresh_token', data.refresh_token);
+    return true;
+  } catch(e) { doLogout(); return false; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  document.getElementById('login-error').textContent = '';
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {'apikey': SB_KEY, 'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password: pw})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || 'Login fehlgeschlagen');
+    localStorage.setItem('crm_access_token', data.access_token);
+    localStorage.setItem('crm_refresh_token', data.refresh_token);
+    localStorage.setItem('crm_email', email);
+    showMain(email);
+  } catch(e) {
+    document.getElementById('login-error').textContent = e.message;
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('crm_access_token');
+  localStorage.removeItem('crm_refresh_token');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('header-actions').style.display = 'none';
+}
+
+function showMain(email) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  document.getElementById('header-actions').style.display = 'flex';
+  document.getElementById('user-email').textContent = email || localStorage.getItem('crm_email') || '';
+  loadKeys();
+}
+
+async function loadKeys() {
+  const wrap = document.getElementById('keys-list');
+  wrap.innerHTML = '<div class="spinner"><i class="ti ti-loader"></i></div>';
+  try {
+    const rows = await sbFetch('api_keys?order=created_at.asc');
+    if (!rows || rows.length === 0) {
+      wrap.innerHTML = '<div class="empty"><i class="ti ti-key"></i><div>Noch keine API Keys hinterlegt</div><div style="font-size:12px;margin-top:6px">Klick auf „Neuer Eintrag" um zu beginnen</div></div>';
+      return;
+    }
+    wrap.innerHTML = rows.map(r => renderCard(r)).join('');
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty"><i class="ti ti-alert-triangle"></i><div>Fehler beim Laden</div></div>';
+  }
+}
+
+function renderCard(r) {
+  const created = r.created_at ? new Date(r.created_at).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}) : '';
+  return `<div class="card" id="card-${r.id}">
+    <div class="card-header">
+      <i class="ti ti-key" style="color:var(--accent);font-size:16px"></i>
+      <span class="card-title">${r.name||'Unbenannt'}</span>
+      ${r.notiz?`<span style="font-size:11px;color:var(--text3)">${r.notiz}</span>`:''}
+      <span style="font-size:10px;color:var(--text3)">${created}</span>
+      <button class="btn btn-sm" onclick="openForm(${JSON.stringify(r).replace(/"/g,'&quot;')})"><i class="ti ti-edit"></i></button>
+      <button class="btn btn-sm btn-danger" onclick="deleteKey(${r.id})"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="card-body">
+      ${fieldRow('Key ID', r.key_id||'—', true, r.id+'_keyid')}
+      ${fieldRow('Issuer ID', r.issuer_id||'—', true, r.id+'_issuer')}
+      ${r.p8_content ? `
+      <div style="margin-bottom:6px">
+        <div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:4px">P8 Inhalt</div>
+        <div style="position:relative">
+          <textarea id="${r.id}_p8" readonly style="width:100%;font-family:monospace;font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);resize:none;height:80px;box-sizing:border-box">${r.p8_content}</textarea>
+          <button class="copy-btn" style="position:absolute;top:6px;right:6px" onclick="copyVal('${r.id}_p8')"><i class="ti ti-copy"></i></button>
+        </div>
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function fieldRow(label, value, copyable, id) {
+  return `<div class="field-row">
+    <span class="field-label">${label}</span>
+    <input type="text" id="${id}" value="${(value||'').replace(/"/g,'&quot;')}" readonly class="field-value mono">
+    ${copyable?`<button class="copy-btn" onclick="copyVal('${id}')"><i class="ti ti-copy"></i></button>`:''}
+  </div>`;
+}
+
+function copyVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.value || el.textContent).then(() => toast('Kopiert ✓'));
+}
+
+function openForm(data) {
+  document.getElementById('form-id').value = data ? data.id : '';
+  document.getElementById('form-title').textContent = data ? 'API Key bearbeiten' : 'Neuer API Key';
+  document.getElementById('form-name').value = data ? (data.name||'') : '';
+  document.getElementById('form-key-id').value = data ? (data.key_id||'') : '';
+  document.getElementById('form-issuer-id').value = data ? (data.issuer_id||'') : '';
+  document.getElementById('form-p8').value = data ? (data.p8_content||'') : '';
+  document.getElementById('form-notiz').value = data ? (data.notiz||'') : '';
+  document.getElementById('form-overlay').style.display = 'flex';
+}
+
+function closeForm() {
+  document.getElementById('form-overlay').style.display = 'none';
+}
+
+async function saveKey() {
+  const id = document.getElementById('form-id').value;
+  const data = {
+    name: document.getElementById('form-name').value.trim(),
+    key_id: document.getElementById('form-key-id').value.trim(),
+    issuer_id: document.getElementById('form-issuer-id').value.trim(),
+    p8_content: document.getElementById('form-p8').value.trim(),
+    notiz: document.getElementById('form-notiz').value.trim(),
+  };
+  try {
+    if (id) {
+      await sbFetch('api_keys?id=eq.' + id, {method:'PATCH', body:JSON.stringify(data), prefer:''});
+    } else {
+      await sbFetch('api_keys', {method:'POST', body:JSON.stringify(data), prefer:''});
+    }
+    closeForm();
+    toast('Gespeichert ✓');
+    loadKeys();
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+async function deleteKey(id) {
+  if (!confirm('API Key wirklich löschen?')) return;
+  try {
+    await sbFetch('api_keys?id=eq.' + id, {method:'DELETE'});
+    toast('Gelöscht ✓');
+    loadKeys();
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<i class="ti ti-check" style="color:var(--green)"></i> ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// Auto-login
+window.addEventListener('load', () => {
+  const token = localStorage.getItem('crm_access_token');
+  const email = localStorage.getItem('crm_email');
+  if (token) showMain(email);
+});
+
+// Close form on backdrop click
+document.getElementById('form-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('form-overlay')) closeForm();
+});
+</script>
+</body>
+</html>
