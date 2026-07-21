@@ -2037,7 +2037,7 @@ function renderChangelogSection(log) {
   if (!wrap) return;
   const recentLog = log.slice(0,3);
   const olderLog = log.slice(3);
-  const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'};
+  const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos',zendesk:'Zendesk-Ticket',update_done:'Update abgeschlossen'};
   const platBadge = (p) => {
     if (!p) return '';
     if (p === 'apple')  return '<span style="font-size:10px;background:#eef1f5;color:#1f2430;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-brand-apple" style="font-size:11px"></i> Apple</span>';
@@ -2046,18 +2046,38 @@ function renderChangelogSection(log) {
   };
   const row = (l,i,borderBottom) => {
     const d = new Date(l.zeitpunkt);
-    const isDeakt = l.aktion==='deaktiviert';
-    return `<div style="display:flex;gap:12px;padding:9px 12px;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
-      <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
+    const dateStr = `${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`;
+    const rowWrap = (dot, title, right) => `<div style="display:flex;gap:12px;padding:9px 12px;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
+      <div style="width:7px;height:7px;border-radius:50%;background:${dot};margin-top:4px;flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;color:var(--text);font-weight:500">${fieldLabels[l.feld]||l.feld} ${l.aktion}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
+        <div style="font-size:12px;color:var(--text);font-weight:500">${title}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${dateStr}</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
-        ${platBadge(l.plattform)}
-        <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;white-space:nowrap">${l.aktion}</span>
-      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">${right}</div>
     </div>`;
+
+    // Ticket-/Abschluss-Einträge: eigene Darstellung mit klickbarer Ticketnummer
+    if (l.feld === 'zendesk' || l.feld === 'update_done') {
+      const m = (l.aktion || '').match(/#\s*(\d+)/);
+      const ticket = m ? m[1] : '';
+      const started = /gestartet/i.test(l.aktion || '');
+      const label = started ? 'Update gestartet' : 'Update abgeschlossen';
+      // Versions-Info aus aktion (z.B. "Update abgeschlossen — Google auf 5.4.3")
+      const verMatch = (l.aktion || '').match(/—\s*(.+)$/);
+      const verInfo = verMatch ? `<span style="color:var(--text3);font-weight:400"> · ${verMatch[1].replace(/#\s*\d+/,'').trim()}</span>` : '';
+      const dot = started ? 'var(--teal)' : 'var(--green)';
+      const title = `<i class="ti ${started?'ti-player-play':'ti-check'}" style="font-size:12px;color:${dot};margin-right:3px"></i>${label}${verInfo}`;
+      const ticketBadge = ticket
+        ? `<span onclick="event.stopPropagation();window.open(ZENDESK_TICKET_URL+'${ticket}','_blank')" title="Ticket #${ticket} öffnen" style="font-size:10px;background:var(--indigo-soft);color:var(--indigo);padding:2px 8px;border-radius:4px;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-ticket" style="font-size:11px"></i> #${ticket} ↗</span>`
+        : `<span style="font-size:10px;background:var(--slate-soft);color:var(--text3);padding:2px 6px;border-radius:4px;white-space:nowrap">kein Ticket</span>`;
+      return rowWrap(dot, title, platBadge(l.plattform) + ticketBadge);
+    }
+
+    // Standard-Checklisten-Eintrag
+    const isDeakt = l.aktion==='deaktiviert';
+    const title = `${fieldLabels[l.feld]||l.feld} ${l.aktion}`;
+    const right = platBadge(l.plattform) + `<span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;white-space:nowrap">${l.aktion}</span>`;
+    return rowWrap(isDeakt?'#A32D2D':'#0F6E56', title, right);
   };
   wrap.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
