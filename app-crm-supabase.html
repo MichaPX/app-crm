@@ -1886,7 +1886,15 @@ async function loadUpdateNotizen(appId) {
   const recentLog = log.slice(0, 3);
   const olderLog = log.slice(3);
 
+  window._updPlatform = (n.plattform || (apps.find(x=>String(x.id)===String(appId)||String(x._dbId)===String(appId))||{}).updateTarget || 'beide');
+  const platBtn = (t,label,icon) => `<button type="button" data-plat="${t}" onclick="setUpdPlatform('${appId}','${t}')" class="updplat-btn${window._updPlatform===t?' on':''}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;font-family:inherit;padding:7px 8px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer">${icon} ${label}</button>`;
   wrap.innerHTML = `
+    <div style="font-size:10px;font-weight:600;color:var(--text2);letter-spacing:0.05em;margin-bottom:8px">PLATTFORM DIESES UPDATES</div>
+    <div id="upd-plat-seg" style="display:flex;gap:6px;margin-bottom:16px">
+      ${platBtn('apple','Apple','<i class=\'ti ti-brand-apple\' style=\'font-size:14px\'></i>')}
+      ${platBtn('google','Google','<i class=\'ti ti-brand-android\' style=\'font-size:14px\'></i>')}
+      ${platBtn('beide','Beide','<i class=\'ti ti-devices\' style=\'font-size:14px\'></i>')}
+    </div>
     <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em;margin-bottom:8px">VOR DEM UPDATE DEAKTIVIEREN</div>
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
       ${['banner','login','freischaltcode','einzelkaeufe','abos'].map(f => {
@@ -1941,6 +1949,30 @@ async function loadUpdateNotizen(appId) {
   renderChangelogSection(log);
 }
 
+function setUpdPlatform(appId, t) {
+  window._updPlatform = t;
+  document.querySelectorAll('#upd-plat-seg .updplat-btn').forEach(b => {
+    const on = b.dataset.plat === t;
+    b.classList.toggle('on', on);
+    b.style.background = on ? 'var(--indigo-soft)' : 'var(--card)';
+    b.style.color = on ? 'var(--indigo)' : 'var(--text2)';
+    b.style.borderColor = on ? 'var(--indigo)' : 'var(--border)';
+  });
+  // Auf der App als Standard merken (nicht kritisch, daher fire-and-forget)
+  const idx = apps.findIndex(x => String(x.id)===String(appId)||String(x._dbId)===String(appId));
+  if (idx >= 0 && apps[idx].updateTarget !== t) {
+    apps[idx].updateTarget = t;
+    saveAppSb(apps[idx], {skipLog:true}).catch(()=>{});
+  }
+  // In update_notizen mitspeichern
+  (async () => {
+    try {
+      const rows = await sbFetch('update_notizen?app_id=eq.' + appId);
+      if (rows && rows[0]) await sbFetch('update_notizen?id=eq.' + rows[0].id, {method:'PATCH', body:JSON.stringify({plattform:t}), prefer:''});
+    } catch(e) {}
+  })();
+}
+
 async function onUpdCheck(el, appId) {
   const field = el.dataset.field;
   const checked = el.checked;
@@ -1976,7 +2008,7 @@ async function onUpdCheck(el, appId) {
     // Changelog Eintrag
     await sbFetch('update_notizen_log', {
       method: 'POST',
-      body: JSON.stringify({app_id: String(appId), feld: field, aktion}),
+      body: JSON.stringify({app_id: String(appId), feld: field, aktion, plattform: window._updPlatform || 'beide'}),
       prefer: ''
     });
 
@@ -2006,16 +2038,25 @@ function renderChangelogSection(log) {
   const recentLog = log.slice(0,3);
   const olderLog = log.slice(3);
   const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos'};
+  const platBadge = (p) => {
+    if (!p) return '';
+    if (p === 'apple')  return '<span style="font-size:10px;background:#eef1f5;color:#1f2430;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-brand-apple" style="font-size:11px"></i> Apple</span>';
+    if (p === 'google') return '<span style="font-size:10px;background:#e8f6ea;color:#2e9e44;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-brand-android" style="font-size:11px"></i> Google</span>';
+    return '<span style="font-size:10px;background:var(--indigo-soft);color:var(--indigo);padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-devices" style="font-size:11px"></i> Beide</span>';
+  };
   const row = (l,i,borderBottom) => {
     const d = new Date(l.zeitpunkt);
     const isDeakt = l.aktion==='deaktiviert';
     return `<div style="display:flex;gap:12px;padding:9px 12px;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
       <div style="width:7px;height:7px;border-radius:50%;background:${isDeakt?'#A32D2D':'#0F6E56'};margin-top:4px;flex-shrink:0"></div>
-      <div style="flex:1">
+      <div style="flex:1;min-width:0">
         <div style="font-size:12px;color:var(--text);font-weight:500">${fieldLabels[l.feld]||l.feld} ${l.aktion}</div>
         <div style="font-size:11px;color:var(--text3);margin-top:1px">${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr</div>
       </div>
-      <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;align-self:flex-start;white-space:nowrap">${l.aktion}</span>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">
+        ${platBadge(l.plattform)}
+        <span style="font-size:10px;background:${isDeakt?'#FCEBEB':'#E1F5EE'};color:${isDeakt?'#A32D2D':'#085041'};padding:2px 6px;border-radius:4px;white-space:nowrap">${l.aktion}</span>
+      </div>
     </div>`;
   };
   wrap.innerHTML = `
@@ -2044,6 +2085,7 @@ async function saveUpdateNotizen(appId, existingId) {
     update_email: document.getElementById('upd-email')?.value||'',
     update_pw: document.getElementById('upd-pw')?.value||'',
     notiz: document.getElementById('upd-notiz')?.value||'',
+    plattform: window._updPlatform || 'beide',
     updated_at: new Date().toISOString()
   };
   try {
