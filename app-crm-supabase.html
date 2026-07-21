@@ -552,6 +552,39 @@
     border-radius: 8px; padding: 1px 4px;
     border: 2px solid #23264a;
   }
+  .cl-list { margin-top: 6px; max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+  .cl-daysep {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); padding: 14px 0 8px; position: sticky; top: 0; background: var(--card); z-index: 1;
+  }
+  .cl-daysep span { background: var(--slate-soft); color: var(--text2); border-radius: 10px; padding: 1px 7px; font-size: 10px; letter-spacing: 0; }
+  .cl-daysep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .cl-item {
+    display: flex; gap: 11px; padding: 9px 8px; margin: 0 -8px; border-radius: 9px;
+    cursor: pointer; transition: background .12s; align-items: flex-start;
+  }
+  .cl-item:hover { background: var(--slate-soft); }
+  .cl-dot {
+    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; margin-top: 1px;
+  }
+  .cl-dot-new { background: var(--green-soft); color: var(--green); }
+  .cl-dot-del { background: var(--red-soft); color: #991b1b; }
+  .cl-dot-edit { background: var(--indigo-soft); color: var(--indigo); }
+  .cl-body { flex: 1; min-width: 0; }
+  .cl-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .cl-app { font-size: 13px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cl-time { font-size: 11px; color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
+  .cl-detail { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+  .cl-change { font-size: 11.5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .cl-field { background: var(--slate-soft); color: var(--text2); border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 600; }
+  .cl-from { color: #991b1b; text-decoration: line-through; opacity: 0.7; }
+  .cl-to { color: var(--green); font-weight: 550; }
+  .cl-arr { font-size: 11px; color: var(--muted); }
+  .cl-tag { font-size: 11px; font-weight: 600; border-radius: 5px; padding: 2px 8px; }
+  .cl-tag-new { background: var(--green-soft); color: var(--green); }
+  .cl-tag-del { background: var(--red-soft); color: #991b1b; }
   @media (max-width: 1100px) {
     .dash { grid-template-columns: 1fr 1fr; }
     .dash-primary { grid-column: 1 / -1; flex-direction: row; align-items: center; }
@@ -1074,10 +1107,42 @@ async function doRestore(backup) {
 }
 
 // ── Save / Delete ──
-async function saveAppSb(a) {
+const CHANGELOG_LABELS = {
+  name:'Name', vApple:'iOS', vGoogle:'Android', store:'Store', year:'Jahr',
+  updateStatus:'Status', fcs:'FCS', blockiert:'Blockiert', gekuendigt:'Gekündigt',
+  gekuendigtDatum:'Kündigungsdatum', storeZugang:'Store Zugang', deeplinks:'Deeplinks',
+  push:'Push', datum:'Datum', imUpdate:'Update läuft', benoetigtUpdate:'Benötigt Update',
+  zendeskNr:'Zendesk #', produktIdsRequired:'Prod. IDs nötig', updateTarget:'Update für',
+  produktIDs:'Produkt IDs', loginApple:'Login Apple', loginGoogle:'Login Google'
+};
+function fmtChangeVal(v){
+  if (v === true) return 'Ja';
+  if (v === false || v === '' || v == null) return '—';
+  return String(v);
+}
+function diffForLog(oldObj, newObj){
+  if (!oldObj) return [];
+  return Object.keys(CHANGELOG_LABELS).filter(k => {
+    const a = oldObj[k], b = newObj[k];
+    return String(a===undefined?'':a) !== String(b===undefined?'':b);
+  }).map(k => ({field: CHANGELOG_LABELS[k], from: fmtChangeVal(oldObj[k]), to: fmtChangeVal(newObj[k])}));
+}
+async function saveAppSb(a, opts) {
+  opts = opts || {};
   const row = appToRow(a);
+  // Vorherigen Stand aus apps[] holen (für automatisches Logging)
+  let prev = null;
+  if (!opts.skipLog && a._dbId) {
+    if (window._preSaveSnapshot && String(window._preSaveSnapshot._dbId)===String(a._dbId)) prev = window._preSaveSnapshot;
+    else prev = apps.find(x => String(x._dbId) === String(a._dbId) && x !== a) || null;
+  }
   if (a._dbId) {
     await sbFetch('apps?id=eq.' + a._dbId, { method:'PATCH', body: JSON.stringify(row), prefer:'' });
+    if (!opts.skipLog && prev) {
+      const ch = diffForLog(prev, a);
+      if (ch.length) logChange(a.id, a.name, ch);
+    }
+    window._preSaveSnapshot = null;
   } else {
     const res = await sbFetch('apps', { method:'POST', body: JSON.stringify(row) });
     if (res && res[0]) a._dbId = res[0].id;
@@ -1223,6 +1288,8 @@ async function loadZielVersion() {
   } catch(e) { ZIEL_VERSION = ''; }
   const el = document.getElementById('ziel-version-badge');
   if (el) el.textContent = ZIEL_VERSION || '—';
+  // Panel neu aufbauen, falls Apps schon geladen sind (Zielversion beeinflusst "Braucht Aufmerksamkeit")
+  if (typeof apps !== 'undefined' && apps.length) renderAttention();
 }
 async function setZielVersion() {
   const val = prompt('Zielversion für abgeschlossene Updates (z. B. 5.4.3):', ZIEL_VERSION || '');
@@ -1233,6 +1300,7 @@ async function setZielVersion() {
   await saveGlobalSetting('ziel_version', clean);
   const el = document.getElementById('ziel-version-badge');
   if (el) el.textContent = ZIEL_VERSION || '—';
+  renderAttention();
   toast(clean ? ('Zielversion: ' + clean + ' ✓') : 'Zielversion geleert');
 }
 
@@ -1240,24 +1308,74 @@ async function setZielVersion() {
 async function openChangelog() {
   showLoader('Changelog laden…');
   try {
-    const rows = await sbFetch('changelog?select=*&order=created_at.desc&limit=200', {prefer:''}) || [];
+    const rows = await sbFetch('changelog?select=*&order=created_at.desc&limit=300', {prefer:''}) || [];
     hideLoader();
-    const entries = rows.length ? rows.map(r => {
-      const ch = Array.isArray(r.changes) ? r.changes : [];
-      const isNew = ch[0] && ch[0].field === '_new';
-      const isDel = ch[0] && ch[0].field === '_deleted';
-      const dt = new Date(r.created_at).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      const col = isNew ? '#085041' : isDel ? '#A32D2D' : '#534AB7';
-      const chHtml = isNew ? '<span style="color:#085041;font-size:11px"><i class="ti ti-plus"></i> Neu angelegt</span>'
-        : isDel ? '<span style="color:#A32D2D;font-size:11px"><i class="ti ti-trash"></i> Gelöscht</span>'
-        : ch.map(c => '<div style="font-size:11px"><span style="background:#f0f0ec;border-radius:3px;padding:1px 4px;font-size:10px">' + c.field + '</span> <span style="color:#A32D2D;text-decoration:line-through;font-size:10px">' + (c.from||'').slice(0,20) + '</span> → <span style="color:#085041;font-size:10px;font-weight:500">' + (c.to||'').slice(0,20) + '</span></div>').join('');
-      return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid #f0f0ec;align-items:flex-start"><div style="width:8px;height:8px;border-radius:50%;background:' + col + ';margin-top:4px;flex-shrink:0"></div><div style="font-size:11px;color:#999;min-width:110px;flex-shrink:0">' + dt + '</div><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:3px">' + r.app_name + '</div>' + chHtml + '</div></div>';
-    }).join('') : '<div style="text-align:center;padding:40px;color:#aaa;font-size:13px">Noch keine Einträge</div>';
-    document.getElementById('mc').innerHTML = '<div class="modal-bg" onclick="if(event.target===this)closeMod()"><div class="modal" style="width:600px;max-height:85vh"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div><h3 style="font-size:15px;font-weight:600">Changelog</h3><div style="font-size:11px;color:#999">' + rows.length + ' Einträge</div></div><button class="btn btn-ghost" onclick="closeMod()" style="padding:4px 8px"><i class="ti ti-x"></i></button></div>' + entries + '</div></div>';
+
+    function relDay(iso){
+      const d=new Date(iso), t0=new Date(); t0.setHours(0,0,0,0);
+      const dd=new Date(d); dd.setHours(0,0,0,0);
+      const diff=Math.round((t0-dd)/864e5);
+      if(diff===0) return 'Heute';
+      if(diff===1) return 'Gestern';
+      if(diff<7) return 'Vor '+diff+' Tagen';
+      return d.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+    }
+
+    // Nach Tag gruppieren
+    const groups={};
+    rows.forEach(r=>{
+      const key=new Date(r.created_at).toISOString().slice(0,10);
+      (groups[key]=groups[key]||[]).push(r);
+    });
+    const dayKeys=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+
+    let body='';
+    if(!rows.length){
+      body='<div class="empty" style="padding:50px 0"><i class="ti ti-history"></i><p>Noch keine Einträge</p></div>';
+    } else {
+      dayKeys.forEach(day=>{
+        const list=groups[day];
+        body+=`<div class="cl-daysep">${relDay(list[0].created_at)} <span>${list.length}</span></div>`;
+        list.forEach(r=>{
+          const ch=Array.isArray(r.changes)?r.changes:[];
+          const isNew=ch[0]&&ch[0].field==='_new';
+          const isDel=ch[0]&&ch[0].field==='_deleted';
+          const time=new Date(r.created_at).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+          const kind=isNew?'new':isDel?'del':'edit';
+          const icon=isNew?'ti-plus':isDel?'ti-trash':'ti-pencil';
+          let detail;
+          if(isNew) detail='<span class="cl-tag cl-tag-new">Neu angelegt</span>';
+          else if(isDel) detail='<span class="cl-tag cl-tag-del">Gelöscht</span>';
+          else detail=ch.map(c=>{
+            const from=(c.from&&c.from!=='—')?`<span class="cl-from">${(c.from||'').slice(0,26)}</span> <i class="ti ti-arrow-right cl-arr"></i> `:'';
+            return `<div class="cl-change"><span class="cl-field">${c.field}</span> ${from}<span class="cl-to">${(c.to||'—').slice(0,26)}</span></div>`;
+          }).join('');
+          body+=`<div class="cl-item" onclick="closeMod();(function(){var a=apps.find(x=>String(x.id)===String('${r.app_id}')||String(x._dbId)===String('${r.app_id}'));if(a)openDetail(a.id);})()">
+            <div class="cl-dot cl-dot-${kind}"><i class="ti ${icon}"></i></div>
+            <div class="cl-body">
+              <div class="cl-top"><span class="cl-app">${r.app_name||'—'}</span><span class="cl-time">${time}</span></div>
+              <div class="cl-detail">${detail}</div>
+            </div>
+          </div>`;
+        });
+      });
+    }
+
+    document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-top">
+          <div>
+            <h3>Changelog</h3>
+            <div class="sub">${rows.length} Einträge · letzte 300</div>
+          </div>
+          <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="cl-list">${body}</div>
+      </div>
+    </div>`;
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
 
-// ── CRUD ──
 async function saveEdit(id) {
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if(idx<0){toast('App nicht gefunden');return;}
@@ -1268,11 +1386,10 @@ async function saveEdit(id) {
   a._dbId = base._dbId;
   a.id = base.id;
   if (!a.name) { document.getElementById('f-name').focus(); return; }
-  const LABELS = {name:'Name',vApple:'iOS',vGoogle:'Android',store:'Store',year:'Jahr',updateStatus:'Status',fcs:'FCS',blockiert:'Blockiert',storeZugang:'Store Zugang',deeplinks:'Deeplinks',push:'Push',datum:'Datum'};
-  const changes = Object.keys(LABELS).filter(k => String(old[k]||'') !== String(a[k]||'')).map(k => ({field:LABELS[k],from:String(old[k]||''),to:String(a[k]||'')}));
+  window._preSaveSnapshot = old;
   try {
     await saveAppSb(a);
-    if (changes.length) await logChange(a.id, a.name, changes);
+    window._preSaveSnapshot = null;
     apps[idx] = a; sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps)); sessionStorage.setItem(SESSION_APPS_TS, Date.now().toString()); closeMod(); render(); toast('Gespeichert ✓');
   } catch(e) { hideLoader(); toast('Fehler: ' + e.message); }
 }
@@ -1452,8 +1569,8 @@ function render() {
     if(fst==='Gekündigt'&&(!a.gekuendigt||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(window._attnFilter){
-      const behind = ZIEL_VERSION && ((a.vApple&&cmpV(ZIEL_VERSION,a.vApple,1)>0)||(a.vGoogle&&cmpV(ZIEL_VERSION,a.vGoogle,1)>0));
-      const needsAttn = (a.blockiert || a.benoetigtUpdate || behind) && !a.gekuendigt && !a.imUpdate;
+      const yr = String(a.year||'');
+      const needsAttn = (yr==='2023'||yr==='2024') && !a.gekuendigt && !a.imUpdate;
       if(!needsAttn) return false;
     }
     if(window._featFilter==='prodIds'&&!a.produktIdsRequired) return false;
@@ -1984,6 +2101,7 @@ function openScreenshotStudio(appName) {
 async function saveZendeskNr(appId, value) {
   const idx = apps.findIndex(x => String(x.id)===String(appId)||String(x._dbId)===String(appId));
   if (idx < 0) return;
+  window._preSaveSnapshot = {...apps[idx]};
   apps[idx].zendeskNr = value;
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
@@ -2646,22 +2764,18 @@ async function loadWeeklyTrend() {
 function attentionItems() {
   const items = [];
   apps.forEach(a => {
-    if (a.gekuendigt || a.imUpdate) return; // Gekündigte/laufende hier ausklammern
-    let prio = 99, reason = '', color = '#9aa0ae', icon = 'ti-point';
-    if (a.blockiert) {
-      prio = 1; reason = 'Blockiert'; color = 'var(--red)'; icon = 'ti-lock';
-    } else if (a.benoetigtUpdate) {
-      prio = 2; reason = 'Benötigt Update'; color = 'var(--amber)'; icon = 'ti-refresh-alert';
-    } else if (ZIEL_VERSION) {
-      const aBehind = a.vApple && cmpV(ZIEL_VERSION, a.vApple, 1) > 0;
-      const gBehind = a.vGoogle && cmpV(ZIEL_VERSION, a.vGoogle, 1) > 0;
-      if (aBehind || gBehind) {
-        prio = 3;
-        const plats = [aBehind ? 'iOS' : '', gBehind ? 'Android' : ''].filter(Boolean).join(' & ');
-        reason = 'Veraltet (' + plats + ')'; color = 'var(--indigo)'; icon = 'ti-arrow-up-circle';
-      }
-    }
-    if (prio < 99) items.push({ a, prio, reason, color, icon });
+    if (a.gekuendigt || a.imUpdate) return; // Gekündigte/laufende ausklammern
+    const yr = String(a.year || '');
+    if (yr !== '2023' && yr !== '2024') return;
+    const live = !(a.store === 'aus dem Store' || a.store === 'Aus dem Store');
+    // 2023 vor 2024, live vor "aus dem Store"
+    const prio = (yr === '2023' ? 0 : 1) + (live ? 0 : 2);
+    items.push({
+      a, prio,
+      reason: 'Jahrgang ' + yr,
+      color: yr === '2023' ? 'var(--red)' : 'var(--amber)',
+      icon: 'ti-calendar-clock'
+    });
   });
   items.sort((x, y) => x.prio - y.prio || x.a.name.localeCompare(y.a.name, 'de'));
   return items;
@@ -2672,7 +2786,7 @@ function renderAttention() {
   if (!el) return;
   const items = attentionItems();
   if (!items.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> Alles im grünen Bereich</div>';
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> <span>Keine Apps aus 2023 / 2024 offen</span></div>';
     return;
   }
   el.innerHTML = items.slice(0, 5).map(it => `
@@ -2770,6 +2884,7 @@ function closeMod(){document.getElementById('mc').innerHTML='';}
 async function setUpdateTarget(id, t) {
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if (idx < 0) return;
+  window._preSaveSnapshot = {...apps[idx]};
   apps[idx].updateTarget = t;
   const seg = document.getElementById('detail-update-target');
   if (seg) seg.querySelectorAll('.ut-btn').forEach(b => b.classList.toggle('on', b.dataset.t === t));
@@ -2785,6 +2900,7 @@ async function toggleImUpdate(id, checked) {
   if(zWrap) zWrap.style.display = checked ? 'flex' : 'none';
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if(idx < 0) return;
+  window._preSaveSnapshot = {...apps[idx]};
 
   // Warnung wenn Update auf Inaktiv gestellt und noch offene Punkte vorhanden
   if (!checked) {
@@ -2874,6 +2990,7 @@ async function toggleImUpdate(id, checked) {
 async function toggleBenoetigtUpdate(id) {
   const idx = apps.findIndex(x => String(x.id)===String(id)||String(x._dbId)===String(id));
   if(idx < 0) return;
+  window._preSaveSnapshot = {...apps[idx]};
   apps[idx].benoetigtUpdate = !apps[idx].benoetigtUpdate;
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
