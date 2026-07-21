@@ -686,8 +686,8 @@
       <div id="update-ranking"></div>
     </div>
     <div class="chart-card">
-      <div class="panel-head"><span class="chart-title">Zuletzt geändert</span><button class="panel-link" onclick="document.getElementById('f-sort').value='date-desc';render()">Nach Datum</button></div>
-      <div id="activity-list"></div>
+      <div class="panel-head"><span class="chart-title">Braucht Aufmerksamkeit</span><button class="panel-link" onclick="showAttentionList()">Alle zeigen</button></div>
+      <div id="attention-list"></div>
     </div>
   </div>
 
@@ -1451,6 +1451,11 @@ function render() {
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
     if(fst==='Gekündigt'&&(!a.gekuendigt||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
+    if(window._attnFilter){
+      const behind = ZIEL_VERSION && ((a.vApple&&cmpV(ZIEL_VERSION,a.vApple,1)>0)||(a.vGoogle&&cmpV(ZIEL_VERSION,a.vGoogle,1)>0));
+      const needsAttn = (a.blockiert || a.benoetigtUpdate || behind) && !a.gekuendigt && !a.imUpdate;
+      if(!needsAttn) return false;
+    }
     if(window._featFilter==='prodIds'&&!a.produktIdsRequired) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
     if(fst==='ac'&&!(a.features&&a.features.ac)) return false;
@@ -1617,6 +1622,8 @@ function render() {
 }
 
 function clearF(){
+  window._attnFilter=false;
+  window._featFilter=null;
   document.getElementById('search').value='';
   document.getElementById('search-company').value='';
   document.getElementById('f-store').value='';
@@ -2621,19 +2628,8 @@ async function updateDashboard() {
       <span class="db-count">${yearCounts[y]}</span>
     </div>`).join('');
 
-  // Zuletzt geändert
-  const act=document.getElementById('activity-list');
-  if(act){
-    const dots=['var(--teal)','var(--green)','var(--amber)','#8b7ef8','var(--indigo)'];
-    const recent=[...apps].filter(a=>a.datum).sort((a,b)=>(b.datum||'').localeCompare(a.datum||'')).slice(0,5);
-    const t0=new Date();t0.setHours(0,0,0,0);
-    act.innerHTML=recent.map((a,i)=>{
-      const d=new Date(a.datum);d.setHours(0,0,0,0);
-      const diff=Math.round((t0-d)/864e5);
-      const when=diff===0?'heute':diff===1?'gestern':d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
-      return `<div class="activity-item" onclick="openDetail('${a.id}')"><span class="activity-dot" style="background:${dots[i%dots.length]}"></span><span class="act-name">${a.name}</span><span class="when">${when}</span></div>`;
-    }).join('')||'<div style="font-size:12px;color:var(--muted);padding:6px 0">Noch keine Änderungen</div>';
-  }
+  // Braucht Aufmerksamkeit
+  renderAttention();
 }
 
 async function loadWeeklyTrend() {
@@ -2644,6 +2640,58 @@ async function loadWeeklyTrend() {
     const el=document.getElementById('dash-trend');
     if(el){ el.textContent = n>0 ? ('▲ +'+n+' diese Woche') : '± 0 diese Woche'; el.style.display='inline-block'; }
   } catch(e) {}
+}
+
+// Priorisierte "Braucht Aufmerksamkeit"-Liste
+function attentionItems() {
+  const items = [];
+  apps.forEach(a => {
+    if (a.gekuendigt || a.imUpdate) return; // Gekündigte/laufende hier ausklammern
+    let prio = 99, reason = '', color = '#9aa0ae', icon = 'ti-point';
+    if (a.blockiert) {
+      prio = 1; reason = 'Blockiert'; color = 'var(--red)'; icon = 'ti-lock';
+    } else if (a.benoetigtUpdate) {
+      prio = 2; reason = 'Benötigt Update'; color = 'var(--amber)'; icon = 'ti-refresh-alert';
+    } else if (ZIEL_VERSION) {
+      const aBehind = a.vApple && cmpV(ZIEL_VERSION, a.vApple, 1) > 0;
+      const gBehind = a.vGoogle && cmpV(ZIEL_VERSION, a.vGoogle, 1) > 0;
+      if (aBehind || gBehind) {
+        prio = 3;
+        const plats = [aBehind ? 'iOS' : '', gBehind ? 'Android' : ''].filter(Boolean).join(' & ');
+        reason = 'Veraltet (' + plats + ')'; color = 'var(--indigo)'; icon = 'ti-arrow-up-circle';
+      }
+    }
+    if (prio < 99) items.push({ a, prio, reason, color, icon });
+  });
+  items.sort((x, y) => x.prio - y.prio || x.a.name.localeCompare(y.a.name, 'de'));
+  return items;
+}
+
+function renderAttention() {
+  const el = document.getElementById('attention-list');
+  if (!el) return;
+  const items = attentionItems();
+  if (!items.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> Alles im grünen Bereich</div>';
+    return;
+  }
+  el.innerHTML = items.slice(0, 5).map(it => `
+    <div class="activity-item" onclick="openDetail('${it.a.id}')">
+      <i class="ti ${it.icon}" style="color:${it.color};font-size:14px;flex-shrink:0"></i>
+      <span class="act-name" title="${(it.a.name||'').replace(/"/g,'&quot;')}">${it.a.name}</span>
+      <span class="when" style="color:${it.color};font-weight:600">${it.reason}</span>
+    </div>`).join('') +
+    (items.length > 5 ? `<div style="font-size:11px;color:var(--muted);padding:6px 2px 0;cursor:pointer" onclick="showAttentionList()">+ ${items.length - 5} weitere · alle zeigen</div>` : '');
+}
+
+// "Alle zeigen": Filter so setzen, dass nur relevante Apps übrig bleiben
+function showAttentionList() {
+  clearF();
+  window._attnFilter = true;
+  document.getElementById('f-sort').value = 'name-asc';
+  render();
+  document.querySelector('.filterbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Gefiltert: Braucht Aufmerksamkeit (' + attentionItems().length + ')');
 }
 
 function renderStoreDonut() {
