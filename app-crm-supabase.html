@@ -771,6 +771,18 @@
 <div id="mc"></div>
 
 <script>
+// ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
+function parseV(v) {
+  if(!v||v==='—'||String(v).toLowerCase().includes('prüfung')||String(v).toLowerCase().includes('store')) return [-1,-1,-1];
+  const p=String(v).split('.').map(n=>parseInt(n)||0);
+  return [p[0]||0, p[1]||0, p[2]||0];
+}
+function cmpV(av,bv,dir) {
+  const ap=parseV(av), bp=parseV(bv);
+  for(let i=0;i<3;i++){if(ap[i]!==bp[i]) return dir*(ap[i]-bp[i]);}
+  return 0;
+}
+
 // ════════════════════════════════════════
 // VERSION & CACHE CHECK
 // ════════════════════════════════════════
@@ -1597,16 +1609,6 @@ function render() {
     return true;
   });
   const sortVal=document.getElementById('f-sort').value;
-  function parseV(v) {
-    if(!v||v==='—'||v.toLowerCase().includes('prüfung')||v.toLowerCase().includes('store')) return [-1,-1,-1];
-    const p=v.split('.').map(n=>parseInt(n)||0);
-    return [p[0]||0, p[1]||0, p[2]||0];
-  }
-  function cmpV(av,bv,dir) {
-    const ap=parseV(av), bp=parseV(bv);
-    for(let i=0;i<3;i++){if(ap[i]!==bp[i]) return dir*(ap[i]-bp[i]);}
-    return 0;
-  }
   if(sortVal==='date-desc') list.sort((a,b)=>(b.datum||'').localeCompare(a.datum||''));
   else if(sortVal==='date-asc') list.sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
   else if(sortVal==='name-asc') list.sort((a,b)=>a.name.localeCompare(b.name,'de'));
