@@ -1962,7 +1962,7 @@ async function loadUpdateNotizen(appId) {
   `;
 
   document.getElementById('upd-save-btn').onclick = () => saveUpdateNotizen(appId, n.id);
-  renderChangelogSection(log);
+  renderChangelogSection(log, appId);
 }
 
 function setUpdPlatform(appId, t) {
@@ -2043,12 +2043,25 @@ async function onUpdCheck(el, appId) {
         now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
     }
     const logRows = await sbFetch('update_notizen_log?app_id=eq.' + appId + '&order=zeitpunkt.desc&limit=50');
-    renderChangelogSection(logRows||[]);
+    renderChangelogSection(logRows||[], appId);
 
   } catch(e) { console.error(e); }
 }
 
-function renderChangelogSection(log) {
+async function deleteLogEntry(logId, appId) {
+  if (!confirm('Diesen Changelog-Eintrag wirklich löschen? Er wird auch aus der "Meiste Updates"-Statistik entfernt.')) return;
+  try {
+    await sbFetch('update_notizen_log?id=eq.' + logId, { method: 'DELETE', prefer: '' });
+    toast('Eintrag gelöscht ✓');
+    // Verlauf im Tab neu laden
+    const logRows = await sbFetch('update_notizen_log?app_id=eq.' + appId + '&order=zeitpunkt.desc&limit=50');
+    renderChangelogSection(logRows || [], appId);
+    // "Meiste Updates"-Statistik im Dashboard neu berechnen
+    if (typeof loadUpdateRanking === 'function') loadUpdateRanking();
+  } catch(e) { toast('Fehler beim Löschen: ' + e.message); }
+}
+
+function renderChangelogSection(log, appId) {
   const wrap = document.getElementById('upd-changelog');
   if (!wrap) return;
   const recentLog = log.slice(0,3);
@@ -2063,13 +2076,15 @@ function renderChangelogSection(log) {
   const row = (l,i,borderBottom) => {
     const d = new Date(l.zeitpunkt);
     const dateStr = `${d.toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr`;
-    const rowWrap = (dot, title, right) => `<div style="display:flex;gap:12px;padding:9px 12px;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
-      <div style="width:7px;height:7px;border-radius:50%;background:${dot};margin-top:4px;flex-shrink:0"></div>
+    const delBtn = l.id ? `<button title="Eintrag löschen (aus Statistik entfernen)" onclick="event.stopPropagation();deleteLogEntry('${l.id}','${appId}')" style="border:none;background:transparent;color:var(--text3);cursor:pointer;padding:2px;font-size:13px;line-height:1;display:flex;align-items:center;border-radius:4px" onmouseover="this.style.color='var(--red)';this.style.background='var(--red-soft)'" onmouseout="this.style.color='var(--text3)';this.style.background='transparent'"><i class="ti ti-trash"></i></button>` : '';
+  const rowWrap = (dot, title, right) => `<div style="display:flex;gap:12px;padding:9px 12px;align-items:center;${borderBottom?'border-bottom:0.5px solid var(--border)':''}${i%2===1?'background:var(--bg2)':''}">
+      <div style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;color:var(--text);font-weight:500">${title}</div>
         <div style="font-size:11px;color:var(--text3);margin-top:1px">${dateStr}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">${right}</div>
+      ${delBtn}
     </div>`;
 
     // Ticket-/Abschluss-Einträge: eigene Darstellung mit klickbarer Ticketnummer
