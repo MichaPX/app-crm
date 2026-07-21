@@ -682,7 +682,7 @@
       <div id="year-bars"></div>
     </div>
     <div class="chart-card">
-      <div class="panel-head"><span class="chart-title">Meiste Updates</span></div>
+      <div class="panel-head"><span style="display:flex;align-items:baseline;gap:6px"><span class="chart-title">Meiste Updates</span><span style="font-size:9px;color:var(--text3);font-weight:500">abgeschlossen</span></span></div>
       <div id="update-ranking"></div>
     </div>
     <div class="chart-card">
@@ -2676,9 +2676,13 @@ function renderStoreDonut() {
 
 async function loadUpdateRanking() {
   try {
-    const rows=await sbFetch('update_notizen_log?select=app_id&limit=10000',{prefer:''})||[];
+    // Nur abgeschlossene Updates zählen: neuer Marker feld=update_done ODER Alt-Einträge mit 'Update abgeschlossen'
+    const rows=await sbFetch('update_notizen_log?select=app_id,feld,aktion&limit=20000',{prefer:''})||[];
     const counts={};
-    rows.forEach(r=>{counts[r.app_id]=(counts[r.app_id]||0)+1;});
+    rows.forEach(r=>{
+      const done = r.feld==='update_done' || (typeof r.aktion==='string' && r.aktion.startsWith('Update abgeschlossen'));
+      if(done) counts[r.app_id]=(counts[r.app_id]||0)+1;
+    });
     window._updCounts=counts;
     renderUpdateRanking();
   } catch(e) {}
@@ -2798,10 +2802,22 @@ async function toggleImUpdate(id, checked) {
     } catch(e) {}
   }
 
+  // Abgeschlossenes Update eindeutig protokollieren (Basis fürs "Meiste Updates"-Ranking)
+  if (!checked) {
+    try {
+      await sbFetch('update_notizen_log', {
+        method: 'POST',
+        body: JSON.stringify({app_id: String(id), feld: 'update_done', aktion: 'Update abgeschlossen' + (versionInfo ? versionInfo : '')}),
+        prefer: ''
+      });
+    } catch(e) {}
+  }
+
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
     await saveAppSb(apps[idx]);
     render();
+    loadUpdateRanking();
     if (versionInfo) { closeMod(); openDetail(id); }
     toast('Update ' + (checked ? 'gestartet' : 'abgeschlossen') + versionInfo);
   } catch(e) { toast('Fehler: ' + e.message); }
