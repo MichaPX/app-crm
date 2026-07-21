@@ -806,6 +806,20 @@ localStorage.setItem('app_crm_version', APP_VERSION);
 // Zendesk-Ticket-Basis-URL (bei Bedarf anpassen)
 const ZENDESK_TICKET_URL = 'https://pressmatrix.zendesk.com/agent/tickets/';
 
+// Baut aus Eingabe (Nummer ODER voller Link) eine gültige Zendesk-URL
+function zendeskUrl(val) {
+  if (!val) return '';
+  val = String(val).trim();
+  if (/^https?:\/\//i.test(val)) return val;           // schon ein Link
+  const num = val.replace(/[^0-9]/g, '');
+  return num ? (ZENDESK_TICKET_URL + num) : '';
+}
+function openZendesk(val) {
+  const url = zendeskUrl(val);
+  if (url) window.open(url, '_blank');
+  else toast('Kein Zendesk-Ticket hinterlegt');
+}
+
 // ════════════════════════════════════════
 // SUPABASE
 // ════════════════════════════════════════
@@ -2060,17 +2074,21 @@ function renderChangelogSection(log) {
 
     // Ticket-/Abschluss-Einträge: eigene Darstellung mit klickbarer Ticketnummer
     if (l.feld === 'zendesk' || l.feld === 'update_done') {
-      const m = (l.aktion || '').match(/#\s*(\d+)/);
-      const ticket = m ? m[1] : '';
       const started = /gestartet/i.test(l.aktion || '');
       const label = started ? 'Update gestartet' : 'Update abgeschlossen';
-      // Versions-Info aus aktion (z.B. "Update abgeschlossen — Google auf 5.4.3")
+      // Ticket: entweder #Nummer oder ein voller Link in der aktion
+      const urlM = (l.aktion || '').match(/(https?:\/\/[^\s]+)/i);
+      const numM = (l.aktion || '').match(/#\s*(\d+)/);
+      const ticketUrl = urlM ? urlM[1] : (numM ? ZENDESK_TICKET_URL + numM[1] : '');
+      const ticketLabel = numM ? ('#' + numM[1]) : (urlM ? 'Ticket' : '');
+      // Versions-Info bereinigt (ohne Ticket/Link)
       const verMatch = (l.aktion || '').match(/—\s*(.+)$/);
-      const verInfo = verMatch ? `<span style="color:var(--text3);font-weight:400"> · ${verMatch[1].replace(/#\s*\d+/,'').trim()}</span>` : '';
+      let verClean = verMatch ? verMatch[1].replace(/#\s*\d+/,'').replace(/https?:\/\/[^\s]+/i,'').trim() : '';
+      const verInfo = verClean ? `<span style="color:var(--text3);font-weight:400"> · ${verClean}</span>` : '';
       const dot = started ? 'var(--teal)' : 'var(--green)';
       const title = `<i class="ti ${started?'ti-player-play':'ti-check'}" style="font-size:12px;color:${dot};margin-right:3px"></i>${label}${verInfo}`;
-      const ticketBadge = ticket
-        ? `<span onclick="event.stopPropagation();window.open(ZENDESK_TICKET_URL+'${ticket}','_blank')" title="Ticket #${ticket} öffnen" style="font-size:10px;background:var(--indigo-soft);color:var(--indigo);padding:2px 8px;border-radius:4px;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-ticket" style="font-size:11px"></i> #${ticket} ↗</span>`
+      const ticketBadge = ticketUrl
+        ? `<a href="${ticketUrl}" target="_blank" onclick="event.stopPropagation()" title="Zendesk-Ticket öffnen" style="font-size:10px;background:var(--indigo-soft);color:var(--indigo);padding:2px 8px;border-radius:4px;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none"><i class="ti ti-ticket" style="font-size:11px"></i> ${ticketLabel||'Ticket'} ↗</a>`
         : `<span style="font-size:10px;background:var(--slate-soft);color:var(--text3);padding:2px 6px;border-radius:4px;white-space:nowrap">kein Ticket</span>`;
       return rowWrap(dot, title, platBadge(l.plattform) + ticketBadge);
     }
@@ -2300,11 +2318,11 @@ function openDetail(id){
             ${['apple','google','beide'].map(t=>`<button class="ut-btn${(a.updateTarget||'beide')===t?' on':''}" data-t="${t}" onclick="setUpdateTarget('${a.id}','${t}')">${t==='apple'?'<i class=\'ti ti-brand-apple\'></i> Apple':t==='google'?'<i class=\'ti ti-brand-android\'></i> Google':'Beide'}</button>`).join('')}
           </div>
         </div>
-        <div class="update-zendesk" id="detail-zendesk-wrap" style="display:${a.imUpdate?'flex':'none'}">
+        <div class="update-zendesk" id="detail-zendesk-wrap" style="display:flex">
           <span class="zd-label">Zendesk</span>
-          <input type="text" class="zd-num" id="detail-zendesk-nr" value="${a.zendeskNr||''}" placeholder="#" onchange="saveZendeskNr('${a.id}',this.value)">
-          <button class="copy-btn" title="Ticketnummer kopieren" onclick="navigator.clipboard.writeText(document.getElementById('detail-zendesk-nr').value).then(()=>toast('Ticketnummer kopiert ✓'))"><i class="ti ti-copy"></i></button>
-          <button class="zd-open" onclick="var n=document.getElementById('detail-zendesk-nr').value.replace(/[^0-9]/g,'');if(n)window.open(ZENDESK_TICKET_URL+n,'_blank');else toast('Keine Ticketnummer hinterlegt')">Ticket öffnen ↗</button>
+          <input type="text" class="zd-num" id="detail-zendesk-nr" value="${(a.zendeskNr||'').replace(/"/g,'&quot;')}" placeholder="Nr. oder Link" onchange="saveZendeskNr('${a.id}',this.value)" style="width:150px">
+          <button class="copy-btn" title="Kopieren" onclick="navigator.clipboard.writeText(document.getElementById('detail-zendesk-nr').value).then(()=>toast('Zendesk kopiert ✓'))"><i class="ti ti-copy"></i></button>
+          <button class="zd-open" onclick="openZendesk(document.getElementById('detail-zendesk-nr').value)">Ticket öffnen ↗</button>
         </div>
       </div>
 
@@ -3021,12 +3039,12 @@ async function toggleImUpdate(id, checked) {
   if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'});
 
   // Zendesk-Nummer in Changelog speichern
-  const zNr = zField ? zField.value.trim() : '';
+  let zNr = zField ? zField.value.trim() : '';
   if (zNr) {
     try {
       await sbFetch('update_notizen_log', {
         method: 'POST',
-        body: JSON.stringify({app_id: String(id), feld: 'zendesk', aktion: (checked ? 'Update gestartet' : 'Update abgeschlossen') + ' #' + zNr}),
+        body: JSON.stringify({app_id: String(id), feld: 'zendesk', aktion: (checked ? 'Update gestartet' : 'Update abgeschlossen') + ' ' + (/^https?:/i.test(zNr) ? zNr : ('#' + zNr.replace(/[^0-9]/g,''))), plattform: apps[idx].updateTarget || 'beide'}),
         prefer: ''
       });
     } catch(e) {}
@@ -3037,7 +3055,7 @@ async function toggleImUpdate(id, checked) {
     try {
       await sbFetch('update_notizen_log', {
         method: 'POST',
-        body: JSON.stringify({app_id: String(id), feld: 'update_done', aktion: 'Update abgeschlossen' + (versionInfo ? versionInfo : '')}),
+        body: JSON.stringify({app_id: String(id), feld: 'update_done', aktion: 'Update abgeschlossen' + (versionInfo ? versionInfo : ''), plattform: apps[idx].updateTarget || 'beide'}),
         prefer: ''
       });
     } catch(e) {}
