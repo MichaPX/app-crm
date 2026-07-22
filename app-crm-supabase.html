@@ -536,6 +536,37 @@
   }
   .panel-head .chart-title { margin-bottom: 0; }
   .panel-link { border: none; background: transparent; color: var(--indigo); font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  #attn-bar { display: none; margin-bottom: 14px; }
+  .attn-bar-inner {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--indigo-soft); border: 1px solid #d5d8fb;
+    border-radius: 10px; padding: 9px 12px;
+  }
+  .attn-bar-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--indigo);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .attn-seg { display: inline-flex; background: var(--card); border-radius: 8px; padding: 2px; gap: 2px; }
+  .attn-seg button {
+    border: none; background: transparent; color: var(--text2);
+    font-family: inherit; font-size: 11.5px; font-weight: 600;
+    padding: 4px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .attn-seg button:hover:not(.on) { background: var(--slate-soft); }
+  .attn-seg button.on { background: var(--indigo); color: #fff; }
+  .attn-bar-close {
+    margin-left: auto; border: none; background: transparent;
+    color: var(--indigo); font-size: 11.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+  }
+  .attn-bar-close:hover { text-decoration: underline; }
+  #attn-cat {
+    font-family: inherit; font-size: 11px; font-weight: 600; color: var(--indigo);
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 2px 4px; cursor: pointer; outline: none; max-width: 130px;
+  }
+  #attn-cat:focus { border-color: var(--indigo); }
   .panel-link:hover { text-decoration: underline; }
   .legend-row {
     display: flex; align-items: center; gap: 8px;
@@ -740,7 +771,15 @@
       <div id="update-ranking"></div>
     </div>
     <div class="chart-card">
-      <div class="panel-head"><span class="chart-title">Braucht Aufmerksamkeit</span><button class="panel-link" onclick="showAttentionList()">Alle zeigen</button></div>
+      <div class="panel-head">
+        <span class="chart-title">Braucht Aufmerksamkeit</span>
+        <select id="attn-cat" onchange="renderAttention()" title="Kategorie wählen">
+          <option value="">Alle</option>
+          <option value="dl">Deeplinks fehlen</option>
+          <option value="2023">Jahrgang 2023</option>
+          <option value="2024">Jahrgang 2024</option>
+        </select>
+      </div>
       <div id="attention-list"></div>
     </div>
   </div>
@@ -783,6 +822,7 @@
   <div class="content">
     <div id="kuendigung-banner"></div>
     <div id="prodids-banner"></div>
+    <div id="attn-bar"></div>
     <div class="grid" id="grid"></div>
   </div>
 </div>
@@ -791,7 +831,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-22 09:18';
+const BUILD_STAMP = '2026-07-22 10:06';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1627,9 +1667,15 @@ function render() {
     if(fst==='Gekündigt'&&(!a.gekuendigt||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
     if(window._attnFilter){
+      if(a.gekuendigt || a.imUpdate) return false;
       const yr = String(a.year||'');
-      const needsAttn = (yr==='2023'||yr==='2024') && !a.gekuendigt && !a.imUpdate;
-      if(!needsAttn) return false;
+      const dl = String(a.deeplinks||'');
+      const cat = window._attnCat || '';
+      let ok;
+      if(cat==='dl')       ok = (dl==='Daten Fehlen');
+      else if(cat==='2023'||cat==='2024') ok = (dl!=='Daten Fehlen' && yr===cat);
+      else                 ok = (dl==='Daten Fehlen' || yr==='2023' || yr==='2024');
+      if(!ok) return false;
     }
     if(window._featFilter==='prodIds'&&!a.produktIdsRequired) return false;
     if(fst==='benoetigtUpdate'&&!a.benoetigtUpdate) return false;
@@ -1666,6 +1712,7 @@ function render() {
     const db=b.gekuendigtDatum||'9999';
     return da.localeCompare(db);
   });
+  renderAttnBar();
   const total=apps.length;
   document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
   updateDashboard();
@@ -1788,6 +1835,7 @@ function render() {
 
 function clearF(){
   window._attnFilter=false;
+  window._attnCat=null;
   window._featFilter=null;
   document.getElementById('search').value='';
   document.getElementById('search-company').value='';
@@ -2959,33 +3007,81 @@ async function loadWeeklyTrend() {
   } catch(e) {}
 }
 
-// Priorisierte "Braucht Aufmerksamkeit"-Liste: Jahrgänge 2023 / 2024
-function attentionItems() {
+// "Braucht Aufmerksamkeit": Deeplinks "Daten Fehlen" + Jahrgänge 2023 / 2024
+// cat: '' = alle, 'dl' = Deeplinks fehlen, '2023' / '2024' = Jahrgang
+function attentionItems(cat) {
+  cat = cat || '';
   const items = [];
   apps.forEach(a => {
     if (a.gekuendigt || a.imUpdate) return; // Gekündigte/laufende ausklammern
+    const dl = String(a.deeplinks || '');
     const yr = String(a.year || '');
-    if (yr !== '2023' && yr !== '2024') return;
-    const live = !(a.store === 'aus dem Store' || a.store === 'Aus dem Store');
-    // 2023 vor 2024, live vor "aus dem Store"
-    const prio = (yr === '2023' ? 0 : 1) + (live ? 0 : 2);
-    items.push({
-      a, prio,
-      reason: 'Jahrgang ' + yr,
-      color: yr === '2023' ? 'var(--red)' : 'var(--amber)',
-      icon: 'ti-calendar-clock'
-    });
+
+    if (dl === 'Daten Fehlen') {
+      if (cat === '' || cat === 'dl') {
+        items.push({ a, prio: 0, cat: 'dl', reason: 'Deeplinks fehlen', color: 'var(--red)', icon: 'ti-link-off' });
+      }
+      return;
+    }
+    if (yr === '2023' || yr === '2024') {
+      if (cat === '' || cat === yr) {
+        items.push({
+          a, prio: yr === '2023' ? 1 : 2, cat: yr,
+          reason: 'Jahrgang ' + yr,
+          color: yr === '2023' ? 'var(--red)' : 'var(--amber)',
+          icon: 'ti-calendar-clock'
+        });
+      }
+    }
   });
   items.sort((x, y) => x.prio - y.prio || x.a.name.localeCompare(y.a.name, 'de'));
   return items;
 }
 
+// Kategorie-Leiste über den Karten (nur sichtbar, wenn der Aufmerksamkeits-Filter aktiv ist)
+function renderAttnBar() {
+  const bar = document.getElementById('attn-bar');
+  if (!bar) return;
+  if (!window._attnFilter) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const cat = window._attnCat || '';
+  const cats = [
+    ['',     'Alle'],
+    ['dl',   'Deeplinks fehlen'],
+    ['2023', 'Jahrgang 2023'],
+    ['2024', 'Jahrgang 2024']
+  ];
+  const btns = cats.map(([v, label]) => {
+    const n = attentionItems(v).length;
+    return `<button class="${cat === v ? 'on' : ''}" onclick="setAttnCat('${v}')">${label} <span style="opacity:.65">${n}</span></button>`;
+  }).join('');
+  bar.innerHTML = `<div class="attn-bar-inner">
+    <span class="attn-bar-title"><i class="ti ti-alert-circle" style="font-size:13px"></i> Braucht Aufmerksamkeit</span>
+    <div class="attn-seg">${btns}</div>
+    <button class="attn-bar-close" onclick="clearF();render()">✕ Filter aufheben</button>
+  </div>`;
+  bar.style.display = 'block';
+}
+
+// Kategorie umschalten, ohne die Ansicht zu verlassen
+function setAttnCat(cat) {
+  window._attnCat = cat;
+  const sel = document.getElementById('attn-cat');
+  if (sel) sel.value = cat;
+  render();
+  renderAttention();
+}
+
 function renderAttention() {
   const el = document.getElementById('attention-list');
   if (!el) return;
-  const items = attentionItems();
+  const sel = document.getElementById('attn-cat');
+  const cat = sel ? sel.value : '';
+  const items = attentionItems(cat);
   if (!items.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> <span>Keine Apps aus 2023 / 2024 offen</span></div>';
+    const txt = cat === 'dl' ? 'Keine fehlenden Deeplinks'
+      : cat ? ('Keine Apps aus ' + cat + ' offen')
+      : 'Nichts offen — alles sauber';
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> <span>' + txt + '</span></div>';
     return;
   }
   el.innerHTML = items.slice(0, 5).map(it => `
@@ -2994,17 +3090,22 @@ function renderAttention() {
       <span class="act-name" title="${(it.a.name||'').replace(/"/g,'&quot;')}">${it.a.name}</span>
       <span class="when" style="color:${it.color};font-weight:600">${it.reason}</span>
     </div>`).join('') +
-    (items.length > 5 ? `<div style="font-size:11px;color:var(--muted);padding:6px 2px 0;cursor:pointer" onclick="showAttentionList()">+ ${items.length - 5} weitere · alle zeigen</div>` : '');
+    `<div style="font-size:11px;color:var(--indigo);font-weight:600;padding:7px 2px 0;cursor:pointer" onclick="showAttentionList()">${items.length > 5 ? '+ ' + (items.length - 5) + ' weitere · ' : ''}alle ${items.length} zeigen</div>`;
 }
 
-// "Alle zeigen": Filter so setzen, dass nur relevante Apps übrig bleiben
+// "Alle zeigen": Kartenübersicht auf die gewählte Kategorie filtern
 function showAttentionList() {
+  const sel = document.getElementById('attn-cat');
+  const cat = sel ? sel.value : '';
   clearF();
+  if (sel) sel.value = cat;          // Auswahl nach clearF wiederherstellen
   window._attnFilter = true;
+  window._attnCat = cat;
   document.getElementById('f-sort').value = 'name-asc';
   render();
   document.querySelector('.filterbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  toast('Gefiltert: Braucht Aufmerksamkeit (' + attentionItems().length + ')');
+  const label = cat === 'dl' ? 'Deeplinks fehlen' : cat ? ('Jahrgang ' + cat) : 'Braucht Aufmerksamkeit';
+  toast('Gefiltert: ' + label + ' (' + attentionItems(cat).length + ')');
 }
 
 function renderStoreDonut() {
