@@ -150,7 +150,9 @@
     margin-top: 14px; font-size: 11px; font-weight: 600;
     background: rgba(255,255,255,0.18); border-radius: 6px;
     padding: 4px 8px; display: none; width: fit-content;
+    white-space: nowrap; cursor: default;
   }
+  .dash-primary .lbl#dv-aktiv { font-size: 11px; }
   .dash-group { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px 14px; }
   .dash-group-title {
     font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
@@ -166,6 +168,7 @@
   .dash-cell .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
   .dash-cell.active { border-color: var(--indigo); background: var(--indigo-soft); }
   .dash-cell.active .lbl { color: var(--indigo); font-weight: 600; }
+  .cell-delta { font-size: 10px; font-weight: 700; margin-top: 3px; min-height: 13px; letter-spacing: 0; }
 
   /* ================= Charts + Aktivität ================= */
   .charts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
@@ -493,7 +496,14 @@
   }
   .fdiv { grid-column: 1 / -1; height: 1px; background: var(--slate-soft); margin: 4px 0; }
   .check-field { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-  .check-field input { accent-color: var(--indigo); width: 15px; height: 15px; }
+  .check-field input[type="checkbox"] { accent-color: var(--indigo); width: 15px; height: 15px; flex-shrink: 0; }
+  .check-field input[type="date"], .check-field input[type="text"] {
+    font-size: 12.5px; font-family: inherit; color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; background: var(--card); outline: none;
+    width: auto; height: auto; min-width: 150px; cursor: pointer;
+  }
+  .check-field input[type="date"]:focus { border-color: var(--indigo); }
   .check-field label { cursor: pointer; }
 
   /* ================= Toast & Loader ================= */
@@ -659,6 +669,7 @@
       <div>
         <div class="num" id="dv-total">—</div>
         <div class="lbl">Apps gesamt</div>
+        <div class="lbl" id="dv-aktiv" style="margin-top:6px;font-weight:600;opacity:.95"></div>
       </div>
       <div class="trend" id="dash-trend"></div>
     </div>
@@ -668,18 +679,22 @@
         <div class="dash-cell" id="dc-benoetigt" onclick="setStatusFilter('benoetigtUpdate')">
           <div class="num" style="color:var(--amber)" id="dv-benoetigt">—</div>
           <div class="lbl">Benötigt Update</div>
+          <div class="cell-delta" id="dl-benoetigt"></div>
         </div>
         <div class="dash-cell" id="dc-imupdate" onclick="setStatusFilter('imUpdate')">
           <div class="num" style="color:var(--teal)" id="dv-imupdate">—</div>
           <div class="lbl">Update läuft</div>
+          <div class="cell-delta" id="dl-imupdate"></div>
         </div>
         <div class="dash-cell" id="dc-ac" onclick="filterByFeature('ac')">
           <div class="num" style="color:var(--indigo)" id="dv-ac">—</div>
           <div class="lbl">A.C</div>
+          <div class="cell-delta" id="dl-ac"></div>
         </div>
         <div class="dash-cell" id="dc-prodids" onclick="setFeatFilter('prodIds')">
           <div class="num" style="color:var(--indigo)" id="dv-prodids">—</div>
           <div class="lbl">Prod. IDs</div>
+          <div class="cell-delta" id="dl-prodids"></div>
         </div>
       </div>
     </div>
@@ -689,18 +704,22 @@
         <div class="dash-cell" id="dc-offen" onclick="setStatusFilter('Offen')">
           <div class="num" style="color:#6b7280" id="dv-offen">—</div>
           <div class="lbl">Offen</div>
+          <div class="cell-delta" id="dl-offen"></div>
         </div>
         <div class="dash-cell" id="dc-fertig" onclick="setStatusFilter('Fertig')">
           <div class="num" style="color:var(--green)" id="dv-fertig">—</div>
           <div class="lbl">Fertig</div>
+          <div class="cell-delta" id="dl-fertig"></div>
         </div>
         <div class="dash-cell" id="dc-gekuendigt" onclick="setStatusFilter('Gekündigt')">
           <div class="num" style="color:var(--red)" id="dv-gekuendigt">—</div>
           <div class="lbl">Gekündigt</div>
+          <div class="cell-delta" id="dl-gekuendigt"></div>
         </div>
         <div class="dash-cell" id="dc-block" onclick="setStatusFilter('Blockiert')">
           <div class="num" style="color:var(--red)" id="dv-block">—</div>
           <div class="lbl">Blockiert</div>
+          <div class="cell-delta" id="dl-block"></div>
         </div>
       </div>
     </div>
@@ -772,7 +791,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-22 06:38';
+const BUILD_STAMP = '2026-07-22 08:52';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1154,10 +1173,17 @@ function fmtChangeVal(v){
 }
 function diffForLog(oldObj, newObj){
   if (!oldObj) return [];
-  return Object.keys(CHANGELOG_LABELS).filter(k => {
+  const list = Object.keys(CHANGELOG_LABELS).filter(k => {
     const a = oldObj[k], b = newObj[k];
     return String(a===undefined?'':a) !== String(b===undefined?'':b);
   }).map(k => ({field: CHANGELOG_LABELS[k], from: fmtChangeVal(oldObj[k]), to: fmtChangeVal(newObj[k])}));
+  // A.C steckt im features-Objekt und wird separat verglichen
+  const acOld = (oldObj.features||{}).ac || '';
+  const acNew = (newObj.features||{}).ac || '';
+  if (String(acOld) !== String(acNew)) {
+    list.push({field:'A.C', from: fmtChangeVal(acOld), to: fmtChangeVal(acNew)});
+  }
+  return list;
 }
 async function saveAppSb(a, opts) {
   opts = opts || {};
@@ -2502,8 +2528,8 @@ function formHTML(a,title){
     <div class="check-field" style="grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;color:#A32D2D"><input type="checkbox" id="f-gekuendigt" ${a.gekuendigt?'checked':''} style="accent-color:#C0392B;width:15px;height:15px" onchange="document.getElementById('f-gekuendigt-datum-wrap').style.display=this.checked?'flex':'none'"> Gekündigt</label>
       <div id="f-gekuendigt-datum-wrap" style="display:${a.gekuendigt?'flex':'none'};align-items:center;gap:8px">
-        <span style="font-size:11px;color:var(--text3)">Datum:</span>
-        <input type="date" id="f-gekuendigt-datum" value="${a.gekuendigtDatum||''}" style="font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:4px 8px;background:var(--bg);color:var(--text)">
+        <span style="font-size:12px;color:var(--text2);font-weight:600">Kündigungsdatum:</span>
+        <input type="date" id="f-gekuendigt-datum" value="${a.gekuendigtDatum||''}">
       </div>
     </div>
   </div>`;
@@ -2711,6 +2737,13 @@ async function updateDashboard() {
   set('dv-ac',acCount);
   set('dv-prodids',prodIdsCount);
   set('dv-gekuendigt',gekuendigtCount);
+  // Aktiv = gesamt minus Apps, die gekündigt UND/ODER blockiert sind (Überschneidung zählt nur einmal)
+  const inaktiv = apps.filter(a => a.gekuendigt || a.blockiert).length;
+  const aktivEl = document.getElementById('dv-aktiv');
+  if (aktivEl) {
+    aktivEl.textContent = inaktiv > 0 ? ((total - inaktiv) + ' aktiv · −' + inaktiv + ' inaktiv') : 'alle aktiv';
+    aktivEl.title = inaktiv + ' Apps sind gekündigt und/oder blockiert';
+  }
 
   // Aktive Kachel markieren (Klick-Filter)
   const fstVal=document.getElementById('f-status').value;
@@ -2855,60 +2888,76 @@ async function updateDashboard() {
 
 async function loadWeeklyTrend() {
   try {
-    const since=new Date(Date.now()-7*864e5).toISOString();
-    const rows=await sbFetch('changelog?select=changes,created_at&created_at=gte.'+since+'&limit=500',{prefer:''})||[];
-    const n=rows.filter(r=>Array.isArray(r.changes)&&r.changes[0]&&r.changes[0].field==='_new').length;
-    const el=document.getElementById('dash-trend');
-    if(el){ el.textContent = n>0 ? ('▲ +'+n+' diese Woche') : '± 0 diese Woche'; el.style.display='inline-block'; }
-  } catch(e) {}
-}
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const rows = await sbFetch('changelog?select=changes,created_at&created_at=gte.'+monthStart+'&limit=5000',{prefer:''})||[];
+    const monat = now.toLocaleDateString('de-DE',{month:'long'});
 
-// Priorisierte "Braucht Aufmerksamkeit"-Liste
-function attentionItems() {
-  const items = [];
-  apps.forEach(a => {
-    if (a.gekuendigt || a.imUpdate) return; // Gekündigte/laufende ausklammern
-    const yr = String(a.year || '');
-    if (yr !== '2023' && yr !== '2024') return;
-    const live = !(a.store === 'aus dem Store' || a.store === 'Aus dem Store');
-    // 2023 vor 2024, live vor "aus dem Store"
-    const prio = (yr === '2023' ? 0 : 1) + (live ? 0 : 2);
-    items.push({
-      a, prio,
-      reason: 'Jahrgang ' + yr,
-      color: yr === '2023' ? 'var(--red)' : 'var(--amber)',
-      icon: 'ti-calendar-clock'
+    // Kachel-Definitionen: welches Changelog-Feld, welcher Wert zählt als "dazugekommen"
+    // typ: 'bool'  → Wert "Ja"
+    //      'wert'  → bestimmter Textwert (z. B. Status "Fertig")
+    //      'gefuellt' → von leer auf belegt (z. B. A.C)
+    // up/down: Farben für Zuwachs bzw. Rückgang
+    const defs = {
+      'dl-benoetigt':  {feld:'Benötigt Update', typ:'bool', name:'Benötigt Update', up:'var(--red)',    down:'var(--green)'},
+      'dl-imupdate':   {feld:'Update läuft',    typ:'bool', name:'Update läuft',    up:'var(--teal)',   down:'var(--text3)'},
+      'dl-ac':         {feld:'A.C',             typ:'gefuellt', name:'A.C',         up:'var(--indigo)', down:'var(--text3)'},
+      'dl-prodids':    {feld:'Prod. IDs nötig', typ:'bool', name:'Prod. IDs',       up:'var(--indigo)', down:'var(--text3)'},
+      'dl-offen':      {feld:'Status', typ:'wert', wert:'Offen',  name:'Offen',     up:'var(--amber)',  down:'var(--green)'},
+      'dl-fertig':     {feld:'Status', typ:'wert', wert:'Fertig', name:'Fertig',    up:'var(--green)',  down:'var(--text3)'},
+      'dl-gekuendigt': {feld:'Gekündigt',       typ:'bool', name:'Gekündigt',       up:'var(--red)',    down:'var(--green)'},
+      'dl-block':      {feld:'Blockiert',       typ:'bool', name:'Blockiert',       up:'var(--red)',    down:'var(--green)'}
+    };
+    Object.values(defs).forEach(d => { d.plus = 0; d.minus = 0; });
+
+    let added = 0, removed = 0;
+    rows.forEach(r => {
+      if (!Array.isArray(r.changes)) return;
+      r.changes.forEach(c => {
+        if (c.field === '_new') { added++; return; }
+        if (c.field === '_deleted') { removed++; return; }
+        Object.values(defs).forEach(d => {
+          if (d.feld !== c.field) return;
+          if (d.typ === 'bool') {
+            if (c.to === 'Ja') d.plus++;
+            else if (c.from === 'Ja') d.minus++;
+          } else if (d.typ === 'wert') {
+            if (c.to === d.wert) d.plus++;
+            else if (c.from === d.wert) d.minus++;
+          } else if (d.typ === 'gefuellt') {
+            const leer = v => !v || v === '—';
+            if (leer(c.from) && !leer(c.to)) d.plus++;
+            else if (!leer(c.from) && leer(c.to)) d.minus++;
+          }
+        });
+      });
     });
-  });
-  items.sort((x, y) => x.prio - y.prio || x.a.name.localeCompare(y.a.name, 'de'));
-  return items;
-}
 
-function renderAttention() {
-  const el = document.getElementById('attention-list');
-  if (!el) return;
-  const items = attentionItems();
-  if (!items.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> <span>Keine Apps aus 2023 / 2024 offen</span></div>';
-    return;
-  }
-  el.innerHTML = items.slice(0, 5).map(it => `
-    <div class="activity-item" onclick="openDetail('${it.a.id}')">
-      <i class="ti ${it.icon}" style="color:${it.color};font-size:14px;flex-shrink:0"></i>
-      <span class="act-name" title="${(it.a.name||'').replace(/"/g,'&quot;')}">${it.a.name}</span>
-      <span class="when" style="color:${it.color};font-weight:600">${it.reason}</span>
-    </div>`).join('') +
-    (items.length > 5 ? `<div style="font-size:11px;color:var(--muted);padding:6px 2px 0;cursor:pointer" onclick="showAttentionList()">+ ${items.length - 5} weitere · alle zeigen</div>` : '');
-}
+    // Gesamt-Bilanz oben in der Hauptkachel
+    const net = added - removed;
+    const el = document.getElementById('dash-trend');
+    if (el) {
+      el.textContent = net > 0 ? ('▲ +'+net+' im '+monat) : net < 0 ? ('▼ '+net+' im '+monat) : ('± 0 im '+monat);
+      el.title = added+' Apps neu angelegt, '+removed+' gelöscht (seit Monatsbeginn)';
+      el.style.display = 'inline-block';
+    }
 
-// "Alle zeigen": Filter so setzen, dass nur relevante Apps übrig bleiben
-function showAttentionList() {
-  clearF();
-  window._attnFilter = true;
-  document.getElementById('f-sort').value = 'name-asc';
-  render();
-  document.querySelector('.filterbar').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  toast('Gefiltert: Braucht Aufmerksamkeit (' + attentionItems().length + ')');
+    // Delta je Kachel
+    Object.keys(defs).forEach(id => {
+      const d = defs[id];
+      const e = document.getElementById(id);
+      if (!e) return;
+      if (d.plus === 0 && d.minus === 0) {
+        e.textContent = '';
+        e.title = 'Keine Änderung im ' + monat;
+        return;
+      }
+      const diff = d.plus - d.minus;
+      e.textContent = (diff > 0 ? '▲ +'+diff : diff < 0 ? '▼ '+diff : '± 0') + ' im ' + monat;
+      e.style.color = diff > 0 ? d.up : diff < 0 ? d.down : 'var(--text3)';
+      e.title = d.name + ' im ' + monat + ': ' + d.plus + '× dazu, ' + d.minus + '× weg';
+    });
+  } catch(e) {}
 }
 
 function renderStoreDonut() {
