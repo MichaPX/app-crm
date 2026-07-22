@@ -831,7 +831,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-22 10:06';
+const BUILD_STAMP = '2026-07-22 11:25';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3240,21 +3240,36 @@ async function toggleImUpdate(id, checked) {
   const heute = new Date().toISOString().split('T')[0];
   apps[idx].datum = heute;
 
-  // Zielversion automatisch übernehmen, wenn Update ABGESCHLOSSEN wird (nur wenn höher)
+  // Versionssprung protokollieren: beim Start geplant, beim Abschluss tatsächlich übernommen
   let versionInfo = '';
-  if (!checked && ZIEL_VERSION) {
-    const target = apps[idx].updateTarget || 'beide';
-    const bumped = [];
-    if ((target === 'apple' || target === 'beide') && cmpV(ZIEL_VERSION, apps[idx].vApple, 1) > 0) {
-      apps[idx].vApple = ZIEL_VERSION; bumped.push('Apple');
+  const _target = apps[idx].updateTarget || 'beide';
+  const _wantApple  = (_target === 'apple'  || _target === 'beide');
+  const _wantGoogle = (_target === 'google' || _target === 'beide');
+  const _vor = v => (v && String(v).trim()) ? v : '—';
+
+  if (checked) {
+    // Update GESTARTET → geplanten Sprung notieren (z. B. "Apple 5.3.3 → 5.4.3")
+    if (ZIEL_VERSION) {
+      const geplant = [];
+      if (_wantApple  && cmpV(ZIEL_VERSION, apps[idx].vApple, 1) > 0)  geplant.push('Apple ' + _vor(apps[idx].vApple) + ' → ' + ZIEL_VERSION);
+      if (_wantGoogle && cmpV(ZIEL_VERSION, apps[idx].vGoogle, 1) > 0) geplant.push('Google ' + _vor(apps[idx].vGoogle) + ' → ' + ZIEL_VERSION);
+      if (geplant.length) versionInfo = ' — ' + geplant.join(' & ');
     }
-    if ((target === 'google' || target === 'beide') && cmpV(ZIEL_VERSION, apps[idx].vGoogle, 1) > 0) {
-      apps[idx].vGoogle = ZIEL_VERSION; bumped.push('Google');
+  } else if (ZIEL_VERSION) {
+    // Update ABGESCHLOSSEN → Zielversion übernehmen (nur wenn höher) und Sprung festhalten
+    const bumped = [];
+    if (_wantApple && cmpV(ZIEL_VERSION, apps[idx].vApple, 1) > 0) {
+      bumped.push('Apple ' + _vor(apps[idx].vApple) + ' → ' + ZIEL_VERSION);
+      apps[idx].vApple = ZIEL_VERSION;
+    }
+    if (_wantGoogle && cmpV(ZIEL_VERSION, apps[idx].vGoogle, 1) > 0) {
+      bumped.push('Google ' + _vor(apps[idx].vGoogle) + ' → ' + ZIEL_VERSION);
+      apps[idx].vGoogle = ZIEL_VERSION;
     }
     if (bumped.length) {
       apps[idx].updateStatus = 'Fertig';
       apps[idx].benoetigtUpdate = false;
-      versionInfo = ' — ' + bumped.join(' & ') + ' auf ' + ZIEL_VERSION;
+      versionInfo = ' — ' + bumped.join(' & ');
     }
   }
   // Datum im Detail-View aktualisieren
