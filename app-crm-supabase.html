@@ -618,7 +618,7 @@
     <input class="login-field" type="email" id="login-email" placeholder="E-Mail" autocomplete="email">
     <input class="login-field" type="password" id="login-password" placeholder="Passwort" autocomplete="current-password">
     <button class="login-btn" id="login-btn" onclick="doLogin()">Einloggen</button>
-    <div class="login-hint">Kein Zugang? Wende dich an den Administrator.</div>
+    <div class="login-hint">Kein Zugang? Wende dich an den Administrator.<br><span id="build-stamp" style="opacity:.55;font-size:10px"></span></div>
   </div>
 </div>
 
@@ -771,6 +771,10 @@
 <div id="mc"></div>
 
 <script>
+// ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
+const BUILD_STAMP = '2026-07-22 06:38';
+console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
+
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
 function parseV(v) {
   if(!v||v==='—'||String(v).toLowerCase().includes('prüfung')||String(v).toLowerCase().includes('store')) return [-1,-1,-1];
@@ -2066,7 +2070,7 @@ function renderChangelogSection(log, appId) {
   if (!wrap) return;
   const recentLog = log.slice(0,3);
   const olderLog = log.slice(3);
-  const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos',zendesk:'Zendesk-Ticket',update_done:'Update abgeschlossen'};
+  const fieldLabels = {banner:'Banner',login:'Login',freischaltcode:'Freischaltcode',links:'Links',einzelkaeufe:'Einzelkäufe',abos:'Abos',zendesk:'Zendesk-Ticket',update_done:'Update abgeschlossen',update_start:'Update gestartet'};
   const platBadge = (p) => {
     if (!p) return '';
     if (p === 'apple')  return '<span style="font-size:10px;background:#eef1f5;color:#1f2430;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-brand-apple" style="font-size:11px"></i> Apple</span>';
@@ -2088,7 +2092,7 @@ function renderChangelogSection(log, appId) {
     </div>`;
 
     // Ticket-/Abschluss-Einträge: eigene Darstellung mit klickbarer Ticketnummer
-    if (l.feld === 'zendesk' || l.feld === 'update_done') {
+    if (l.feld === 'zendesk' || l.feld === 'update_done' || l.feld === 'update_start') {
       const started = /gestartet/i.test(l.aktion || '');
       const label = started ? 'Update gestartet' : 'Update abgeschlossen';
       // Ticket: entweder #Nummer oder ein voller Link in der aktion
@@ -2937,12 +2941,19 @@ function renderStoreDonut() {
 
 async function loadUpdateRanking() {
   try {
-    // Nur abgeschlossene Updates zählen: neuer Marker feld=update_done ODER Alt-Einträge mit 'Update abgeschlossen'
-    const rows=await sbFetch('update_notizen_log?select=app_id,feld,aktion&limit=20000',{prefer:''})||[];
-    const counts={};
+    // Nur abgeschlossene Updates zählen: Marker feld=update_done ODER Alt-Einträge mit 'Update abgeschlossen'.
+    // Alt-Daten enthielten pro Abschluss ZWEI Zeilen (zendesk + update_done) → per Zeitstempel entdoppeln.
+    const rows=await sbFetch('update_notizen_log?select=app_id,feld,aktion,zeitpunkt&limit=20000',{prefer:''})||[];
+    const counts={}, seen=new Set();
     rows.forEach(r=>{
       const done = r.feld==='update_done' || (typeof r.aktion==='string' && r.aktion.startsWith('Update abgeschlossen'));
-      if(done) counts[r.app_id]=(counts[r.app_id]||0)+1;
+      if(!done) return;
+      // Schlüssel auf Minute genau: doppelte Einträge desselben Vorgangs zählen nur einmal
+      const minute = (r.zeitpunkt||'').slice(0,16);
+      const key = r.app_id + '|' + minute;
+      if(seen.has(key)) return;
+      seen.add(key);
+      counts[r.app_id]=(counts[r.app_id]||0)+1;
     });
     window._updCounts=counts;
     renderUpdateRanking();
@@ -3053,28 +3064,22 @@ async function toggleImUpdate(id, checked) {
   const datumEl = document.querySelector('.info-row-datum');
   if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'});
 
-  // Zendesk-Nummer in Changelog speichern
+  // GENAU EIN Log-Eintrag pro Vorgang (Ticket wird mit hineingeschrieben,
+  // damit die "Meiste Updates"-Statistik nicht doppelt zählt)
   let zNr = zField ? zField.value.trim() : '';
-  if (zNr) {
-    try {
-      await sbFetch('update_notizen_log', {
-        method: 'POST',
-        body: JSON.stringify({app_id: String(id), feld: 'zendesk', aktion: (checked ? 'Update gestartet' : 'Update abgeschlossen') + ' ' + (/^https?:/i.test(zNr) ? zNr : ('#' + zNr.replace(/[^0-9]/g,''))), plattform: apps[idx].updateTarget || 'beide'}),
-        prefer: ''
-      });
-    } catch(e) {}
-  }
-
-  // Abgeschlossenes Update eindeutig protokollieren (Basis fürs "Meiste Updates"-Ranking)
-  if (!checked) {
-    try {
-      await sbFetch('update_notizen_log', {
-        method: 'POST',
-        body: JSON.stringify({app_id: String(id), feld: 'update_done', aktion: 'Update abgeschlossen' + (versionInfo ? versionInfo : ''), plattform: apps[idx].updateTarget || 'beide'}),
-        prefer: ''
-      });
-    } catch(e) {}
-  }
+  const ticketPart = zNr ? (' ' + (/^https?:/i.test(zNr) ? zNr : ('#' + zNr.replace(/[^0-9]/g,'')))) : '';
+  try {
+    await sbFetch('update_notizen_log', {
+      method: 'POST',
+      body: JSON.stringify({
+        app_id: String(id),
+        feld: checked ? 'update_start' : 'update_done',
+        aktion: (checked ? 'Update gestartet' : 'Update abgeschlossen') + (versionInfo || '') + ticketPart,
+        plattform: apps[idx].updateTarget || 'beide'
+      }),
+      prefer: ''
+    });
+  } catch(e) {}
 
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
@@ -3118,6 +3123,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   ['login-email','login-password'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
   });
+  const bs = document.getElementById('build-stamp');
+  if (bs) bs.textContent = 'Build ' + BUILD_STAMP;
   const token = localStorage.getItem('crm_access_token');
   let email = localStorage.getItem('crm_user_email') || localStorage.getItem('crm_email');
   if (token && !email) {
