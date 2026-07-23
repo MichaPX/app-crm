@@ -186,6 +186,7 @@
         <input type="range" id="devScale" min="40" max="120" value="78">
         <span class="val" id="devScaleVal">78%</span>
       </div>
+      <div class="row" id="qualityRow" style="font-size:11px;color:var(--muted)"></div>
       <div class="row">
         <label>Neigung</label>
         <input type="range" id="tilt" min="-20" max="20" value="0">
@@ -1097,6 +1098,41 @@ function roundRect(c,x,y,w,h,r){
   c.closePath();
 }
 
+/* Hochwertiges Verkleinern von Bildern.
+   Der Browser rechnet beim Zeichnen standardmäßig grob ('low'), dadurch franst
+   feine Schrift in Screenshots aus. Deshalb: hochwertiges Smoothing erzwingen und
+   bei starker Verkleinerung stufenweise halbieren (Ergebnis wird zwischengespeichert). */
+const _hqCache = new WeakMap();
+function drawImageHQ(c, img, dx, dy, dw, dh){
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = 'high';
+  let src = img;
+  const targetW = Math.max(1, Math.round(dw));
+  if(img.width > targetW * 2){
+    let cache = _hqCache.get(img);
+    if(!cache){ cache = {}; _hqCache.set(img, cache); }
+    if(cache[targetW]){
+      src = cache[targetW];
+    } else {
+      let cur = img, cw = img.width, ch = img.height;
+      while(cw > targetW * 2){
+        cw = Math.max(targetW, Math.round(cw/2));
+        ch = Math.max(1, Math.round(ch/2));
+        const st = document.createElement('canvas');
+        st.width = cw; st.height = ch;
+        const sc = st.getContext('2d');
+        sc.imageSmoothingEnabled = true;
+        sc.imageSmoothingQuality = 'high';
+        sc.drawImage(cur, 0, 0, cw, ch);
+        cur = st;
+      }
+      cache[targetW] = cur;
+      src = cur;
+    }
+  }
+  c.drawImage(src, dx, dy, dw, dh);
+}
+
 /* Gemeinsamer Hintergrund: Bild (pro Modus) oder Verlauf */
 function drawBG(c, W, H){
   const bi = state.bgImgs[state.mode];
@@ -1105,7 +1141,7 @@ function drawBG(c, W, H){
     let dw, dh, dx, dy;
     if(ir > tr){ dh = H; dw = dh*ir; dx = -(dw-W)/2; dy = 0; }
     else { dw = W; dh = dw/ir; dx = 0; dy = -(dh-H)/2; }
-    c.drawImage(bi, dx, dy, dw, dh);
+    drawImageHQ(c, bi, dx, dy, dw, dh);
     return;
   }
   const ang = state.bgAngle * Math.PI/180;
@@ -1180,7 +1216,7 @@ function drawIconLogo(c, S){
   const ir = li.width / li.height;
   let dw, dh;
   if(ir > 1){ dw = box; dh = box/ir; } else { dh = box; dw = box*ir; }
-  c.drawImage(li, S/2 - dw/2, S/2 - dh/2, dw, dh);
+  drawImageHQ(c, li, S/2 - dw/2, S/2 - dh/2, dw, dh);
 }
 
 function drawIconPreview(c, S){
@@ -1338,7 +1374,7 @@ function drawFeature(c, W, H, slide, preview){
       let dw, dh, ddx, ddy;
       if(ir > 1){ dh = size; dw = dh*ir; ddx = lx-(dw-size)/2; ddy = ly; }
       else { dw = size; dh = dw/ir; ddx = lx; ddy = ly-(dh-size)/2; }
-      c.drawImage(li, ddx, ddy, dw, dh);
+      drawImageHQ(c, li, ddx, ddy, dw, dh);
       c.restore();
     } else {
       roundRect(c, lx, ly, size, size, lr);
@@ -1408,7 +1444,7 @@ function drawFeature(c, W, H, slide, preview){
       let dw, dh, ddx, ddy;
       if(ir > tr){ dh = screenH; dw = dh*ir; ddx = sx-(dw-screenW)/2; ddy = sy; }
       else { dw = screenW; dh = dw/ir; ddx = sx; ddy = sy-(dh-screenH)/2; }
-      c.drawImage(img, ddx, ddy, dw, dh);
+      drawImageHQ(c, img, ddx, ddy, dw, dh);
     } else {
       c.fillStyle = '#1a1d23';
       c.fillRect(sx, sy, screenW, screenH);
@@ -1661,7 +1697,7 @@ function drawScene(c, W, H, slide){
     let dw, dh, dx, dy;
     if(ir > tr){ dh = screenH; dw = dh*ir; dx = sx-(dw-screenW)/2; dy = sy; }
     else { dw = screenW; dh = dw/ir; dx = sx; dy = sy-(dh-screenH)/2; }
-    c.drawImage(img, dx, dy, dw, dh);
+    drawImageHQ(c, img, dx, dy, dw, dh);
   } else {
     c.fillStyle = '#1a1d23';
     c.fillRect(sx, sy, screenW, screenH);
@@ -1733,6 +1769,20 @@ function draw(){
   cv.height = s.h;
   $('sizeBadge').textContent = s.w+' × '+s.h+' px';
   drawScene(ctx, s.w, s.h, curSlide());
+
+  /* Qualitäts-Anzeige: wie stark wird der Screenshot skaliert? */
+  const qr = $('qualityRow');
+  const sl = curSlide();
+  if(sl && sl.img){
+    const bez = state.form === 'tablet' ? 0.045 : 0.026;
+    const screenW = s.w * (sl.devScale/100) * (1 - bez*2);
+    const pct = Math.round(screenW / sl.img.width * 100);
+    const col = pct >= 100 ? '#7bcf97' : (pct >= 75 ? '#c9b458' : '#e08a6a');
+    qr.innerHTML = '<span style="color:'+col+'">Screenshot wird auf '+pct+' % dargestellt'
+      + (pct < 100 ? ' – für maximale Schärfe Geräte-Größe erhöhen' : ' – volle Schärfe') + '</span>';
+  } else {
+    qr.textContent = '';
+  }
 
   // Thumbnails als Mini-Mockups aktualisieren
   const tw = 110, th = Math.round(tw * s.h / s.w);
