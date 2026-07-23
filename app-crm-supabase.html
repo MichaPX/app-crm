@@ -574,6 +574,33 @@
   }
   .legend-row:hover { background: var(--slate-soft); }
   .legend-row .db-count { margin-left: auto; min-width: 26px; text-align: right; }
+  .tr-bar { display: flex; align-items: center; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
+  .tr-label { font-size: 10px; font-weight: 600; color: var(--text3); display: inline-flex; align-items: center; gap: 4px; margin-right: 2px; }
+  .tr-btn {
+    font-family: inherit; font-size: 10.5px; font-weight: 650;
+    border: 1px solid var(--border); background: var(--card); color: var(--text2);
+    border-radius: 5px; padding: 3px 8px; cursor: pointer; transition: all .12s;
+  }
+  .tr-btn:hover { border-color: var(--indigo); color: var(--indigo); }
+  .tr-btn.on { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+  .tr-btn.tr-orig { color: var(--muted); font-weight: 500; }
+  .tr-box { margin-top: 7px; border: 1px solid #d5d8fb; background: var(--indigo-soft); border-radius: 7px; overflow: hidden; }
+  .tr-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 9px; font-size: 10px; font-weight: 650; color: var(--indigo);
+    background: rgba(255,255,255,0.5); border-bottom: 1px solid #d5d8fb;
+  }
+  .tr-head button {
+    font-family: inherit; font-size: 10px; font-weight: 600;
+    border: 1px solid #c7cbf5; background: var(--card); color: var(--indigo);
+    border-radius: 4px; padding: 2px 7px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .tr-head button:hover { background: #eef0fe; }
+  .tr-text { padding: 8px 10px; font-size: 11.5px; line-height: 1.5; color: var(--text); white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
+  .tr-loading, .tr-error { padding: 8px 10px; font-size: 11.5px; color: var(--text2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tr-error { color: #991b1b; }
+  .tr-error a { color: var(--indigo); font-weight: 600; }
   .legend-pct { font-size: 10px; color: var(--text3); font-variant-numeric: tabular-nums; margin-left: auto; }
   .legend-row.legend-on { background: var(--slate-soft); }
   .legend-row.legend-on span:nth-child(2) { font-weight: 650; }
@@ -847,7 +874,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-23 10:29';
+const BUILD_STAMP = '2026-07-23 10:37';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1275,6 +1302,94 @@ async function logChange(appId, appName, changes) {
 }
 
 // ── Store Notizen ──
+// ── Notiz-Übersetzung (kostenloser Dienst, kein Schlüssel nötig) ──
+const TR_NAMES = {en:'Englisch', fr:'Französisch', es:'Spanisch', it:'Italienisch', nl:'Niederländisch'};
+
+// Text in Stücke ≤450 Zeichen teilen, möglichst an Zeilen-/Satzgrenzen
+function trChunks(text) {
+  const parts = [];
+  let rest = String(text || '');
+  while (rest.length > 450) {
+    let cut = rest.lastIndexOf('\n', 450);
+    if (cut < 200) cut = rest.lastIndexOf('. ', 450);
+    if (cut < 200) cut = rest.lastIndexOf(' ', 450);
+    if (cut < 1) cut = 450;
+    parts.push(rest.slice(0, cut));
+    rest = rest.slice(cut);
+  }
+  if (rest.trim()) parts.push(rest);
+  return parts;
+}
+
+async function translateNotiz(i, lang) {
+  const src = document.getElementById('notiz-text-' + i);
+  const box = document.getElementById('notiz-tr-' + i);
+  const origBtn = document.getElementById('tr-orig-' + i);
+  if (!src || !box) return;
+  const text = src.value.trim();
+  if (!text) { toast('Notiz ist leer'); return; }
+
+  // Bereits übersetzt? Dann aus dem Zwischenspeicher
+  window._trCache = window._trCache || {};
+  const key = i + '|' + lang + '|' + text.length;
+  if (window._trCache[key]) { trShow(i, lang, window._trCache[key]); return; }
+
+  box.style.display = 'block';
+  box.innerHTML = '<div class="tr-loading"><i class="ti ti-loader"></i> Übersetze nach ' + TR_NAMES[lang] + ' …</div>';
+  if (origBtn) origBtn.style.display = 'inline-block';
+
+  try {
+    const chunks = trChunks(text);
+    const out = [];
+    for (const c of chunks) {
+      const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(c) + '&langpair=de|' + lang;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const t = data && data.responseData ? data.responseData.translatedText : '';
+      if (!t) throw new Error('Keine Übersetzung erhalten');
+      out.push(t);
+    }
+    const result = out.join('');
+    window._trCache[key] = result;
+    trShow(i, lang, result);
+  } catch (e) {
+    // Ausweichlösung: Text in DeepL öffnen
+    const deepl = 'https://www.deepl.com/translator#de/' + lang + '/' + encodeURIComponent(text.slice(0, 1500));
+    box.innerHTML = `<div class="tr-error">
+      <i class="ti ti-alert-triangle"></i> Automatische Übersetzung nicht verfügbar.
+      <a href="${deepl}" target="_blank">In DeepL öffnen ↗</a>
+    </div>`;
+  }
+}
+
+function trShow(i, lang, text) {
+  const box = document.getElementById('notiz-tr-' + i);
+  const origBtn = document.getElementById('tr-orig-' + i);
+  if (!box) return;
+  box.style.display = 'block';
+  if (origBtn) origBtn.style.display = 'inline-block';
+  const safe = String(text).replace(/</g, '&lt;');
+  box.innerHTML = `
+    <div class="tr-head">
+      <span>${TR_NAMES[lang]} · maschinell übersetzt</span>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('tr-text-${i}').textContent).then(()=>toast('Übersetzung kopiert ✓'))"><i class="ti ti-copy" style="font-size:11px"></i> Kopieren</button>
+    </div>
+    <div class="tr-text" id="tr-text-${i}">${safe}</div>`;
+  // Aktive Sprache markieren
+  const bar = document.getElementById('tr-bar-' + i);
+  if (bar) bar.querySelectorAll('.tr-btn').forEach(b => b.classList.toggle('on', b.textContent.trim().toLowerCase() === lang));
+}
+
+function showOriginalNotiz(i) {
+  const box = document.getElementById('notiz-tr-' + i);
+  const origBtn = document.getElementById('tr-orig-' + i);
+  const bar = document.getElementById('tr-bar-' + i);
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+  if (origBtn) origBtn.style.display = 'none';
+  if (bar) bar.querySelectorAll('.tr-btn').forEach(b => b.classList.remove('on'));
+}
+
 async function openStoreNotizen() {
   let notizen = [];
   try {
@@ -1289,6 +1404,16 @@ async function openStoreNotizen() {
         <button onclick="deleteGlobalSetting('${n.key}');openStoreNotizen()" style="padding:4px 8px;border:0.5px solid #F7C1C1;border-radius:5px;background:transparent;color:#A32D2D;cursor:pointer"><i class="ti ti-trash" style="font-size:12px"></i></button>
       </div>
       <textarea id="notiz-text-${i}" placeholder="Notiz…" style="width:100%;min-height:80px;font-size:12px;border:0.5px solid var(--border);border-radius:5px;padding:7px 10px;background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;box-sizing:border-box">${(n.text||'').replace(/</g,'&lt;')}</textarea>
+      <div class="tr-bar" id="tr-bar-${i}">
+        <span class="tr-label"><i class="ti ti-language" style="font-size:12px"></i> Übersetzen</span>
+        <button class="tr-btn" onclick="translateNotiz(${i},'en')">EN</button>
+        <button class="tr-btn" onclick="translateNotiz(${i},'fr')">FR</button>
+        <button class="tr-btn" onclick="translateNotiz(${i},'es')">ES</button>
+        <button class="tr-btn" onclick="translateNotiz(${i},'it')">IT</button>
+        <button class="tr-btn" onclick="translateNotiz(${i},'nl')">NL</button>
+        <button class="tr-btn tr-orig" id="tr-orig-${i}" style="display:none" onclick="showOriginalNotiz(${i})">Original</button>
+      </div>
+      <div class="tr-box" id="notiz-tr-${i}" style="display:none"></div>
       <div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">
         <button onclick="navigator.clipboard.writeText(document.getElementById('notiz-text-${i}').value).then(()=>toast('Kopiert ✓'))" style="font-size:11px;padding:4px 10px;border:0.5px solid var(--border);border-radius:5px;background:transparent;color:var(--text2);cursor:pointer"><i class="ti ti-copy" style="font-size:11px"></i> Kopieren</button>
         <button onclick="saveNotizEntry('${n.key}',${i}).then(()=>toast('Gespeichert ✓'))" style="font-size:11px;padding:4px 10px;border:none;border-radius:5px;background:#534AB7;color:#fff;cursor:pointer"><i class="ti ti-device-floppy" style="font-size:11px"></i> Speichern</button>
