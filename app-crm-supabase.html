@@ -573,7 +573,10 @@
     transition: background .15s;
   }
   .legend-row:hover { background: var(--slate-soft); }
-  .legend-row .db-count { margin-left: auto; }
+  .legend-row .db-count { margin-left: auto; min-width: 26px; text-align: right; }
+  .legend-pct { font-size: 10px; color: var(--text3); font-variant-numeric: tabular-nums; margin-left: auto; }
+  .legend-row.legend-on { background: var(--slate-soft); }
+  .legend-row.legend-on span:nth-child(2) { font-weight: 650; }
   .rank-row {
     display: grid; grid-template-columns: 22px 1fr 56px 28px;
     align-items: center; gap: 8px; padding: 5px 6px; margin: 0 -6px;
@@ -587,6 +590,20 @@
   }
   .rank-num.top { background: var(--indigo-soft); color: var(--indigo); }
   .rank-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent-sep {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text3); margin: 12px 0 5px; padding-top: 9px; border-top: 1px solid var(--slate-soft);
+  }
+  .recent-row {
+    display: flex; align-items: center; gap: 7px;
+    padding: 4px 6px; margin: 0 -6px; border-radius: 7px;
+    cursor: pointer; transition: background .15s; font-size: 11.5px;
+  }
+  .recent-row:hover { background: var(--slate-soft); }
+  .recent-icon { color: var(--green); font-size: 12px; flex-shrink: 0; display: flex; }
+  .recent-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .recent-ver { font-family: var(--mono); font-size: 9.5px; color: var(--indigo); background: var(--indigo-soft); border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+  .recent-when { color: var(--muted); font-size: 10px; white-space: nowrap; flex-shrink: 0; }
   .nbadge {
     position: absolute; top: 1px; right: 1px;
     background: #f43f5e; color: #fff;
@@ -830,7 +847,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-23 07:52';
+const BUILD_STAMP = '2026-07-23 10:29';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2927,7 +2944,7 @@ async function updateDashboard() {
       <span class="db-label">${y}</span>
       <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(yearCounts[y]/maxY*100)}%;background:${i%2?'#8b7ef8':'#4f46e5'}"></div></div>
       <span class="db-count">${yearCounts[y]}</span>
-    </div>`).join('');
+    </div>`).join('') + renderVersionBars();
 
   // Braucht Aufmerksamkeit
   renderAttention();
@@ -3083,13 +3100,13 @@ function renderAttention() {
     el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:10px 0;display:flex;align-items:center;gap:6px"><i class="ti ti-circle-check" style="color:var(--green);font-size:15px"></i> <span>' + txt + '</span></div>';
     return;
   }
-  el.innerHTML = items.slice(0, 5).map(it => `
+  el.innerHTML = items.slice(0, 8).map(it => `
     <div class="activity-item" onclick="openDetail('${it.a.id}')">
       <i class="ti ${it.icon}" style="color:${it.color};font-size:14px;flex-shrink:0"></i>
       <span class="act-name" title="${(it.a.name||'').replace(/"/g,'&quot;')}">${it.a.name}</span>
       <span class="when" style="color:${it.color};font-weight:600">${it.reason}</span>
     </div>`).join('') +
-    `<div style="font-size:11px;color:var(--indigo);font-weight:600;padding:7px 2px 0;cursor:pointer" onclick="showAttentionList()">${items.length > 5 ? '+ ' + (items.length - 5) + ' weitere · ' : ''}alle ${items.length} zeigen</div>`;
+    `<div style="font-size:11px;color:var(--indigo);font-weight:600;padding:7px 2px 0;cursor:pointer" onclick="showAttentionList()">${items.length > 8 ? '+ ' + (items.length - 8) + ' weitere · ' : ''}alle ${items.length} zeigen</div>`;
 }
 
 // "Alle zeigen": Kartenübersicht auf die gewählte Kategorie filtern
@@ -3107,32 +3124,135 @@ function showAttentionList() {
   toast('Gefiltert: ' + label + ' (' + attentionItems(cat).length + ')');
 }
 
+// Versionsverteilung (füllt das Jahr-Panel und passt zur Zielversions-Arbeit)
+function renderVersionBars() {
+  const grp = v => {
+    if (!v || !/^\d+\.\d+/.test(v)) return null;
+    const p = v.split('.').map(n => parseInt(n) || 0);
+    if (p[0] > 5 || (p[0] === 5 && p[1] >= 4)) return '5.4';
+    if (p[0] === 5 && p[1] === 3) return '5.3';
+    if (p[0] === 5 && p[1] === 2) return '5.2';
+    return 'old';
+  };
+  const counts = {'5.4':0, '5.3':0, '5.2':0, 'old':0};
+  apps.forEach(a => {
+    // Höchste Version der App zählt (iOS oder Android)
+    const gs = [grp(a.vApple), grp(a.vGoogle)].filter(Boolean);
+    if (!gs.length) return;
+    const rank = {'5.4':3, '5.3':2, '5.2':1, 'old':0};
+    const best = gs.sort((x, y) => rank[y] - rank[x])[0];
+    counts[best]++;
+  });
+  const rows = [
+    ['5.4', '5.4.x', '#14b8a6'],
+    ['5.3', '5.3.x', '#4f46e5'],
+    ['5.2', '5.2.x', '#8b7ef8'],
+    ['old', 'älter',  '#dc2626']
+  ].filter(r => counts[r[0]] > 0);
+  if (!rows.length) return '';
+  const max = Math.max(1, ...rows.map(r => counts[r[0]]));
+  const zielHint = ZIEL_VERSION ? `<span style="font-weight:500;color:var(--text3);text-transform:none;letter-spacing:0"> · Ziel ${ZIEL_VERSION}</span>` : '';
+  return `<div class="recent-sep">Versionen${zielHint}</div>` + rows.map(([key, label, col]) => `
+    <div class="db-row" onclick="filterByVersion('${key}')" title="Nach ${label} filtern">
+      <span class="db-label">${label}</span>
+      <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(counts[key]/max*100)}%;background:${col}"></div></div>
+      <span class="db-count">${counts[key]}</span>
+    </div>`).join('');
+}
+
+function filterByVersion(key) {
+  const el = document.getElementById('f-maxver');
+  if (!el) return;
+  el.value = (el.value === key) ? '' : key;   // erneuter Klick hebt den Filter auf
+  render();
+}
+
 function renderStoreDonut() {
   const el=document.getElementById('store-donut');
   if(!el) return;
-  const cats=[['verfügbar','#14b8a6'],['nur Apple','#38bdf8'],['nur Google','#16a34a'],['Aus dem Store','#dc2626']];
+  const cats=[['verfügbar','#14b8a6','#0d9488'],['nur Apple','#38bdf8','#0ea5e9'],['nur Google','#22c55e','#16a34a'],['Aus dem Store','#ef4444','#dc2626']];
   const counts=cats.map(([k])=>apps.filter(a=>k==='Aus dem Store'?(a.store==='Aus dem Store'||a.store==='aus dem Store'):a.store===k).length);
   const total=counts.reduce((a,b)=>a+b,0);
-  const R=40, C=2*Math.PI*R;
+  const R=42, SW=14, C=2*Math.PI*R;
+  const GAP=total?Math.min(3.5, C*0.012):0;   // kleine Lücke zwischen den Segmenten
+  const active=cats.filter((c,i)=>counts[i]>0).length;
+
   let off=0, segs='';
-  cats.forEach(([k,col],i)=>{
-    const frac=total?counts[i]/total:0;
-    if(frac>0){
-      segs+=`<circle r="${R}" cx="50" cy="50" fill="none" stroke="${col}" stroke-width="13" stroke-dasharray="${(frac*C).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}" transform="rotate(-90 50 50)"/>`;
-      off+=frac;
-    }
+  cats.forEach(([k,col,colDark],i)=>{
+    if(!counts[i]) return;
+    const frac=counts[i]/total;
+    const len=Math.max(0.5, frac*C - (active>1?GAP:0));
+    // Runde Enden nur bei breiten Segmenten – sonst würden sie über den Bogen hinausragen
+    const cap = len > SW*1.4 ? 'round' : 'butt';
+    segs+=`<circle class="donut-seg" data-i="${i}" r="${R}" cx="60" cy="60" fill="none"
+      stroke="url(#dg${i})" stroke-width="${SW}" stroke-linecap="${cap}"
+      stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}"
+      stroke-dashoffset="${(-off*C).toFixed(2)}"
+      transform="rotate(-90 60 60)"
+      onmouseover="highlightStore(${i},true)" onmouseout="highlightStore(${i},false)"
+      onclick="filterByStore('${k}')" style="cursor:pointer;transition:opacity .15s"/>`;
+    off+=frac;
   });
-  const legend=cats.map(([k,col],i)=>`<div class="legend-row" onclick="filterByStore('${k}')"><span class="activity-dot" style="background:${col}"></span><span>${k}</span><span class="db-count">${counts[i]}</span></div>`).join('');
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:14px">
-    <div style="position:relative;width:104px;height:104px;flex-shrink:0">
-      <svg viewBox="0 0 100 100" style="width:104px;height:104px">${segs||`<circle r="${R}" cx="50" cy="50" fill="none" stroke="#ecedf1" stroke-width="13"/>`}</svg>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em">${total}</div>
-        <div style="font-size:9px;color:var(--muted)">im Store</div>
+  const grads=cats.map(([k,col,colDark],i)=>
+    `<linearGradient id="dg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${col}"/><stop offset="1" stop-color="${colDark}"/></linearGradient>`
+  ).join('');
+
+  const legend=cats.map(([k,col],i)=>{
+    const pct=total?Math.round(counts[i]/total*100):0;
+    return `<div class="legend-row" id="lg${i}" onclick="filterByStore('${k}')"
+      onmouseover="highlightStore(${i},true)" onmouseout="highlightStore(${i},false)">
+      <span class="activity-dot" style="background:${col}"></span>
+      <span>${k}</span>
+      <span class="legend-pct">${pct}%</span>
+      <span class="db-count">${counts[i]}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:16px">
+    <div style="position:relative;width:120px;height:120px;flex-shrink:0">
+      <svg viewBox="0 0 120 120" style="width:120px;height:120px;overflow:visible">
+        <defs>${grads}
+          <filter id="dshadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1f2430" flood-opacity="0.16"/>
+          </filter>
+        </defs>
+        <circle r="${R}" cx="60" cy="60" fill="none" stroke="#eef0f3" stroke-width="${SW}"/>
+        <g filter="url(#dshadow)">${segs}</g>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+        <div id="donut-center-num" style="font-size:21px;font-weight:800;letter-spacing:-0.03em;line-height:1">${total}</div>
+        <div id="donut-center-lbl" style="font-size:9px;color:var(--muted);margin-top:1px">im Store</div>
       </div>
     </div>
     <div style="flex:1;min-width:0">${legend}</div>
-  </div>`;
+  </div>` + renderRecentUpdates();
+}
+
+// Segment + Legendenzeile gemeinsam hervorheben, Mitte zeigt den Wert
+function highlightStore(i, on) {
+  document.querySelectorAll('.donut-seg').forEach(c => {
+    c.style.opacity = on ? (String(c.dataset.i) === String(i) ? '1' : '0.28') : '1';
+  });
+  for (let k = 0; k < 4; k++) {
+    const row = document.getElementById('lg' + k);
+    if (row) row.classList.toggle('legend-on', on && k === i);
+  }
+  const num = document.getElementById('donut-center-num');
+  const lbl = document.getElementById('donut-center-lbl');
+  if (!num || !lbl) return;
+  const cats=[['verfügbar'],['nur Apple'],['nur Google'],['Aus dem Store']];
+  if (on) {
+    const k = cats[i][0];
+    const n = apps.filter(a => k==='Aus dem Store' ? (a.store==='Aus dem Store'||a.store==='aus dem Store') : a.store===k).length;
+    num.textContent = n;
+    lbl.textContent = k;
+    lbl.style.fontSize = '8px';
+  } else {
+    const total = cats.reduce((sum,[k]) => sum + apps.filter(a => k==='Aus dem Store' ? (a.store==='Aus dem Store'||a.store==='aus dem Store') : a.store===k).length, 0);
+    num.textContent = total;
+    lbl.textContent = 'im Store';
+    lbl.style.fontSize = '9px';
+  }
 }
 
 async function loadUpdateRanking() {
@@ -3140,7 +3260,7 @@ async function loadUpdateRanking() {
     // Nur abgeschlossene Updates zählen: Marker feld=update_done ODER Alt-Einträge mit 'Update abgeschlossen'.
     // Alt-Daten enthielten pro Abschluss ZWEI Zeilen (zendesk + update_done) → per Zeitstempel entdoppeln.
     const rows=await sbFetch('update_notizen_log?select=app_id,feld,aktion,zeitpunkt&limit=20000',{prefer:''})||[];
-    const counts={}, seen=new Set();
+    const counts={}, seen=new Set(), doneRows=[];
     rows.forEach(r=>{
       const done = r.feld==='update_done' || (typeof r.aktion==='string' && r.aktion.startsWith('Update abgeschlossen'));
       if(!done) return;
@@ -3150,9 +3270,14 @@ async function loadUpdateRanking() {
       if(seen.has(key)) return;
       seen.add(key);
       counts[r.app_id]=(counts[r.app_id]||0)+1;
+      doneRows.push(r);
     });
     window._updCounts=counts;
+    // Die drei jüngsten Abschlüsse (neueste zuerst)
+    doneRows.sort((a,b)=>String(b.zeitpunkt||'').localeCompare(String(a.zeitpunkt||'')));
+    window._recentUpdates = doneRows.slice(0,3);
     renderUpdateRanking();
+    renderStoreDonut();
   } catch(e) {}
 }
 
@@ -3164,7 +3289,7 @@ function renderUpdateRanking() {
   const ranked=Object.entries(counts).map(([id,n])=>{
     const a=apps.find(x=>String(x.id)===String(id)||String(x._dbId)===String(id));
     return a?{a,n}:null;
-  }).filter(Boolean).sort((x,y)=>y.n-x.n).slice(0,5);
+  }).filter(Boolean).sort((x,y)=>y.n-x.n).slice(0,8);
   if(!ranked.length){ el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:6px 0">Noch keine Update-Aktivität</div>'; return; }
   const max=ranked[0].n;
   el.innerHTML=ranked.map((r,i)=>`
@@ -3174,6 +3299,39 @@ function renderUpdateRanking() {
       <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(r.n/max*100)}%;background:${i<3?'var(--indigo)':'#b9b3f3'}"></div></div>
       <span class="db-count">${r.n}</span>
     </div>`).join('');
+}
+
+// Die drei zuletzt abgeschlossenen Updates (unter dem Ranking)
+function renderRecentUpdates() {
+  const recent = window._recentUpdates;
+  if (!recent || !recent.length) return '';
+  const t0 = new Date(); t0.setHours(0,0,0,0);
+  const rows = recent.map(r => {
+    const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
+    if (!a) return '';
+    const d = new Date(r.zeitpunkt);
+    const dd = new Date(d); dd.setHours(0,0,0,0);
+    const diff = Math.round((t0 - dd) / 864e5);
+    const when = diff === 0 ? ('heute ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))
+      : diff === 1 ? 'gestern'
+      : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+    // Plattform aus der Aktion ableiten (z. B. "Apple 5.3.3 → 5.4.3")
+    const akt = String(r.aktion||'');
+    const hasA = /Apple/i.test(akt), hasG = /Google/i.test(akt);
+    const plat = (hasA && hasG) ? '<i class="ti ti-devices"></i>'
+      : hasA ? '<i class="ti ti-brand-apple"></i>'
+      : hasG ? '<i class="ti ti-brand-android"></i>' : '<i class="ti ti-check"></i>';
+    const verM = akt.match(/(\d+\.\d+(?:\.\d+)?)\s*→\s*(\d+\.\d+(?:\.\d+)?)/);
+    const ver = verM ? (verM[1] + ' → ' + verM[2]) : '';
+    return `<div class="recent-row" onclick="openDetail('${a.id}')" title="${akt.replace(/"/g,'&quot;')}">
+      <span class="recent-icon">${plat}</span>
+      <span class="recent-name">${a.name}</span>
+      ${ver ? `<span class="recent-ver">${ver}</span>` : ''}
+      <span class="recent-when">${when}</span>
+    </div>`;
+  }).filter(Boolean).join('');
+  if (!rows) return '';
+  return `<div class="recent-sep">Zuletzt aktualisiert</div>${rows}`;
 }
 
 async function loadNotizBadge() {
