@@ -205,8 +205,13 @@
 
     <div class="group shots-only">
       <h2>Text</h2>
-      <div class="row"><input type="text" id="headline" placeholder="Headline, z.B. IMMER DABEI" value="IMMER DABEI"></div>
-      <div class="row"><input type="text" id="subline" placeholder="Subline" value="Alle Ausgaben jederzeit im Original-Layout"></div>
+      <div class="row">
+        <select id="textPreset" style="flex:1">
+          <option value="">Textvorlage wählen…</option>
+        </select>
+      </div>
+      <div class="row"><input type="text" id="headline" placeholder="Headline, z.B. IMMER DABEI" value=""></div>
+      <div class="row"><input type="text" id="subline" placeholder="Subline" value=""></div>
       <div class="row">
         <label>Textfarbe</label>
         <input type="color" id="textColor" value="#ffffff">
@@ -361,6 +366,20 @@
     <div class="group">
       <h2>Export</h2>
       <div class="row"><input type="text" id="fileName" value="store-screenshot-1"></div>
+      <div class="row no-icon">
+        <label>Format</label>
+        <select id="expFormat" style="flex:1.6">
+          <option value="jpeg" selected>JPEG (empfohlen, kleine Datei)</option>
+          <option value="png">PNG (verlustfrei, sehr groß)</option>
+        </select>
+      </div>
+      <div class="row no-icon" id="qualityCtl">
+        <label>JPEG-Qualität</label>
+        <input type="range" id="expQuality" min="60" max="100" value="92">
+        <span class="val" id="expQualityVal">92%</span>
+      </div>
+      <div class="row no-icon"><button class="btn secondary" style="width:100%" onclick="checkSize()">Dateigröße prüfen</button></div>
+      <div class="row" id="sizeInfoRow" style="font-size:11.5px;color:var(--muted)"></div>
       <div class="row shots-only"><button class="btn secondary" style="width:100%" onclick="exportAll()">Alle Größen exportieren</button></div>
       <div class="row shots-only"><button class="btn" id="zipBtn" style="width:100%" onclick="exportAllSlides()">Alle Bilder als ZIP exportieren</button></div>
     </div>
@@ -432,6 +451,8 @@ const state = {
   fTextScale:100,
   sFont:'-apple-system, "Segoe UI", Roboto, sans-serif',
   fFont:'-apple-system, "Segoe UI", Roboto, sans-serif',
+  expFormat:'jpeg',
+  expQuality:92,
   fLayout:'text',   // text | logo
   fLogo:null,
   fLogoScale:100,
@@ -803,7 +824,35 @@ function prepareFullBleedIcon(img){
   });
 });
 
-/* Schriftarten (System-Stacks, funktionieren offline) */
+/* Textvorlagen (frei editierbar) – werden manuell übers Dropdown gewählt */
+const DEFAULT_TEXTS = [
+  { h:'IMMER DABEI',      s:'Alle Ausgaben jederzeit im Original-Layout' },
+  { h:'ÜBERSICHTLICH',    s:'Suchfunktion, Lesezeichen & individuelle Einstellungen' },
+  { h:'OFFLINE LESEN',    s:'Ausgaben herunterladen und ohne Internet genießen' },
+  { h:'SCHNELL GEFUNDEN', s:'Seitenübersicht und Volltextsuche in jeder Ausgabe' },
+];
+
+/* Textvorlagen-Dropdown befüllen (manuelle Auswahl statt Auto-Vergabe) */
+(function(){
+  const sel = $('textPreset');
+  DEFAULT_TEXTS.forEach((t, i)=>{
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = t.h + ' – ' + t.s;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', ()=>{
+    if(sel.value === '') return;
+    const t = DEFAULT_TEXTS[+sel.value];
+    const s = curSlide();
+    if(s){ s.headline = t.h; s.subline = t.s; }
+    else { state.headline = t.h; state.subline = t.s; }
+    $('headline').value = t.h;
+    $('subline').value = t.s;
+    sel.value = '';
+    draw();
+  });
+})();
 const FONTS = [
   ['Standard (System)', '-apple-system, "Segoe UI", Roboto, sans-serif'],
   ['Helvetica', '"Helvetica Neue", Helvetica, Arial, sans-serif'],
@@ -990,13 +1039,6 @@ function loadFiles(files){
 }
 
 /* Standard-Texte: werden neuen Bildern der Reihe nach zugewiesen (pro Gerät gezählt) */
-const DEFAULT_TEXTS = [
-  { h:'IMMER DABEI',      s:'Alle Ausgaben jederzeit im Original-Layout' },
-  { h:'ÜBERSICHTLICH',    s:'Suchfunktion, Lesezeichen & individuelle Einstellungen' },
-  { h:'OFFLINE LESEN',    s:'Ausgaben herunterladen und ohne Internet genießen' },
-  { h:'SCHNELL GEFUNDEN', s:'Seitenübersicht und Volltextsuche in jeder Ausgabe' },
-];
-
 function loadImg(file){
   const img = new Image();
   img.onload = ()=>{
@@ -1013,15 +1055,13 @@ function loadImg(file){
     const type = (img.width / img.height) > 0.6 ? 'tablet' : 'phone';
     // Uploads gehören zum Modus, in dem sie hochgeladen wurden (Screenshots vs. Feature-Grafik)
     const slideMode = state.mode === 'feature' ? 'feature' : 'shots';
-    const idx = state.slides.filter(s=>s.type===type && s.mode===slideMode).length;
-    const dt = DEFAULT_TEXTS[idx % DEFAULT_TEXTS.length];
     state.slides.push({
       img,
       type,
       mode: slideMode,
       name: (file.name||'').replace(/\.[^.]+$/,'') || ('bild-'+(state.slides.length+1)),
-      headline: dt.h,
-      subline: dt.s,
+      headline: '',
+      subline: '',
       devScale: state.devScale,
       tilt: state.tilt,
       devY: state.devY,
@@ -1280,6 +1320,44 @@ function logoInSafeZone(){
     }
   }
   return true;
+}
+
+/* --- Exportformat: JPEG spart massiv Platz (Google Play: max. 8 MB je Screenshot,
+   max. 1 MB Feature-Grafik). Icon-Ebenen bleiben immer PNG (Transparenz nötig). --- */
+$('expFormat').addEventListener('change', e=>{
+  state.expFormat = e.target.value;
+  $('qualityCtl').style.display = state.expFormat === 'jpeg' ? '' : 'none';
+  $('sizeInfoRow').textContent = '';
+});
+$('expQuality').addEventListener('input', e=>{
+  state.expQuality = +e.target.value;
+  $('expQualityVal').textContent = e.target.value + '%';
+  $('sizeInfoRow').textContent = '';
+});
+
+function expMime(){ return state.expFormat === 'jpeg' ? 'image/jpeg' : 'image/png'; }
+function expExt(){ return state.expFormat === 'jpeg' ? '.jpg' : '.png'; }
+function canvasBlob(canvas){
+  return new Promise(r=>canvas.toBlob(r, expMime(), state.expQuality/100));
+}
+function sizeLimit(){
+  // Google Play: 8 MB je Screenshot, 1 MB Feature-Grafik
+  return state.mode === 'feature' ? 1024*1024 : 8*1024*1024;
+}
+function fmtSize(b){
+  return b > 1024*1024 ? (b/1024/1024).toFixed(2)+' MB' : Math.round(b/1024)+' KB';
+}
+async function checkSize(){
+  const info = $('sizeInfoRow');
+  info.textContent = 'Berechne…';
+  draw();
+  const blob = await canvasBlob(cv);
+  const lim = sizeLimit();
+  const ok = blob.size <= lim;
+  info.innerHTML = '<span style="color:' + (ok ? '#7bcf97' : '#e08a6a') + '">'
+    + (ok ? '✓ ' : '⚠ ') + fmtSize(blob.size) + ' – Limit ' + fmtSize(lim)
+    + (ok ? '' : ' · JPEG wählen oder Qualität senken') + '</span>';
+  draw();
 }
 
 function exportIconLayer(which){
@@ -1823,11 +1901,13 @@ function exportPNG(){
     cv.toBlob(blob=>{
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = ($('fileName').value || 'feature-grafik') + '_1024x500.png';
+      a.download = ($('fileName').value || 'feature-grafik') + '_1024x500' + expExt();
       a.click();
+      $('sizeInfoRow').innerHTML = '<span style="color:' + (blob.size <= sizeLimit() ? '#7bcf97' : '#e08a6a')
+        + '">' + (blob.size <= sizeLimit() ? '✓ ' : '⚠ ') + fmtSize(blob.size) + ' exportiert (Limit ' + fmtSize(sizeLimit()) + ')</span>';
       setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
       draw(); // Vorschau (mit Safe-Zone) wiederherstellen
-    }, 'image/png');
+    }, expMime(), state.expQuality/100);
     return;
   }
   const s = SIZES[state.device][state.sizeIdx];
@@ -1836,10 +1916,12 @@ function exportPNG(){
   cv.toBlob(blob=>{
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = base + '_' + s.w + 'x' + s.h + '.png';
+    a.download = base + '_' + s.w + 'x' + s.h + expExt();
     a.click();
+    $('sizeInfoRow').innerHTML = '<span style="color:' + (blob.size <= sizeLimit() ? '#7bcf97' : '#e08a6a')
+      + '">' + (blob.size <= sizeLimit() ? '✓ ' : '⚠ ') + fmtSize(blob.size) + ' exportiert (Limit ' + fmtSize(sizeLimit()) + ')</span>';
     setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
-  }, 'image/png');
+  }, expMime(), state.expQuality/100);
 }
 
 async function exportAll(){
@@ -1853,10 +1935,10 @@ async function exportAll(){
       cv.toBlob(blob=>{
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = base + '_' + list[i].w + 'x' + list[i].h + '.png';
+        a.download = base + '_' + list[i].w + 'x' + list[i].h + expExt();
         a.click();
         setTimeout(()=>{ URL.revokeObjectURL(a.href); res(); }, 400);
-      }, 'image/png');
+      }, expMime(), state.expQuality/100);
     });
   }
   state.sizeIdx = keep;
@@ -1919,7 +2001,7 @@ async function exportAllSlides(){
   btn.disabled = true;
   const sizes = SIZES[state.device];
   const files = [];
-  let n = 1;
+  let n = 1, oversize = 0;
   try {
     for(const sl of vis){
       const base = sl.name || ('bild-'+n);
@@ -1927,8 +2009,9 @@ async function exportAllSlides(){
         btn.textContent = 'Rendere '+base+' ('+s.w+'×'+s.h+')…';
         cv.width = s.w; cv.height = s.h;
         drawScene(ctx, s.w, s.h, sl);
-        const blob = await new Promise(r=>cv.toBlob(r, 'image/png'));
-        files.push({ name: base+'_'+s.w+'x'+s.h+'.png', data: new Uint8Array(await blob.arrayBuffer()) });
+        const blob = await canvasBlob(cv);
+        if(blob.size > sizeLimit()) oversize++;
+        files.push({ name: base+'_'+s.w+'x'+s.h+expExt(), data: new Uint8Array(await blob.arrayBuffer()) });
       }
       n++;
     }
@@ -1937,6 +2020,9 @@ async function exportAllSlides(){
     a.href = URL.createObjectURL(zip);
     a.download = 'store-screenshots-' + state.device + '.zip';
     a.click();
+    $('sizeInfoRow').innerHTML = oversize
+      ? '<span style="color:#e08a6a">⚠ ' + oversize + ' Datei(en) über ' + fmtSize(sizeLimit()) + ' – JPEG wählen oder Qualität senken</span>'
+      : '<span style="color:#7bcf97">✓ Alle Dateien unter ' + fmtSize(sizeLimit()) + '</span>';
     setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
   } finally {
     btn.disabled = false;
