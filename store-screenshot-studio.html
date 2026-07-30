@@ -250,11 +250,35 @@
         <label>Deko-Streifen &amp; Punkte</label>
         <input type="checkbox" id="fDeco" style="width:auto">
       </div>
+      <div class="seg" id="fTextPosSeg" style="margin-bottom:8px">
+        <button data-v="below" class="active">Text unten (Logo mittig)</button>
+        <button data-v="above">Text oben (Logo mittig)</button>
+      </div>
+      <div class="row">
+        <label>Abstand Logo ↔ Text</label>
+        <input type="range" id="fLogoGap" min="20" max="250" value="100">
+        <span class="val" id="fLogoGapVal">100%</span>
+      </div>
       <div class="row"><input type="text" id="fApp" placeholder="App-Name" value="connect"></div>
+      <div class="row">
+        <label>Größe App-Name</label>
+        <input type="range" id="fAppScale" min="50" max="200" value="100">
+        <span class="val" id="fAppScaleVal">100%</span>
+      </div>
       <div class="row"><input type="text" id="fHead" placeholder="Headline" value="Das Magazin als App"></div>
+      <div class="row">
+        <label>Größe Headline</label>
+        <input type="range" id="fHeadScale" min="50" max="200" value="100">
+        <span class="val" id="fHeadScaleVal">100%</span>
+      </div>
       <div class="row"><input type="text" id="fSub" placeholder="Subline" value="Alle Ausgaben lesen – jederzeit, überall, auch offline"></div>
       <div class="row">
-        <label>Schriftgröße</label>
+        <label>Größe Subline</label>
+        <input type="range" id="fSubScale" min="50" max="200" value="100">
+        <span class="val" id="fSubScaleVal">100%</span>
+      </div>
+      <div class="row">
+        <label>Schriftgröße (gesamt)</label>
         <input type="range" id="fTextScale" min="50" max="180" value="100">
         <span class="val" id="fTextScaleVal">100%</span>
       </div>
@@ -457,6 +481,11 @@ const state = {
   fLogo:null,
   fLogoScale:100,
   fDeco:false,
+  fTextPos:'below', // below | above (nur Layout "logo")
+  fLogoGap:100,
+  fAppScale:100,
+  fHeadScale:100,
+  fSubScale:100,
   iLogo:null,
   iScale:55,
   iMask:'circle',
@@ -527,6 +556,7 @@ segInit('platformSeg','platform');
 segInit('deviceSeg','form');
 segInit('modeSeg','mode');
 segInit('fLayoutSeg','fLayout');
+segInit('fTextPosSeg','fTextPos');
 segInit('iMaskSeg','iMask');
 
 /* Adaptive-Icon-Bindings */
@@ -814,7 +844,7 @@ function prepareFullBleedIcon(img){
 }
 
 /* Feature-Grafik-Bindings */
-[['fApp'],['fHead'],['fSub'],['fShowDev'],['fScale','%'],['fTilt','°'],['fSafe'],['fLogoScale','%'],['fDeco'],['fTextScale','%']].forEach(([id,suffix])=>{
+[['fApp'],['fHead'],['fSub'],['fShowDev'],['fScale','%'],['fTilt','°'],['fSafe'],['fLogoScale','%'],['fDeco'],['fTextScale','%'],['fLogoGap','%'],['fAppScale','%'],['fHeadScale','%'],['fSubScale','%']].forEach(([id,suffix])=>{
   const el = $(id);
   el.addEventListener('input', ()=>{
     state[id] = el.type==='checkbox' ? el.checked :
@@ -1430,8 +1460,39 @@ function drawFeature(c, W, H, slide, preview){
 
   /* --- Layout "Logo mittig" (wie Referenzbild) --- */
   if(state.fLayout === 'logo'){
+    const hasText = !!(state.fApp || state.fHead || state.fSub);
+    const font = state.fFont;
+    const fts = state.fTextScale/100;
+
+    // Textzeilen vorab ermitteln, damit der ganze Block (Logo + Text) vertikal zentriert werden kann
+    const appFs = H*0.105*fts*(state.fAppScale/100);
+    const headFs = H*0.072*fts*(state.fHeadScale/100);
+    const subFs = H*0.05*fts*(state.fSubScale/100);
+    let subLines = [];
+    if(state.fSub){
+      c.font = '400 ' + subFs + 'px ' + font;
+      const words = state.fSub.split(' ');
+      let line = '';
+      const maxW = W * 0.8;
+      for(const w of words){
+        const t = line ? line+' '+w : w;
+        if(c.measureText(t).width > maxW && line){ subLines.push(line); line = w; }
+        else line = t;
+      }
+      if(line) subLines.push(line);
+    }
+    const gap = H*0.07*(state.fLogoGap/100);
+    const textBlockH = (state.fApp ? appFs*1.2 : 0)
+      + (state.fHead ? headFs*1.3 : 0)
+      + (subLines.length ? subLines.length * subFs*1.4 : 0);
+
     const size = H * 0.62 * (state.fLogoScale/100);
-    const lx = W/2 - size/2, ly = H/2 - size/2;
+    const total = size + (hasText ? gap + textBlockH : 0);
+    const top = H/2 - total/2;
+    const textAbove = hasText && state.fTextPos === 'above';
+    const ly = textAbove ? top + textBlockH + gap : top;
+    const textTop = textAbove ? top : top + size + gap;
+    const lx = W/2 - size/2;
     const lr = size * 0.22;
     if(state.fLogo){
       // weicher Schatten hinter dem Logo
@@ -1461,8 +1522,29 @@ function drawFeature(c, W, H, slide, preview){
       c.fillStyle = 'rgba(255,255,255,0.9)';
       c.font = '600 ' + (size*0.09) + 'px -apple-system, sans-serif';
       c.textAlign = 'center';
-      c.fillText('Logo hochladen…', W/2, H/2);
+      c.fillText('Logo hochladen…', lx+size/2, ly+size/2);
     }
+
+    if(hasText){
+      c.textAlign = 'center';
+      c.fillStyle = state.textColor;
+      let ty = textTop;
+      if(state.fApp){
+        c.font = '800 ' + appFs + 'px ' + font;
+        c.fillText(state.fApp, W/2, ty);
+        ty += appFs*1.2;
+      }
+      if(state.fHead){
+        c.font = '700 ' + headFs + 'px ' + font;
+        c.fillText(state.fHead, W/2, ty);
+        ty += headFs*1.3;
+      }
+      if(subLines.length){
+        c.font = '400 ' + subFs + 'px ' + font;
+        for(const l of subLines){ c.fillText(l, W/2, ty); ty += subFs*1.4; }
+      }
+    }
+
     if(preview && state.fSafe){
       const m = W * (30/1024);
       c.setLineDash([W*0.012, W*0.008]);
