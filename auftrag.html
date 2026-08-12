@@ -71,10 +71,14 @@
 
   .prio-toggle{display:flex;gap:8px;}
   .plat-toggle{display:flex;gap:8px;}
-  .plat-btn{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
-    text-align:center;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted);
-    display:flex;align-items:center;justify-content:center;gap:7px;transition:all .12s;user-select:none;}
-  .plat-btn.sel{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo-dark);}
+  .plat-btn{flex:1;border:1px solid var(--border);border-radius:9px;padding:8px 12px;
+    text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;gap:6px;transition:all .12s;user-select:none;
+    background:var(--card);}
+  .plat-btn:hover{border-color:#c9cdd6;color:var(--text);}
+  .plat-btn.sel{border-color:var(--indigo);color:var(--indigo-dark);font-weight:600;
+    background:var(--card);box-shadow:inset 0 0 0 1px var(--indigo);}
+  .plat-btn.sel i{color:var(--indigo);}
   .prio-btn{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px;
     text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);
     transition:all .12s;}
@@ -188,8 +192,8 @@
       <div class="field" id="plattformField" style="display:none">
         <label>Plattform</label>
         <div class="plat-toggle">
-          <div class="plat-btn" data-plat="apple" onclick="togglePlat('apple')"><i class="ti ti-brand-apple"></i> Apple App Store</div>
-          <div class="plat-btn" data-plat="google" onclick="togglePlat('google')"><i class="ti ti-brand-android"></i> Google Play</div>
+          <div class="plat-btn" data-plat="apple" onclick="togglePlat('apple')"><i class="ti ti-brand-apple"></i> Apple</div>
+          <div class="plat-btn" data-plat="google" onclick="togglePlat('google')"><i class="ti ti-brand-android"></i> Google</div>
         </div>
         <div class="field-hint">Mehrfachauswahl möglich – wird nach der App vorbelegt.</div>
       </div>
@@ -430,7 +434,7 @@
   }
 
   // ═══════════════ Zusammenfassung für Zendesk ═══════════════
-  const PLAT_LABELS = { apple: 'Apple App Store', google: 'Google Play' };
+  const PLAT_LABELS = { apple: 'Apple', google: 'Google' };
   function buildSummary(appName, plattform, aufgaben, ticket, prioritaet, info){
     const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
     const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
