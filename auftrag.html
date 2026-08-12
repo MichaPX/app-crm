@@ -55,11 +55,13 @@
   .app-result-row:hover{background:var(--page);}
   .app-result-row .stores{margin-left:auto;color:var(--muted);font-size:13px;display:flex;gap:4px;}
   .app-loading{padding:10px 13px;font-size:13px;color:var(--muted);}
+  .app-picked-list{display:flex;flex-direction:column;gap:6px;margin-top:7px;}
   .app-picked{display:flex;align-items:center;gap:8px;background:var(--indigo-soft);
-    color:var(--indigo-dark);padding:10px 13px;border-radius:10px;font-weight:600;
-    font-size:14px;margin-top:7px;}
+    color:var(--indigo-dark);padding:9px 12px;border-radius:10px;font-weight:600;
+    font-size:14px;}
   .app-picked .stores{color:var(--indigo);display:flex;gap:4px;}
-  .app-picked .rm{cursor:pointer;margin-left:auto;}
+  .app-picked .rm{cursor:pointer;margin-left:auto;color:var(--indigo);}
+  .app-picked .rm:hover{color:var(--red);}
 
   .task-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .task-opt{display:flex;align-items:center;gap:8px;border:1px solid var(--border);
@@ -178,15 +180,10 @@
       <p class="form-error" id="formError"></p>
 
       <div class="field">
-        <label>App auswählen</label>
-        <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen…" autocomplete="off" oninput="onSearchInput()">
+        <label>Apps auswählen <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(mehrere möglich)</span></label>
+        <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen und hinzufügen…" autocomplete="off" oninput="onSearchInput()">
         <div class="app-results" id="appResults"></div>
-        <div class="app-picked" id="appPicked" style="display:none">
-          <i class="ti ti-apps"></i>
-          <span id="appPickedName"></span>
-          <span class="stores" id="appPickedStores"></span>
-          <i class="ti ti-x rm" onclick="clearApp()"></i>
-        </div>
+        <div class="app-picked-list" id="appPickedList"></div>
       </div>
 
       <div class="field" id="plattformField" style="display:none">
@@ -312,7 +309,7 @@
   }
 
   // ═══════════════ App-Suche (über sichere RPC) ═══════════════
-  let searchTimer = null, pickedApp = null;
+  let searchTimer = null, pickedApps = [];
 
   function onSearchInput(){
     clearTimeout(searchTimer);
@@ -336,8 +333,9 @@
       box.innerHTML = rows.map(r => {
         _searchResults[r.id] = r;
         const stores = (r.apple_store?'<i class="ti ti-brand-apple"></i>':'') + (r.google_store?'<i class="ti ti-brand-android"></i>':'');
-        return `<div class="app-result-row" onclick='pickApp(${r.id})'>
-          <i class="ti ti-apps"></i> ${(r.name||'').replace(/</g,'&lt;')} <span class="stores">${stores}</span></div>`;
+        const already = pickedApps.some(a => a.id === r.id);
+        return `<div class="app-result-row" onclick='pickApp(${r.id})' style="${already?'opacity:.45;pointer-events:none':''}">
+          <i class="ti ti-apps"></i> ${(r.name||'').replace(/</g,'&lt;')} <span class="stores">${stores}${already?' <i class=\"ti ti-check\"></i>':''}</span></div>`;
       }).join('');
     } catch(e){
       box.innerHTML = '<div class="app-loading" style="color:var(--red)">Suche fehlgeschlagen.</div>';
@@ -348,26 +346,42 @@
   function pickApp(id){
     const r = _searchResults[id];
     if (!r) return;
-    const hasApple = !!r.apple_store, hasGoogle = !!r.google_store;
-    pickedApp = { id: r.id, name: r.name || '', pegasus: r.pegasus || '' };
-    document.getElementById('appPickedName').textContent = r.name || '';
-    document.getElementById('appPickedStores').innerHTML =
-      (hasApple?'<i class="ti ti-brand-apple"></i>':'') + (hasGoogle?'<i class="ti ti-brand-android"></i>':'');
-    document.getElementById('appPicked').style.display='flex';
+    if (pickedApps.some(a => a.id === r.id)) return;  // schon drin
+    pickedApps.push({
+      id: r.id, name: r.name || '', pegasus: r.pegasus || '',
+      apple: !!r.apple_store, google: !!r.google_store
+    });
     document.getElementById('appSearch').value='';
     document.getElementById('appResults').classList.remove('open');
-    // Plattform-Feld einblenden und nach den Stores der App vorbelegen
-    plats = new Set();
-    if (hasApple) plats.add('apple');
-    if (hasGoogle) plats.add('google');
-    document.getElementById('plattformField').style.display='block';
-    renderPlats();
+    renderPickedApps();
   }
-  function clearApp(){
-    pickedApp=null; plats=new Set();
-    document.getElementById('appPicked').style.display='none';
-    document.getElementById('plattformField').style.display='none';
-    renderPlats();
+  function removeApp(id){
+    pickedApps = pickedApps.filter(a => a.id !== id);
+    renderPickedApps();
+  }
+  function renderPickedApps(){
+    const list = document.getElementById('appPickedList');
+    list.innerHTML = pickedApps.map(a => {
+      const stores = (a.apple?'<i class="ti ti-brand-apple"></i>':'') + (a.google?'<i class="ti ti-brand-android"></i>':'');
+      return `<div class="app-picked">
+        <i class="ti ti-apps"></i>
+        <span>${(a.name||'').replace(/</g,'&lt;')}</span>
+        <span class="stores">${stores}</span>
+        <i class="ti ti-x rm" onclick="removeApp(${a.id})"></i>
+      </div>`;
+    }).join('');
+    // Plattform-Feld einblenden, sobald mindestens eine App gewählt ist,
+    // und aus den Stores ALLER gewählten Apps vorbelegen (Vereinigung)
+    if (pickedApps.length){
+      document.getElementById('plattformField').style.display='block';
+      plats = new Set();
+      if (pickedApps.some(a => a.apple)) plats.add('apple');
+      if (pickedApps.some(a => a.google)) plats.add('google');
+      renderPlats();
+    } else {
+      document.getElementById('plattformField').style.display='none';
+      plats = new Set(); renderPlats();
+    }
   }
 
   // ═══════════════ Plattform-Auswahl ═══════════════
@@ -406,7 +420,7 @@
     const aufgaben = [...document.querySelectorAll('.task-opt input:checked')].map(i=>i.closest('.task-opt').dataset.t);
     const plattform = [...plats];
 
-    if (!pickedApp){ showError('Bitte zuerst eine App auswählen.'); return; }
+    if (!pickedApps.length){ showError('Bitte mindestens eine App auswählen.'); return; }
     if (!plattform.length){ showError('Bitte mindestens eine Plattform (Apple / Google) wählen.'); return; }
     if (!ticket){ showError('Die Zendesk-Ticketnummer ist ein Pflichtfeld.'); return; }
     if (!aufgaben.length){ showError('Bitte mindestens eine Aufgabe auswählen.'); return; }
@@ -414,12 +428,19 @@
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Wird gesendet…';
 
+    // App-Liste für die DB (jede App mit eigenem done-Status)
+    const appsPayload = pickedApps.map(a => ({
+      id: a.id, name: a.name, pegasus: a.pegasus, done: false
+    }));
+    const first = pickedApps[0];
+
     try {
       await sbAnon('auftraege', {
         method:'POST', prefer:'return=minimal',
         body: JSON.stringify({
-          app_id: pickedApp.id,
-          app_name: pickedApp.name,
+          app_id: first.id,
+          app_name: pickedApps.length === 1 ? first.name : ('Sammelauftrag · ' + pickedApps.length + ' Apps'),
+          apps: appsPayload,
           plattform: plattform,
           aufgaben: aufgaben,
           zendesk_nr: ticket,
@@ -429,7 +450,7 @@
         })
       });
       // Zusammenfassung für Zendesk bauen
-      buildSummary(pickedApp.name, pickedApp.pegasus, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
+      buildSummary(pickedApps, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
 
       document.getElementById('formView').style.display='none';
       document.getElementById('successView').classList.add('open');
@@ -442,13 +463,20 @@
 
   // ═══════════════ Zusammenfassung für Zendesk ═══════════════
   const PLAT_LABELS = { apple: 'Apple', google: 'Google' };
-  function buildSummary(appName, pegasus, plattform, aufgaben, ticket, prioritaet, info){
+  function buildSummary(apps, plattform, aufgaben, ticket, prioritaet, info){
     const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
     const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
     const prioText = prioritaet === 'hoch' ? 'Hoch' : 'Normal';
     let txt = '';
-    txt += 'App: ' + appName + '\n';
-    if (pegasus) txt += 'Pegasus: ' + pegasus + '\n';
+    if (apps.length === 1){
+      txt += 'App: ' + apps[0].name + '\n';
+      if (apps[0].pegasus) txt += 'Pegasus: ' + apps[0].pegasus + '\n';
+    } else {
+      txt += 'Apps (' + apps.length + '):\n';
+      apps.forEach(a => {
+        txt += '• ' + a.name + (a.pegasus ? '\n  ' + a.pegasus : '') + '\n';
+      });
+    }
     txt += 'Plattform: ' + platText + '\n';
     txt += 'Ticket: #' + ticket + '\n';
     txt += 'Priorität: ' + prioText + '\n';
@@ -475,10 +503,10 @@
   }
 
   function resetForm(){
-    pickedApp = null; prio = 'normal'; plats = new Set();
+    pickedApps = []; prio = 'normal'; plats = new Set();
     document.getElementById('formView').style.display='block';
     document.getElementById('successView').classList.remove('open');
-    document.getElementById('appPicked').style.display='none';
+    document.getElementById('appPickedList').innerHTML='';
     document.getElementById('plattformField').style.display='none';
     renderPlats();
     document.getElementById('appSearch').value='';
