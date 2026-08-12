@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auftrag erstellen — Micha Notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root{
+    --page:#f4f5f7; --card:#ffffff; --border:#e5e7eb;
+    --text:#1f2430; --muted:#7b8494;
+    --indigo:#4f46e5; --indigo-dark:#4338ca; --indigo-soft:#eef0fe;
+    --green:#16a34a; --green-soft:#e8f7ee; --red:#dc2626; --red-soft:#fdecec;
+    --radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    min-height:100vh; background:var(--page); color:var(--text);
+    font-family:-apple-system,"Segoe UI",Inter,sans-serif;
+    display:flex; align-items:flex-start; justify-content:center; padding:44px 16px;
+  }
+  .page{width:100%; max-width:480px;}
+
+  .brand{display:flex; align-items:center; gap:10px; margin-bottom:20px;}
+  .logo-tile{width:36px;height:30px;border-radius:8px;background:#0a0a0a;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .logo-tile svg{width:20px;height:17px;}
+  .brand-text{font-size:13px;color:var(--muted);font-weight:600;}
+  .brand-text b{color:var(--text);font-weight:800;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:26px 24px;box-shadow:0 1px 3px rgba(20,20,50,.04);}
+  h1{font-size:20px;margin-bottom:4px;letter-spacing:-.01em;}
+  .subtitle{font-size:13.5px;color:var(--muted);margin-bottom:22px;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);
+    margin-bottom:7px;text-transform:uppercase;letter-spacing:.03em;}
+  .field-hint{font-size:11.5px;color:var(--muted);margin-top:5px;}
+
+  input[type=text],input[type=password],textarea,.app-search-input{
+    width:100%;border:1px solid var(--border);border-radius:10px;
+    padding:11px 13px;font-size:14.5px;outline:none;font-family:inherit;
+    color:var(--text);background:var(--card);transition:border-color .15s;
+  }
+  input:focus,textarea:focus,.app-search-input:focus{border-color:var(--indigo);}
+  textarea{resize:vertical;}
+
+  .app-results{border:1px solid var(--border);border-radius:10px;margin-top:6px;
+    max-height:200px;overflow-y:auto;display:none;}
+  .app-results.open{display:block;}
+  .app-result-row{padding:10px 13px;display:flex;align-items:center;gap:8px;
+    cursor:pointer;font-size:14px;border-bottom:1px solid #f1f2f5;}
+  .app-result-row:last-child{border-bottom:none;}
+  .app-result-row:hover{background:var(--page);}
+  .app-result-row .stores{margin-left:auto;color:var(--muted);font-size:13px;display:flex;gap:4px;}
+  .app-loading{padding:10px 13px;font-size:13px;color:var(--muted);}
+  .app-picked{display:flex;align-items:center;gap:8px;background:var(--indigo-soft);
+    color:var(--indigo-dark);padding:10px 13px;border-radius:10px;font-weight:600;
+    font-size:14px;margin-top:7px;}
+  .app-picked .stores{color:var(--indigo);display:flex;gap:4px;}
+  .app-picked .rm{cursor:pointer;margin-left:auto;}
+
+  .task-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .task-opt{display:flex;align-items:center;gap:8px;border:1px solid var(--border);
+    border-radius:10px;padding:10px 12px;font-size:13.5px;cursor:pointer;user-select:none;
+    transition:border-color .12s,background .12s;}
+  .task-opt.checked{border-color:var(--indigo);background:var(--indigo-soft);
+    color:var(--indigo-dark);font-weight:600;}
+  .task-opt input{accent-color:var(--indigo);flex-shrink:0;}
+
+  .prio-toggle{display:flex;gap:8px;}
+  .plat-toggle{display:flex;gap:8px;}
+  .plat-btn{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+    text-align:center;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted);
+    display:flex;align-items:center;justify-content:center;gap:7px;transition:all .12s;user-select:none;}
+  .plat-btn.sel{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo-dark);}
+  .prio-btn{flex:1;border:1px solid var(--border);border-radius:10px;padding:10px;
+    text-align:center;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);
+    transition:all .12s;}
+  .prio-btn.sel-normal{border-color:#9aa1af;background:var(--page);color:var(--text);}
+  .prio-btn.sel-hoch{border-color:var(--red);background:var(--red-soft);color:var(--red);}
+
+  .btn-primary{width:100%;background:var(--indigo);color:#fff;border:none;
+    border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;
+    transition:background .15s;}
+  .btn-primary:hover{background:var(--indigo-dark);}
+  .btn-primary:disabled{opacity:.55;cursor:default;}
+
+  .form-error{display:none;background:var(--red-soft);color:#991b1b;font-size:12.5px;
+    border-radius:8px;padding:9px 11px;margin-bottom:14px;}
+  .form-error.show{display:block;}
+
+  /* Gate */
+  .gate{width:100%;max-width:360px;text-align:center;}
+  .gate .logo-tile{width:52px;height:44px;border-radius:12px;margin:0 auto 18px;}
+  .gate .logo-tile svg{width:27px;height:23px;}
+  .gate h1{font-size:19px;margin-bottom:4px;}
+  .gate .sub{font-size:13.5px;color:var(--muted);margin-bottom:24px;}
+  .gate-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:24px 22px;box-shadow:0 1px 3px rgba(20,20,50,.04);}
+  .pw-row{position:relative;margin-bottom:12px;}
+  .pw-row .lock{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-size:17px;}
+  .pw-input{padding-left:40px !important;text-align:center;letter-spacing:.05em;}
+  .pw-input.err{border-color:var(--red);animation:shake .3s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .gate .err-msg{color:var(--red);font-size:12.5px;margin-bottom:12px;display:none;}
+  .gate .err-msg.show{display:block;}
+  .gate .hint{font-size:11.5px;color:var(--muted);margin-top:16px;}
+
+  /* Success */
+  .success{display:none;flex-direction:column;align-items:center;text-align:center;padding:18px 8px 4px;}
+  .success.open{display:flex;}
+  .success .check{width:52px;height:52px;border-radius:50%;background:var(--green-soft);
+    color:var(--green);display:flex;align-items:center;justify-content:center;
+    font-size:26px;margin-bottom:14px;}
+  .success h2{font-size:17px;margin-bottom:6px;}
+  .success p{font-size:13.5px;color:var(--muted);margin-bottom:20px;}
+  .btn-secondary{background:none;border:1px solid var(--border);border-radius:10px;
+    padding:10px 18px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--text);
+    display:inline-flex;align-items:center;gap:6px;}
+
+  /* Zusammenfassung */
+  .summary-box{width:100%;text-align:left;background:var(--page);border:1px solid var(--border);
+    border-radius:12px;padding:14px 15px;margin-bottom:14px;position:relative;}
+  .summary-box pre{font-family:inherit;font-size:13px;line-height:1.55;color:var(--text);
+    white-space:pre-wrap;word-break:break-word;margin:0;}
+  .summary-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.03em;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+  .btn-copy{width:100%;background:var(--indigo);color:#fff;border:none;border-radius:10px;
+    padding:11px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:8px;margin-bottom:10px;transition:background .15s;}
+  .btn-copy:hover{background:var(--indigo-dark);}
+  .btn-copy.copied{background:var(--green);}
+</style>
+</head>
+<body>
+
+<!-- Logo-SVG wird per JS-Konstante wiederverwendet -->
+<script>
+  const LOGO_SVG = `<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE066"/><stop offset="0.45" stop-color="#FFA53E"/><stop offset="0.7" stop-color="#FF6E1E"/><stop offset="1" stop-color="#E8391F"/></linearGradient></defs><g fill="url(#tg)" stroke="url(#tg)" stroke-width="3" stroke-linejoin="round"><path d="M 11.8 12 L 24.8 12 L 28.2 90 L 15.2 90 Z"/><path d="M 38.8 10 L 51.8 10 L 49.2 92 L 36.2 92 Z"/><path d="M 60.5 12 L 73.5 12 L 75.5 90 L 62.5 90 Z"/><path d="M 87.3 10 L 100.3 10 L 96.7 92 L 83.7 92 Z"/><path d="M 3.1 74.2 L 111.1 20.2 L 116.9 31.8 L 8.9 85.8 Z"/></g></svg>`;
+</script>
+
+<!-- ============ GATE ============ -->
+<div class="gate" id="gate">
+  <div class="logo-tile" id="gate-logo"></div>
+  <h1>Auftrag erstellen</h1>
+  <p class="sub">Bitte Zugangscode eingeben</p>
+  <div class="gate-card">
+    <div class="pw-row">
+      <i class="ti ti-lock lock"></i>
+      <input type="password" class="pw-input app-search-input" id="pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    </div>
+    <p class="err-msg" id="pw-err">Falscher Code, bitte erneut versuchen.</p>
+    <button class="btn-primary" onclick="checkPw()"><i class="ti ti-arrow-right"></i> Weiter</button>
+    <p class="hint">Zugangscode bekommst du von Micha.</p>
+  </div>
+</div>
+
+<!-- ============ FORMULAR ============ -->
+<div class="page" id="page" style="display:none">
+  <div class="brand">
+    <div class="logo-tile" id="brand-logo"></div>
+    <div class="brand-text"><b>Micha Notebook</b> · Auftrag erstellen</div>
+  </div>
+
+  <div class="card">
+    <div id="formView">
+      <h1>Neuer Auftrag</h1>
+      <p class="subtitle">Wird direkt in Michas Notebook übernommen.</p>
+
+      <p class="form-error" id="formError"></p>
+
+      <div class="field">
+        <label>App auswählen</label>
+        <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen…" autocomplete="off" oninput="onSearchInput()">
+        <div class="app-results" id="appResults"></div>
+        <div class="app-picked" id="appPicked" style="display:none">
+          <i class="ti ti-apps"></i>
+          <span id="appPickedName"></span>
+          <span class="stores" id="appPickedStores"></span>
+          <i class="ti ti-x rm" onclick="clearApp()"></i>
+        </div>
+      </div>
+
+      <div class="field" id="plattformField" style="display:none">
+        <label>Plattform</label>
+        <div class="plat-toggle">
+          <div class="plat-btn" data-plat="apple" onclick="togglePlat('apple')"><i class="ti ti-brand-apple"></i> Apple App Store</div>
+          <div class="plat-btn" data-plat="google" onclick="togglePlat('google')"><i class="ti ti-brand-android"></i> Google Play</div>
+        </div>
+        <div class="field-hint">Mehrfachauswahl möglich – wird nach der App vorbelegt.</div>
+      </div>
+
+      <div class="field">
+        <label>Aufgaben</label>
+        <div class="task-grid">
+          <label class="task-opt" data-t="update"><input type="checkbox" onchange="toggleTask(this)"> Neue Version / reguläres Update</label>
+          <label class="task-opt" data-t="bugfix"><input type="checkbox" onchange="toggleTask(this)"> Bugfix</label>
+          <label class="task-opt" data-t="store"><input type="checkbox" onchange="toggleTask(this)"> Store-Anpassung</label>
+          <label class="task-opt" data-t="grafiken"><input type="checkbox" onchange="toggleTask(this)"> Screenshots / Store-Grafiken</label>
+          <label class="task-opt" data-t="texte"><input type="checkbox" onchange="toggleTask(this)"> Texte / Store-Beschreibung</label>
+          <label class="task-opt" data-t="umzug"><input type="checkbox" onchange="toggleTask(this)"> Umzug</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Zendesk-Ticketnummer <span style="color:var(--red)">*</span></label>
+        <input type="text" id="ticketInput" placeholder="z.B. 48213 oder kompletter Link">
+        <div class="field-hint">Pflichtfeld – Nummer oder Link.</div>
+      </div>
+
+      <div class="field">
+        <label>Info</label>
+        <textarea rows="4" id="infoInput" placeholder="Details zum Auftrag, was Micha wissen muss…"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Priorität</label>
+        <div class="prio-toggle">
+          <div class="prio-btn sel-normal" data-p="normal" onclick="setPrio('normal')">Normal</div>
+          <div class="prio-btn" data-p="hoch" onclick="setPrio('hoch')">Hoch</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="submitBtn" onclick="submitOrder()"><i class="ti ti-send"></i> Auftrag senden</button>
+    </div>
+
+    <div id="successView" class="success">
+      <div class="check"><i class="ti ti-check"></i></div>
+      <h2>Auftrag übermittelt</h2>
+      <p>Micha sieht den Auftrag jetzt in seinem Notebook.</p>
+
+      <div class="summary-box">
+        <div class="summary-label"><i class="ti ti-clipboard-text"></i> Zusammenfassung für Zendesk</div>
+        <pre id="summaryText"></pre>
+      </div>
+      <button class="btn-copy" id="copyBtn" onclick="copySummary()"><i class="ti ti-copy"></i> Zusammenfassung kopieren</button>
+
+      <button class="btn-secondary" onclick="resetForm()"><i class="ti ti-plus"></i> Weiteren Auftrag anlegen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ═══════════════ Konfiguration ═══════════════
+  const SB_URL = 'https://womcbvvcmtmqpdhbukzw.supabase.co';
+  const SB_KEY = 'sb_publishable_ih7z6TLCcAxMq9TzdMxj0w_dLQ9AOjY';
+  const ZUGANGSCODE = 'pressmatrix';   // <-- hier deinen Wunsch-Code eintragen
+  const ZENDESK_BASE = 'https://pressmatrix.zendesk.com/agent/tickets/'; // für spätere Link-Erzeugung im CRM
+
+  // Lesbare Bezeichnungen der Aufgaben (für die Zusammenfassung)
+  const TASK_LABELS = {
+    update:   'Neue Version / reguläres Update',
+    bugfix:   'Bugfix',
+    store:    'Store-Anpassung',
+    grafiken: 'Screenshots / Store-Grafiken',
+    texte:    'Texte / Store-Beschreibung',
+    umzug:    'Umzug'
+  };
+
+  // Logos einsetzen
+  document.getElementById('gate-logo').innerHTML = LOGO_SVG;
+  document.getElementById('brand-logo').innerHTML = LOGO_SVG;
+
+  // ═══════════════ Gate ═══════════════
+  const GATE_KEY = 'auftrag_auth';
+  if (sessionStorage.getItem(GATE_KEY) === '1') showForm();
+  else document.getElementById('pw').focus();
+
+  function checkPw(){
+    const inp = document.getElementById('pw');
+    const err = document.getElementById('pw-err');
+    if (inp.value === ZUGANGSCODE){
+      sessionStorage.setItem(GATE_KEY,'1');
+      showForm();
+    } else {
+      err.classList.add('show'); inp.classList.add('err'); inp.value=''; inp.focus();
+      setTimeout(()=>inp.classList.remove('err'),320);
+    }
+  }
+  function showForm(){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('page').style.display='block';
+    document.getElementById('appSearch').focus();
+  }
+
+  // ═══════════════ Supabase-Helfer (anon) ═══════════════
+  async function sbAnon(path, opts){
+    opts = opts || {};
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      method: opts.method || 'GET',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=minimal'
+      },
+      body: opts.body || undefined
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const t = await res.text();
+    return t ? JSON.parse(t) : null;
+  }
+
+  // ═══════════════ App-Suche (über sichere RPC) ═══════════════
+  let searchTimer = null, pickedApp = null;
+
+  function onSearchInput(){
+    clearTimeout(searchTimer);
+    const q = document.getElementById('appSearch').value.trim();
+    const box = document.getElementById('appResults');
+    if (q.length < 2){ box.classList.remove('open'); box.innerHTML=''; return; }
+    box.classList.add('open');
+    box.innerHTML = '<div class="app-loading">Suche…</div>';
+    searchTimer = setTimeout(()=>runSearch(q), 250);
+  }
+
+  async function runSearch(q){
+    const box = document.getElementById('appResults');
+    try {
+      const rows = await sbAnon('rpc/suche_apps', {
+        method:'POST', prefer:'', body: JSON.stringify({ suchbegriff: q })
+      }) || [];
+      if (!rows.length){ box.innerHTML = '<div class="app-loading">Keine App gefunden.</div>'; return; }
+      box.innerHTML = rows.map(r => {
+        const stores = (r.apple_store?'<i class="ti ti-brand-apple"></i>':'') + (r.google_store?'<i class="ti ti-brand-android"></i>':'');
+        const safe = (r.name||'').replace(/"/g,'&quot;');
+        return `<div class="app-result-row" onclick='pickApp(${r.id}, "${safe}", ${!!r.apple_store}, ${!!r.google_store})'>
+          <i class="ti ti-apps"></i> ${r.name||''} <span class="stores">${stores}</span></div>`;
+      }).join('');
+    } catch(e){
+      box.innerHTML = '<div class="app-loading" style="color:var(--red)">Suche fehlgeschlagen.</div>';
+      console.error(e);
+    }
+  }
+
+  function pickApp(id, name, hasApple, hasGoogle){
+    pickedApp = { id, name };
+    document.getElementById('appPickedName').textContent = name;
+    document.getElementById('appPickedStores').innerHTML =
+      (hasApple?'<i class="ti ti-brand-apple"></i>':'') + (hasGoogle?'<i class="ti ti-brand-android"></i>':'');
+    document.getElementById('appPicked').style.display='flex';
+    document.getElementById('appSearch').value='';
+    document.getElementById('appResults').classList.remove('open');
+    // Plattform-Feld einblenden und nach den Stores der App vorbelegen
+    plats = new Set();
+    if (hasApple) plats.add('apple');
+    if (hasGoogle) plats.add('google');
+    document.getElementById('plattformField').style.display='block';
+    renderPlats();
+  }
+  function clearApp(){
+    pickedApp=null; plats=new Set();
+    document.getElementById('appPicked').style.display='none';
+    document.getElementById('plattformField').style.display='none';
+    renderPlats();
+  }
+
+  // ═══════════════ Plattform-Auswahl ═══════════════
+  let plats = new Set();
+  function togglePlat(p){
+    if (plats.has(p)) plats.delete(p); else plats.add(p);
+    renderPlats();
+  }
+  function renderPlats(){
+    document.querySelectorAll('.plat-btn').forEach(b=>{
+      b.classList.toggle('sel', plats.has(b.dataset.plat));
+    });
+  }
+
+  // ═══════════════ Aufgaben / Priorität ═══════════════
+  function toggleTask(input){ input.closest('.task-opt').classList.toggle('checked', input.checked); }
+  let prio = 'normal';
+  function setPrio(v){
+    prio = v;
+    document.querySelectorAll('.prio-btn').forEach(b=>{
+      b.classList.remove('sel-normal','sel-hoch');
+      if (b.dataset.p === v) b.classList.add('sel-'+v);
+    });
+  }
+
+  // ═══════════════ Absenden ═══════════════
+  function showError(msg){
+    const el = document.getElementById('formError');
+    el.textContent = msg; el.classList.add('show');
+  }
+  function hideError(){ document.getElementById('formError').classList.remove('show'); }
+
+  async function submitOrder(){
+    hideError();
+    const ticket = document.getElementById('ticketInput').value.trim();
+    const aufgaben = [...document.querySelectorAll('.task-opt input:checked')].map(i=>i.closest('.task-opt').dataset.t);
+    const plattform = [...plats];
+
+    if (!pickedApp){ showError('Bitte zuerst eine App auswählen.'); return; }
+    if (!plattform.length){ showError('Bitte mindestens eine Plattform (Apple / Google) wählen.'); return; }
+    if (!ticket){ showError('Die Zendesk-Ticketnummer ist ein Pflichtfeld.'); return; }
+    if (!aufgaben.length){ showError('Bitte mindestens eine Aufgabe auswählen.'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Wird gesendet…';
+
+    try {
+      await sbAnon('auftraege', {
+        method:'POST', prefer:'return=minimal',
+        body: JSON.stringify({
+          app_id: pickedApp.id,
+          app_name: pickedApp.name,
+          plattform: plattform,
+          aufgaben: aufgaben,
+          zendesk_nr: ticket,
+          info: document.getElementById('infoInput').value.trim(),
+          prioritaet: prio,
+          status: 'offen'
+        })
+      });
+      // Zusammenfassung für Zendesk bauen
+      buildSummary(pickedApp.name, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
+
+      document.getElementById('formView').style.display='none';
+      document.getElementById('successView').classList.add('open');
+    } catch(e){
+      console.error(e);
+      showError('Senden fehlgeschlagen. Bitte später erneut versuchen.');
+      btn.disabled = false; btn.innerHTML = '<i class="ti ti-send"></i> Auftrag senden';
+    }
+  }
+
+  // ═══════════════ Zusammenfassung für Zendesk ═══════════════
+  const PLAT_LABELS = { apple: 'Apple App Store', google: 'Google Play' };
+  function buildSummary(appName, plattform, aufgaben, ticket, prioritaet, info){
+    const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
+    const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
+    const prioText = prioritaet === 'hoch' ? 'Hoch' : 'Normal';
+    let txt = '';
+    txt += 'App: ' + appName + '\n';
+    txt += 'Plattform: ' + platText + '\n';
+    txt += 'Ticket: #' + ticket + '\n';
+    txt += 'Priorität: ' + prioText + '\n';
+    txt += '\nAufgaben:\n' + aufgabenText + '\n';
+    if (info) txt += '\nInfo:\n' + info + '\n';
+    document.getElementById('summaryText').textContent = txt;
+  }
+
+  async function copySummary(){
+    const txt = document.getElementById('summaryText').textContent;
+    const btn = document.getElementById('copyBtn');
+    try {
+      await navigator.clipboard.writeText(txt);
+    } catch(e){
+      // Fallback für ältere Browser
+      const ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch(_){}
+      document.body.removeChild(ta);
+    }
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check"></i> Kopiert!';
+    setTimeout(()=>{ btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy"></i> Zusammenfassung kopieren'; }, 2000);
+  }
+
+  function resetForm(){
+    pickedApp = null; prio = 'normal'; plats = new Set();
+    document.getElementById('formView').style.display='block';
+    document.getElementById('successView').classList.remove('open');
+    document.getElementById('appPicked').style.display='none';
+    document.getElementById('plattformField').style.display='none';
+    renderPlats();
+    document.getElementById('appSearch').value='';
+    document.getElementById('ticketInput').value='';
+    document.getElementById('infoInput').value='';
+    hideError();
+    document.querySelectorAll('.task-opt input').forEach(i=>{i.checked=false;i.closest('.task-opt').classList.remove('checked');});
+    setPrio('normal');
+    const btn=document.getElementById('submitBtn'); btn.disabled=false; btn.innerHTML='<i class="ti ti-send"></i> Auftrag senden';
+    document.getElementById('appSearch').focus();
+  }
+</script>
+
+</body>
+</html>
