@@ -638,6 +638,93 @@
     border-radius: 8px; padding: 1px 4px;
     border: 2px solid #23264a;
   }
+
+  /* ================= Aufträge ================= */
+  .auf-overlay { position: fixed; inset: 0; background: rgba(20,20,35,.55); z-index: 9000;
+    display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .auf-overlay.open { display: flex; }
+  .auf-modal { background: var(--page); border-radius: 16px; width: 100%; max-width: 1100px;
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .auf-head { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 22px;
+    display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 5; }
+  .auf-head h2 { font-size: 17px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .auf-head .auf-close { margin-left: auto; background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .auf-head .auf-close:hover { background: var(--slate-soft); }
+  .auf-filter { border: 1px solid var(--border); border-radius: 9px; padding: 7px 10px; font-size: 13px;
+    background: var(--card); color: var(--text); }
+
+  .auf-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 18px 22px 4px; }
+  .auf-stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 13px 16px; display: flex; flex-direction: column; gap: 3px; }
+  .auf-stat .num { font-size: 24px; font-weight: 800; line-height: 1; }
+  .auf-stat .lbl { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .auf-stat.s-offen .num { color: var(--amber); }
+  .auf-stat.s-arbeit .num { color: var(--teal); }
+  .auf-stat.s-erledigt .num { color: var(--green); }
+  .auf-stat.s-hoch .num { color: var(--red); }
+
+  .auf-board { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; padding: 16px 22px 24px; align-items: start; }
+  .auf-col-head { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; padding: 0 2px; }
+  .auf-col-head .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .auf-col-head h3 { font-size: 13.5px; margin: 0; font-weight: 700; }
+  .auf-col-count { font-size: 11.5px; color: var(--muted); background: var(--card);
+    border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; margin-left: auto; }
+  .auf-col-offen .dot { background: var(--amber); }
+  .auf-col-arbeit .dot { background: var(--teal); }
+  .auf-col-erledigt .dot { background: var(--green); }
+  .auf-cards { display: flex; flex-direction: column; gap: 10px; min-height: 40px; }
+  .auf-empty { font-size: 12.5px; color: var(--muted); text-align: center; padding: 16px 8px;
+    border: 1px dashed var(--border); border-radius: var(--radius); }
+
+  .auf-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 13px 14px; cursor: pointer; transition: box-shadow .15s, transform .15s; border-left: 3px solid transparent; }
+  .auf-card:hover { box-shadow: 0 4px 14px rgba(20,20,50,.08); transform: translateY(-1px); }
+  .auf-card.prio-hoch { border-left-color: var(--red); }
+  .auf-card.neu { border-left-color: var(--indigo); box-shadow: 0 0 0 2px rgba(79,70,229,.14); }
+  .auf-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .auf-app { font-weight: 700; font-size: 13.5px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .auf-stores { display: flex; gap: 4px; color: var(--muted); font-size: 13px; }
+  .auf-neu-tag { font-size: 9.5px; font-weight: 700; background: var(--indigo); color: #fff;
+    padding: 2px 6px; border-radius: 20px; text-transform: uppercase; letter-spacing: .04em; }
+  .auf-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+  .auf-chip { font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--indigo-soft); color: var(--indigo); }
+  .auf-info-prev { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 9px; line-height: 1.4; }
+  .auf-card-bot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .auf-meta-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .auf-ticket { font-size: 10.5px; font-weight: 700; padding: 3px 7px; border-radius: 6px; background: var(--slate-soft);
+    color: var(--indigo); text-decoration: none; display: flex; align-items: center; gap: 4px; font-family: var(--mono);
+    border: 1px solid var(--border); white-space: nowrap; }
+  .auf-ticket:hover { background: var(--indigo-soft); }
+  .auf-time { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+  .auf-prio { font-size: 10.5px; font-weight: 700; color: var(--red); display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+
+  /* Detail-Panel im Aufträge-Modal */
+  .auf-detail-overlay { position: absolute; inset: 0; background: rgba(20,20,35,.35); display: none;
+    align-items: center; justify-content: center; padding: 24px; z-index: 20; }
+  .auf-detail-overlay.open { display: flex; }
+  .auf-detail { background: var(--card); border-radius: 14px; width: 100%; max-width: 480px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .auf-detail-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .auf-detail-head .t { font-size: 15.5px; font-weight: 700; flex: 1; }
+  .auf-detail-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; max-height: 60vh; overflow-y: auto; }
+  .auf-d-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 7px; }
+  .auf-d-info { font-size: 13.5px; line-height: 1.5; background: var(--page); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; }
+  .auf-d-meta { display: flex; gap: 22px; flex-wrap: wrap; }
+  .auf-d-meta .mi { font-size: 13px; }
+  .auf-d-meta .mi b { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+  .auf-status-row { display: flex; gap: 8px; }
+  .auf-status-btn { flex: 1; border: 1px solid var(--border); border-radius: 10px; padding: 9px; text-align: center;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .auf-status-btn.sel-offen { border-color: var(--amber); background: var(--amber-soft); color: var(--amber); }
+  .auf-status-btn.sel-arbeit { border-color: var(--teal); background: var(--teal-soft); color: #0d9488; }
+  .auf-status-btn.sel-erledigt { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+  .auf-detail-foot { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; }
+  .auf-btn-del { background: none; border: 1px solid var(--border); border-radius: 9px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--red); }
+  .auf-btn-del:hover { background: var(--red-soft); }
+  .auf-btn-zd { background: var(--indigo); color: #fff; border: none; border-radius: 9px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .auf-btn-zd:hover { background: #4338ca; }
+  @media (max-width: 780px) { .auf-board { grid-template-columns: 1fr; } .auf-stats { grid-template-columns: repeat(2,1fr); } }
   .cl-list { margin-top: 6px; max-height: 70vh; overflow-y: auto; padding-right: 4px; }
   .cl-daysep {
     display: flex; align-items: center; gap: 8px;
@@ -716,9 +803,10 @@
   <button title="Zugangsdaten (PW)" class="vnav-btn admin-only" onclick="openStorePW()"><i class="ti ti-key"></i><span class="tip">Zugangsdaten (PW)</span></button>
   <button title="Zielversion setzen" class="vnav-btn admin-only" onclick="setZielVersion()"><i class="ti ti-tag"></i><span class="tip">Zielversion: <b id="ziel-version-badge">—</b></span></button>
   <button title="Screenshot Studio" class="vnav-btn" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
+  <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
   <div class="vnav-sep admin-only"></div>
   <button title="Backup erstellen" class="vnav-btn admin-only" onclick="backupData()"><i class="ti ti-database-export"></i><span class="tip">Backup erstellen</span></button>
-  <button title="Backup einspielen" class="vnav-btn accent-green admin-only" onclick="document.getElementById('backup-file').click()"><i class="ti ti-database-import"></i><span class="tip">Backup einspielen</span></button>
+  <button title="Backup einspielen" class="vnav-btn admin-only" onclick="document.getElementById('backup-file').click()"><i class="ti ti-database-import"></i><span class="tip">Backup einspielen</span></button>
   <button title="Import CSV" class="vnav-btn admin-only" onclick="document.getElementById('csv-file').click()"><i class="ti ti-upload"></i><span class="tip">Import CSV</span></button>
   <button title="Export CSV" class="vnav-btn admin-only" onclick="exportCSV()"><i class="ti ti-download"></i><span class="tip">Export CSV</span></button>
   <div class="vnav-spacer"></div>
@@ -728,6 +816,63 @@
 
 <input type="file" id="backup-file" accept=".json" style="display:none" onchange="restoreFromBackup(this)">
 <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="importCSV(this)">
+
+<!-- ===== Aufträge-Modal ===== -->
+<div class="auf-overlay" id="auf-overlay">
+  <div class="auf-modal">
+    <div class="auf-head">
+      <h2><i class="ti ti-clipboard-list" style="color:var(--indigo)"></i> Aufträge</h2>
+      <select class="auf-filter" id="auf-filter-prio" onchange="renderAuftraege()">
+        <option value="">Alle Prioritäten</option>
+        <option value="hoch">Nur hoch</option>
+      </select>
+      <button class="auf-close" onclick="closeAuftraege()"><i class="ti ti-x"></i> Schließen</button>
+    </div>
+
+    <div class="auf-stats" id="auf-stats"></div>
+    <div class="auf-board" id="auf-board">
+      <div class="auf-empty" style="grid-column:1/-1">Lädt…</div>
+    </div>
+
+    <!-- Detail-Panel -->
+    <div class="auf-detail-overlay" id="auf-detail-overlay" onclick="if(event.target===this)closeAuftragDetail()">
+      <div class="auf-detail">
+        <div class="auf-detail-head">
+          <span class="auf-stores" id="auf-d-stores" style="font-size:16px"></span>
+          <span class="t" id="auf-d-app"></span>
+          <i class="ti ti-x" style="cursor:pointer;color:var(--muted)" onclick="closeAuftragDetail()"></i>
+        </div>
+        <div class="auf-detail-body">
+          <div>
+            <div class="auf-d-label">Aufgaben</div>
+            <div class="auf-chips" id="auf-d-chips"></div>
+          </div>
+          <div id="auf-d-info-wrap">
+            <div class="auf-d-label">Info</div>
+            <div class="auf-d-info" id="auf-d-info"></div>
+          </div>
+          <div class="auf-d-meta">
+            <div class="mi"><b>Ticket</b><span id="auf-d-ticket"></span></div>
+            <div class="mi"><b>Priorität</b><span id="auf-d-prio"></span></div>
+            <div class="mi"><b>Eingegangen</b><span id="auf-d-date"></span></div>
+          </div>
+          <div>
+            <div class="auf-d-label">Status</div>
+            <div class="auf-status-row">
+              <div class="auf-status-btn" data-s="offen" onclick="setAuftragStatus('offen')">Offen</div>
+              <div class="auf-status-btn" data-s="in_arbeit" onclick="setAuftragStatus('in_arbeit')">In Arbeit</div>
+              <div class="auf-status-btn" data-s="erledigt" onclick="setAuftragStatus('erledigt')">Erledigt</div>
+            </div>
+          </div>
+        </div>
+        <div class="auf-detail-foot">
+          <button class="auf-btn-del" onclick="deleteAuftrag()"><i class="ti ti-trash" style="margin-right:4px"></i>Löschen</button>
+          <button class="auf-btn-zd" id="auf-d-zd"><i class="ti ti-external-link"></i> Ticket in Zendesk</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ===== Main ===== -->
 <div class="main" id="app-layout" style="display:none">
@@ -1738,7 +1883,13 @@ function showApp(email) {
 function initApp() {
   document.getElementById('hdate').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeMod();
+    if (e.key === 'Escape') {
+      const aufDetail = document.getElementById('auf-detail-overlay');
+      const aufOverlay = document.getElementById('auf-overlay');
+      if (aufDetail && aufDetail.classList.contains('open')) { closeAuftragDetail(); return; }
+      if (aufOverlay && aufOverlay.classList.contains('open')) { closeAuftraege(); return; }
+      closeMod();
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('search').focus(); }
   });
   loadApps();
@@ -1747,6 +1898,7 @@ function initApp() {
   loadNotizBadge();
   loadZielVersion();
   loadNewApps();
+  loadAuftragBadge();
 }
 
 // Auto-start if already logged in
@@ -2360,6 +2512,201 @@ function renderChangelogSection(log, appId) {
 }
 
 function updateChangelogUI(log, changedField, checked) {}
+
+// ════════════════════════════════════════
+// AUFTRÄGE
+// ════════════════════════════════════════
+const AUF_TASK_LABELS = {
+  update: 'Neue Version', bugfix: 'Bugfix', store: 'Store-Anpassung',
+  grafiken: 'Screenshots / Grafiken', texte: 'Texte / Beschreibung', umzug: 'Umzug'
+};
+let _aufData = [];
+let _aufCurrent = null;
+
+function aufStoreIcons(plattform) {
+  const p = Array.isArray(plattform) ? plattform : [];
+  return (p.includes('apple') ? '<i class="ti ti-brand-apple"></i>' : '')
+       + (p.includes('google') ? '<i class="ti ti-brand-android"></i>' : '');
+}
+function aufRelTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  const min = Math.round((now - d) / 60000);
+  if (min < 1) return 'gerade eben';
+  if (min < 60) return 'vor ' + min + ' Min.';
+  const h = Math.round(min / 60);
+  if (h < 24) return 'vor ' + h + ' Std.';
+  const days = Math.round(h / 24);
+  if (days === 1) return 'gestern';
+  if (days < 7) return 'vor ' + days + ' Tagen';
+  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+}
+function aufIsNeu(a) {
+  if (a.status !== 'offen' || !a.erstellt_am) return false;
+  return (new Date() - new Date(a.erstellt_am)) < 24 * 3600 * 1000;
+}
+
+async function loadAuftragBadge() {
+  try {
+    const rows = await sbFetch('auftraege?status=eq.offen&select=id');
+    const n = (rows || []).length;
+    const badge = document.getElementById('auftrag-badge');
+    if (!badge) return;
+    if (n > 0) { badge.textContent = n; badge.style.display = ''; }
+    else badge.style.display = 'none';
+  } catch (e) { /* still: Badge bleibt aus */ }
+}
+
+async function openAuftraege() {
+  document.getElementById('auf-overlay').classList.add('open');
+  document.getElementById('auf-board').innerHTML = '<div class="auf-empty" style="grid-column:1/-1">Lädt…</div>';
+  await loadAuftraege();
+}
+function closeAuftraege() {
+  document.getElementById('auf-overlay').classList.remove('open');
+  closeAuftragDetail();
+}
+
+async function loadAuftraege() {
+  try {
+    _aufData = await sbFetch('auftraege?select=*&order=erstellt_am.desc') || [];
+    renderAuftraege();
+    loadAuftragBadge();
+  } catch (e) {
+    document.getElementById('auf-board').innerHTML =
+      '<div class="auf-empty" style="grid-column:1/-1;color:var(--red)">Konnte Aufträge nicht laden.</div>';
+    console.error(e);
+  }
+}
+
+function renderAuftraege() {
+  const prioFilter = document.getElementById('auf-filter-prio').value;
+  let data = _aufData;
+  if (prioFilter) data = data.filter(a => a.prioritaet === prioFilter);
+
+  const cols = { offen: [], in_arbeit: [], erledigt: [] };
+  data.forEach(a => { (cols[a.status] || cols.offen).push(a); });
+
+  // Stats (immer aus Gesamtdaten, nicht gefiltert)
+  const all = _aufData;
+  const cOffen = all.filter(a => a.status === 'offen').length;
+  const cArbeit = all.filter(a => a.status === 'in_arbeit').length;
+  const cErledigt = all.filter(a => a.status === 'erledigt').length;
+  const cHoch = all.filter(a => a.prioritaet === 'hoch' && a.status !== 'erledigt').length;
+  document.getElementById('auf-stats').innerHTML = `
+    <div class="auf-stat s-offen"><span class="num">${cOffen}</span><span class="lbl">Offen</span></div>
+    <div class="auf-stat s-arbeit"><span class="num">${cArbeit}</span><span class="lbl">In Arbeit</span></div>
+    <div class="auf-stat s-erledigt"><span class="num">${cErledigt}</span><span class="lbl">Erledigt</span></div>
+    <div class="auf-stat s-hoch"><span class="num">${cHoch}</span><span class="lbl">Hohe Priorität</span></div>`;
+
+  const colDef = [
+    { key: 'offen', label: 'Offen', cls: 'auf-col-offen' },
+    { key: 'in_arbeit', label: 'In Arbeit', cls: 'auf-col-arbeit' },
+    { key: 'erledigt', label: 'Erledigt', cls: 'auf-col-erledigt' }
+  ];
+  document.getElementById('auf-board').innerHTML = colDef.map(c => {
+    const list = cols[c.key];
+    const cards = list.length
+      ? list.map(aufCardHTML).join('')
+      : '<div class="auf-empty">Keine Aufträge</div>';
+    return `<div class="auf-column">
+      <div class="auf-col-head ${c.cls}"><span class="dot"></span><h3>${c.label}</h3><span class="auf-col-count">${list.length}</span></div>
+      <div class="auf-cards">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function aufCardHTML(a) {
+  const chips = (a.aufgaben || []).map(k => `<span class="auf-chip">${AUF_TASK_LABELS[k] || k}</span>`).join('');
+  const neu = aufIsNeu(a);
+  const prioHoch = a.prioritaet === 'hoch';
+  const ticketNum = String(a.zendesk_nr || '').replace(/[^0-9]/g, '') || a.zendesk_nr || '';
+  const info = (a.info || '').replace(/</g, '&lt;');
+  const erled = a.status === 'erledigt';
+  return `<div class="auf-card ${prioHoch ? 'prio-hoch' : ''} ${neu ? 'neu' : ''}" style="${erled ? 'opacity:.62' : ''}" onclick="openAuftragDetail('${a.id}')">
+    <div class="auf-card-top">
+      <span class="auf-app">${(a.app_name || '').replace(/</g, '&lt;')}</span>
+      ${neu ? '<span class="auf-neu-tag">Neu</span>' : ''}
+      <span class="auf-stores">${aufStoreIcons(a.plattform)}</span>
+    </div>
+    ${chips ? `<div class="auf-chips">${chips}</div>` : ''}
+    ${info ? `<div class="auf-info-prev">${info}</div>` : ''}
+    <div class="auf-card-bot">
+      <div class="auf-meta-left">
+        ${a.zendesk_nr ? `<a class="auf-ticket" onclick="event.stopPropagation();openZendesk('${String(a.zendesk_nr).replace(/'/g, "\\'")}')"><i class="ti ti-ticket"></i> #${ticketNum}</a>` : ''}
+        <span class="auf-time">${aufRelTime(a.erstellt_am)}</span>
+      </div>
+      ${prioHoch ? '<span class="auf-prio"><i class="ti ti-flame"></i> Hoch</span>' : ''}
+    </div>
+  </div>`;
+}
+
+function openAuftragDetail(id) {
+  const a = _aufData.find(x => String(x.id) === String(id));
+  if (!a) return;
+  _aufCurrent = a;
+  document.getElementById('auf-d-app').textContent = a.app_name || '';
+  document.getElementById('auf-d-stores').innerHTML = aufStoreIcons(a.plattform);
+  document.getElementById('auf-d-chips').innerHTML =
+    (a.aufgaben || []).map(k => `<span class="auf-chip">${AUF_TASK_LABELS[k] || k}</span>`).join('') || '<span style="color:var(--muted);font-size:12px">—</span>';
+  const infoWrap = document.getElementById('auf-d-info-wrap');
+  if (a.info) { infoWrap.style.display = ''; document.getElementById('auf-d-info').textContent = a.info; }
+  else infoWrap.style.display = 'none';
+  const ticketNum = String(a.zendesk_nr || '').replace(/[^0-9]/g, '') || (a.zendesk_nr || '—');
+  document.getElementById('auf-d-ticket').textContent = a.zendesk_nr ? ('#' + ticketNum) : '—';
+  document.getElementById('auf-d-prio').innerHTML = a.prioritaet === 'hoch'
+    ? '<span style="color:var(--red);font-weight:700">Hoch</span>' : 'Normal';
+  document.getElementById('auf-d-date').textContent = a.erstellt_am
+    ? new Date(a.erstellt_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  // Status-Buttons
+  document.querySelectorAll('.auf-status-btn').forEach(b => {
+    b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
+    if (b.dataset.s === a.status) {
+      b.classList.add(a.status === 'offen' ? 'sel-offen' : a.status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+    }
+  });
+  // Zendesk-Button
+  const zd = document.getElementById('auf-d-zd');
+  zd.onclick = () => openZendesk(a.zendesk_nr || '');
+  zd.style.display = a.zendesk_nr ? '' : 'none';
+
+  document.getElementById('auf-detail-overlay').classList.add('open');
+}
+function closeAuftragDetail() {
+  document.getElementById('auf-detail-overlay').classList.remove('open');
+  _aufCurrent = null;
+}
+
+async function setAuftragStatus(status) {
+  if (!_aufCurrent) return;
+  const patch = { status };
+  patch.erledigt_am = (status === 'erledigt') ? new Date().toISOString() : null;
+  try {
+    await sbFetch('auftraege?id=eq.' + _aufCurrent.id, { method: 'PATCH', body: JSON.stringify(patch), prefer: '' });
+    _aufCurrent.status = status; _aufCurrent.erledigt_am = patch.erledigt_am;
+    // Status-Buttons sofort spiegeln
+    document.querySelectorAll('.auf-status-btn').forEach(b => {
+      b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
+      if (b.dataset.s === status) b.classList.add(status === 'offen' ? 'sel-offen' : status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+    });
+    renderAuftraege();
+    if (typeof toast === 'function') toast('Status aktualisiert');
+  } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
+}
+
+async function deleteAuftrag() {
+  if (!_aufCurrent) return;
+  if (!confirm('Diesen Auftrag wirklich löschen?')) return;
+  try {
+    await sbFetch('auftraege?id=eq.' + _aufCurrent.id, { method: 'DELETE', prefer: '' });
+    _aufData = _aufData.filter(a => a.id !== _aufCurrent.id);
+    closeAuftragDetail();
+    renderAuftraege();
+    loadAuftragBadge();
+    if (typeof toast === 'function') toast('Auftrag gelöscht');
+  } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Löschen'); }
+}
+
 
 async function saveUpdateNotizen(appId, existingId) {
   const data = {
