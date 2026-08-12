@@ -324,6 +324,7 @@
     searchTimer = setTimeout(()=>runSearch(q), 250);
   }
 
+  let _searchResults = {};
   async function runSearch(q){
     const box = document.getElementById('appResults');
     try {
@@ -331,11 +332,12 @@
         method:'POST', prefer:'', body: JSON.stringify({ suchbegriff: q })
       }) || [];
       if (!rows.length){ box.innerHTML = '<div class="app-loading">Keine App gefunden.</div>'; return; }
+      _searchResults = {};
       box.innerHTML = rows.map(r => {
+        _searchResults[r.id] = r;
         const stores = (r.apple_store?'<i class="ti ti-brand-apple"></i>':'') + (r.google_store?'<i class="ti ti-brand-android"></i>':'');
-        const safe = (r.name||'').replace(/"/g,'&quot;');
-        return `<div class="app-result-row" onclick='pickApp(${r.id}, "${safe}", ${!!r.apple_store}, ${!!r.google_store})'>
-          <i class="ti ti-apps"></i> ${r.name||''} <span class="stores">${stores}</span></div>`;
+        return `<div class="app-result-row" onclick='pickApp(${r.id})'>
+          <i class="ti ti-apps"></i> ${(r.name||'').replace(/</g,'&lt;')} <span class="stores">${stores}</span></div>`;
       }).join('');
     } catch(e){
       box.innerHTML = '<div class="app-loading" style="color:var(--red)">Suche fehlgeschlagen.</div>';
@@ -343,9 +345,12 @@
     }
   }
 
-  function pickApp(id, name, hasApple, hasGoogle){
-    pickedApp = { id, name };
-    document.getElementById('appPickedName').textContent = name;
+  function pickApp(id){
+    const r = _searchResults[id];
+    if (!r) return;
+    const hasApple = !!r.apple_store, hasGoogle = !!r.google_store;
+    pickedApp = { id: r.id, name: r.name || '', pegasus: r.pegasus || '' };
+    document.getElementById('appPickedName').textContent = r.name || '';
     document.getElementById('appPickedStores').innerHTML =
       (hasApple?'<i class="ti ti-brand-apple"></i>':'') + (hasGoogle?'<i class="ti ti-brand-android"></i>':'');
     document.getElementById('appPicked').style.display='flex';
@@ -424,7 +429,7 @@
         })
       });
       // Zusammenfassung für Zendesk bauen
-      buildSummary(pickedApp.name, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
+      buildSummary(pickedApp.name, pickedApp.pegasus, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
 
       document.getElementById('formView').style.display='none';
       document.getElementById('successView').classList.add('open');
@@ -437,12 +442,13 @@
 
   // ═══════════════ Zusammenfassung für Zendesk ═══════════════
   const PLAT_LABELS = { apple: 'Apple', google: 'Google' };
-  function buildSummary(appName, plattform, aufgaben, ticket, prioritaet, info){
+  function buildSummary(appName, pegasus, plattform, aufgaben, ticket, prioritaet, info){
     const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
     const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
     const prioText = prioritaet === 'hoch' ? 'Hoch' : 'Normal';
     let txt = '';
     txt += 'App: ' + appName + '\n';
+    if (pegasus) txt += 'Pegasus: ' + pegasus + '\n';
     txt += 'Plattform: ' + platText + '\n';
     txt += 'Ticket: #' + ticket + '\n';
     txt += 'Priorität: ' + prioText + '\n';
