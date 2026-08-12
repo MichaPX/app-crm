@@ -710,6 +710,21 @@
   .auf-detail-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; max-height: 60vh; overflow-y: auto; }
   .auf-d-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 7px; }
   .auf-d-info { font-size: 13.5px; line-height: 1.5; background: var(--page); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; }
+  .auf-applist { display: flex; flex-direction: column; gap: 7px; }
+  .auf-appitem { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 12px; font-size: 13.5px; }
+  .auf-appitem.done { background: var(--green-soft); border-color: #bde7cc; }
+  .auf-appitem .chk { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+    color: transparent; font-size: 13px; }
+  .auf-appitem.done .chk { background: var(--green); border-color: var(--green); color: #fff; }
+  .auf-appitem .nm { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .auf-appitem.done .nm { text-decoration: line-through; color: var(--muted); font-weight: 500; }
+  .auf-appitem .peg { color: var(--indigo); font-size: 15px; text-decoration: none; flex-shrink: 0; }
+  .auf-appitem .peg:hover { color: var(--indigo-dark); }
+  .auf-progress { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .auf-multi-badge { font-size: 9.5px; font-weight: 700; background: var(--slate-soft); color: var(--text2);
+    padding: 2px 7px; border-radius: 20px; display: inline-flex; align-items: center; gap: 3px; }
   .auf-d-meta { display: flex; gap: 22px; flex-wrap: wrap; }
   .auf-d-meta .mi { font-size: 13px; }
   .auf-d-meta .mi b { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
@@ -843,6 +858,10 @@
           <i class="ti ti-x" style="cursor:pointer;color:var(--muted)" onclick="closeAuftragDetail()"></i>
         </div>
         <div class="auf-detail-body">
+          <div id="auf-d-applist-wrap" style="display:none">
+            <div class="auf-d-label" style="display:flex;align-items:center;gap:8px">Apps <span class="auf-progress" id="auf-d-progress"></span></div>
+            <div class="auf-applist" id="auf-d-applist"></div>
+          </div>
           <div>
             <div class="auf-d-label">Aufgaben</div>
             <div class="auf-chips" id="auf-d-chips"></div>
@@ -2623,9 +2642,17 @@ function aufCardHTML(a) {
   const ticketNum = String(a.zendesk_nr || '').replace(/[^0-9]/g, '') || a.zendesk_nr || '';
   const info = (a.info || '').replace(/</g, '&lt;');
   const erled = a.status === 'erledigt';
+  // Sammelauftrag erkennen
+  const apps = Array.isArray(a.apps) ? a.apps : [];
+  const isMulti = apps.length > 1;
+  const doneCount = apps.filter(x => x.done).length;
+  const titel = isMulti
+    ? `Sammelauftrag <span class="auf-multi-badge"><i class="ti ti-apps"></i> ${apps.length}</span>`
+    : (a.app_name || '').replace(/</g, '&lt;');
+  const progress = isMulti ? `<span class="auf-time">${doneCount}/${apps.length} erledigt</span>` : '';
   return `<div class="auf-card ${prioHoch ? 'prio-hoch' : ''} ${neu ? 'neu' : ''}" style="${erled ? 'opacity:.62' : ''}" onclick="openAuftragDetail('${a.id}')">
     <div class="auf-card-top">
-      <span class="auf-app">${(a.app_name || '').replace(/</g, '&lt;')}</span>
+      <span class="auf-app">${titel}</span>
       ${neu ? '<span class="auf-neu-tag">Neu</span>' : ''}
       <span class="auf-stores">${aufStoreIcons(a.plattform)}</span>
     </div>
@@ -2634,7 +2661,7 @@ function aufCardHTML(a) {
     <div class="auf-card-bot">
       <div class="auf-meta-left">
         ${a.zendesk_nr ? `<a class="auf-ticket" onclick="event.stopPropagation();openZendesk('${String(a.zendesk_nr).replace(/'/g, "\\'")}')"><i class="ti ti-ticket"></i> #${ticketNum}</a>` : ''}
-        <span class="auf-time">${aufRelTime(a.erstellt_am)}</span>
+        ${progress || `<span class="auf-time">${aufRelTime(a.erstellt_am)}</span>`}
       </div>
       ${prioHoch ? '<span class="auf-prio"><i class="ti ti-flame"></i> Hoch</span>' : ''}
     </div>
@@ -2645,8 +2672,14 @@ function openAuftragDetail(id) {
   const a = _aufData.find(x => String(x.id) === String(id));
   if (!a) return;
   _aufCurrent = a;
-  document.getElementById('auf-d-app').textContent = a.app_name || '';
+  const apps = Array.isArray(a.apps) ? a.apps : [];
+  const isMulti = apps.length > 1;
+  document.getElementById('auf-d-app').innerHTML = isMulti
+    ? `Sammelauftrag <span class="auf-multi-badge"><i class="ti ti-apps"></i> ${apps.length}</span>`
+    : (a.app_name || '');
   document.getElementById('auf-d-stores').innerHTML = aufStoreIcons(a.plattform);
+  // App-Liste (nur bei Sammelauftrag)
+  renderAuftragAppList(a);
   document.getElementById('auf-d-chips').innerHTML =
     (a.aufgaben || []).map(k => `<span class="auf-chip">${AUF_TASK_LABELS[k] || k}</span>`).join('') || '<span style="color:var(--muted);font-size:12px">—</span>';
   const infoWrap = document.getElementById('auf-d-info-wrap');
@@ -2672,6 +2705,52 @@ function openAuftragDetail(id) {
 
   document.getElementById('auf-detail-overlay').classList.add('open');
 }
+
+function renderAuftragAppList(a) {
+  const apps = Array.isArray(a.apps) ? a.apps : [];
+  const wrap = document.getElementById('auf-d-applist-wrap');
+  if (apps.length < 2) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const doneCount = apps.filter(x => x.done).length;
+  document.getElementById('auf-d-progress').textContent = doneCount + '/' + apps.length + ' erledigt';
+  document.getElementById('auf-d-applist').innerHTML = apps.map((app, i) => {
+    const peg = app.pegasus
+      ? `<a class="peg" href="${app.pegasus}" target="_blank" onclick="event.stopPropagation()" title="Pegasus öffnen"><i class="ti ti-external-link"></i></a>`
+      : '';
+    return `<div class="auf-appitem ${app.done ? 'done' : ''}">
+      <span class="chk" onclick="toggleAuftragApp(${i})"><i class="ti ti-check"></i></span>
+      <span class="nm">${(app.name || '').replace(/</g, '&lt;')}</span>
+      ${peg}
+    </div>`;
+  }).join('');
+}
+
+// Einzelne App im Sammelauftrag ab-/anhaken; Gesamtstatus automatisch ableiten
+async function toggleAuftragApp(index) {
+  if (!_aufCurrent) return;
+  const apps = Array.isArray(_aufCurrent.apps) ? _aufCurrent.apps.slice() : [];
+  if (!apps[index]) return;
+  apps[index] = { ...apps[index], done: !apps[index].done };
+  const doneCount = apps.filter(x => x.done).length;
+  // Gesamtstatus ableiten
+  let status;
+  if (doneCount === 0) status = 'offen';
+  else if (doneCount === apps.length) status = 'erledigt';
+  else status = 'in_arbeit';
+  const patch = { apps, status, erledigt_am: (status === 'erledigt') ? new Date().toISOString() : null };
+  try {
+    await sbFetch('auftraege?id=eq.' + _aufCurrent.id, { method: 'PATCH', body: JSON.stringify(patch), prefer: '' });
+    _aufCurrent.apps = apps; _aufCurrent.status = status; _aufCurrent.erledigt_am = patch.erledigt_am;
+    renderAuftragAppList(_aufCurrent);
+    // Status-Buttons spiegeln
+    document.querySelectorAll('.auf-status-btn').forEach(b => {
+      b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
+      if (b.dataset.s === status) b.classList.add(status === 'offen' ? 'sel-offen' : status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+    });
+    renderAuftraege();
+    loadAuftragBadge();
+  } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
+}
 function closeAuftragDetail() {
   document.getElementById('auf-detail-overlay').classList.remove('open');
   _aufCurrent = null;
@@ -2681,15 +2760,24 @@ async function setAuftragStatus(status) {
   if (!_aufCurrent) return;
   const patch = { status };
   patch.erledigt_am = (status === 'erledigt') ? new Date().toISOString() : null;
+  // Bei Sammelauftrag: Manuelles Umstellen zieht die App-Häkchen mit
+  const apps = Array.isArray(_aufCurrent.apps) ? _aufCurrent.apps : [];
+  if (apps.length > 1) {
+    if (status === 'erledigt') patch.apps = apps.map(x => ({ ...x, done: true }));
+    else if (status === 'offen') patch.apps = apps.map(x => ({ ...x, done: false }));
+    // 'in_arbeit' lässt die einzelnen Häkchen unangetastet
+  }
   try {
     await sbFetch('auftraege?id=eq.' + _aufCurrent.id, { method: 'PATCH', body: JSON.stringify(patch), prefer: '' });
     _aufCurrent.status = status; _aufCurrent.erledigt_am = patch.erledigt_am;
+    if (patch.apps) { _aufCurrent.apps = patch.apps; renderAuftragAppList(_aufCurrent); }
     // Status-Buttons sofort spiegeln
     document.querySelectorAll('.auf-status-btn').forEach(b => {
       b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
       if (b.dataset.s === status) b.classList.add(status === 'offen' ? 'sel-offen' : status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
     });
     renderAuftraege();
+    loadAuftragBadge();
     if (typeof toast === 'function') toast('Status aktualisiert');
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
