@@ -111,6 +111,7 @@
   .vnav-btn.primary { background: #6d5ff0; color: #fff; }
   .vnav-btn.primary:hover { background: #7d70f5; }
   .vnav-btn.accent-green { color: #6ee7b7; }
+  .vnav-btn.accent-yellow { color: #fbbf24; }
   .vnav-btn.accent-red:hover { color: #fda4af; }
   .vnav-btn .tip {
     position: absolute; left: 48px; top: 50%; transform: translateY(-50%);
@@ -814,10 +815,10 @@
   <button title="App hinzufügen" class="vnav-btn primary" onclick="openAdd()"><i class="ti ti-plus"></i><span class="tip">App hinzufügen</span></button>
   <div class="vnav-sep"></div>
   <button title="Changelog" class="vnav-btn" onclick="openChangelog()"><i class="ti ti-history"></i><span class="tip">Changelog</span></button>
-  <button title="Store Notizen" class="vnav-btn admin-only" onclick="openStoreNotizen()"><i class="ti ti-notes"></i><span class="tip">Store Notizen</span><span class="nbadge" id="notiz-badge" style="display:none"></span></button>
+  <button title="Store Notizen" class="vnav-btn admin-only" onclick="openStoreNotizen()"><i class="ti ti-notes"></i><span class="tip">Store Notizen</span></button>
   <button title="Zugangsdaten (PW)" class="vnav-btn admin-only" onclick="openStorePW()"><i class="ti ti-key"></i><span class="tip">Zugangsdaten (PW)</span></button>
   <button title="Zielversion setzen" class="vnav-btn admin-only" onclick="setZielVersion()"><i class="ti ti-tag"></i><span class="tip">Zielversion: <b id="ziel-version-badge">—</b></span></button>
-  <button title="Screenshot Studio" class="vnav-btn" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
+  <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
   <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
   <div class="vnav-sep admin-only"></div>
   <button title="Backup erstellen" class="vnav-btn admin-only" onclick="backupData()"><i class="ti ti-database-export"></i><span class="tip">Backup erstellen</span></button>
@@ -3969,12 +3970,7 @@ function renderRecentUpdates() {
 }
 
 async function loadNotizBadge() {
-  try {
-    const rows=await sbFetch('global_settings?select=key')||[];
-    const n=rows.filter(r=>r.key&&r.key.startsWith('notiz_')).length;
-    const b=document.getElementById('notiz-badge');
-    if(b&&n>0){ b.textContent=n; b.style.display=''; }
-  } catch(e) {}
+  // Store-Notizen-Zähler wurde entfernt – bewusst kein Badge mehr.
 }
 
 function closeMod(){document.getElementById('mc').innerHTML='';}
