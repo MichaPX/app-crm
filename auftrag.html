@@ -20,6 +20,13 @@
     display:flex; align-items:flex-start; justify-content:center; padding:44px 16px;
   }
   .page{width:100%; max-width:480px;}
+  .page.wide{max-width:860px;}
+
+  /* Zwei-Spalten-Layout (Querformat) */
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 28px; align-items:start;}
+  .form-col{display:flex; flex-direction:column;}
+  .form-col .field:last-child{margin-bottom:0;}
+  @media (max-width:720px){ .form-grid{grid-template-columns:1fr; gap:0;} }
 
   .brand{display:flex; align-items:center; gap:10px; margin-bottom:20px;}
   .logo-tile{width:36px;height:30px;border-radius:8px;background:#0a0a0a;
@@ -179,51 +186,57 @@
 
       <p class="form-error" id="formError"></p>
 
-      <div class="field">
-        <label>Apps auswählen <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(mehrere möglich)</span></label>
-        <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen und hinzufügen…" autocomplete="off" oninput="onSearchInput()">
-        <div class="app-results" id="appResults"></div>
-        <div class="app-picked-list" id="appPickedList"></div>
-      </div>
+      <div class="form-grid">
+        <div class="form-col">
+          <div class="field">
+            <label>Apps auswählen <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(mehrere möglich)</span></label>
+            <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen und hinzufügen…" autocomplete="off" oninput="onSearchInput()">
+            <div class="app-results" id="appResults"></div>
+            <div class="app-picked-list" id="appPickedList"></div>
+          </div>
 
-      <div class="field" id="plattformField" style="display:none">
-        <label>Plattform</label>
-        <div class="plat-toggle">
-          <div class="plat-btn" data-plat="apple" onclick="togglePlat('apple')"><i class="ti ti-brand-apple"></i> Apple</div>
-          <div class="plat-btn" data-plat="google" onclick="togglePlat('google')"><i class="ti ti-brand-android"></i> Google</div>
+          <div class="field" id="plattformField" style="display:none">
+            <label>Plattform</label>
+            <div class="plat-toggle">
+              <div class="plat-btn" data-plat="apple" onclick="togglePlat('apple')"><i class="ti ti-brand-apple"></i> Apple</div>
+              <div class="plat-btn" data-plat="google" onclick="togglePlat('google')"><i class="ti ti-brand-android"></i> Google</div>
+            </div>
+            <div class="field-hint">Mehrfachauswahl möglich – wird nach der App vorbelegt.</div>
+          </div>
+
+          <div class="field">
+            <label>Zendesk-Ticketnummer <span style="color:var(--red)">*</span></label>
+            <input type="text" id="ticketInput" placeholder="z.B. 48213 oder kompletter Link">
+            <div class="field-hint">Pflichtfeld – Nummer oder Link.</div>
+          </div>
+
+          <div class="field">
+            <label>Priorität</label>
+            <div class="prio-toggle">
+              <div class="prio-btn sel-normal" data-p="normal" onclick="setPrio('normal')">Normal</div>
+              <div class="prio-btn" data-p="hoch" onclick="setPrio('hoch')">Hoch</div>
+            </div>
+          </div>
         </div>
-        <div class="field-hint">Mehrfachauswahl möglich – wird nach der App vorbelegt.</div>
-      </div>
 
-      <div class="field">
-        <label>Aufgaben</label>
-        <div class="task-grid">
-          <label class="task-opt" data-t="update"><input type="checkbox" onchange="toggleTask(this)"> Neue Version / reguläres Update</label>
-          <label class="task-opt" data-t="bugfix"><input type="checkbox" onchange="toggleTask(this)"> Bugfix</label>
-          <label class="task-opt" data-t="store"><input type="checkbox" onchange="toggleTask(this)"> Store-Anpassung</label>
-          <label class="task-opt" data-t="grafiken"><input type="checkbox" onchange="toggleTask(this)"> Screenshots / Store-Grafiken</label>
-          <label class="task-opt" data-t="texte"><input type="checkbox" onchange="toggleTask(this)"> Texte / Store-Beschreibung</label>
-          <label class="task-opt" data-t="design"><input type="checkbox" onchange="toggleTask(this)"> App-Design</label>
-          <label class="task-opt" data-t="funktion"><input type="checkbox" onchange="toggleTask(this)"> Neue Funktion</label>
-        </div>
-      </div>
+        <div class="form-col">
+          <div class="field">
+            <label>Aufgaben</label>
+            <div class="task-grid">
+              <label class="task-opt" data-t="update"><input type="checkbox" onchange="toggleTask(this)"> Neue Version / reguläres Update</label>
+              <label class="task-opt" data-t="bugfix"><input type="checkbox" onchange="toggleTask(this)"> Bugfix</label>
+              <label class="task-opt" data-t="store"><input type="checkbox" onchange="toggleTask(this)"> Store-Anpassung</label>
+              <label class="task-opt" data-t="grafiken"><input type="checkbox" onchange="toggleTask(this)"> Screenshots / Store-Grafiken</label>
+              <label class="task-opt" data-t="texte"><input type="checkbox" onchange="toggleTask(this)"> Texte / Store-Beschreibung</label>
+              <label class="task-opt" data-t="design"><input type="checkbox" onchange="toggleTask(this)"> App-Design</label>
+              <label class="task-opt" data-t="funktion"><input type="checkbox" onchange="toggleTask(this)"> Neue Funktion</label>
+            </div>
+          </div>
 
-      <div class="field">
-        <label>Zendesk-Ticketnummer <span style="color:var(--red)">*</span></label>
-        <input type="text" id="ticketInput" placeholder="z.B. 48213 oder kompletter Link">
-        <div class="field-hint">Pflichtfeld – Nummer oder Link.</div>
-      </div>
-
-      <div class="field">
-        <label>Info</label>
-        <textarea rows="4" id="infoInput" placeholder="Details zum Auftrag, was Micha wissen muss…"></textarea>
-      </div>
-
-      <div class="field">
-        <label>Priorität</label>
-        <div class="prio-toggle">
-          <div class="prio-btn sel-normal" data-p="normal" onclick="setPrio('normal')">Normal</div>
-          <div class="prio-btn" data-p="hoch" onclick="setPrio('hoch')">Hoch</div>
+          <div class="field">
+            <label>Info</label>
+            <textarea rows="6" id="infoInput" placeholder="Details zum Auftrag, was Micha wissen muss…"></textarea>
+          </div>
         </div>
       </div>
 
@@ -286,7 +299,9 @@
   }
   function showForm(){
     document.getElementById('gate').style.display='none';
-    document.getElementById('page').style.display='block';
+    const page = document.getElementById('page');
+    page.style.display='block';
+    page.classList.add('wide');
     document.getElementById('appSearch').focus();
   }
 
@@ -454,6 +469,7 @@
 
       document.getElementById('formView').style.display='none';
       document.getElementById('successView').classList.add('open');
+      document.getElementById('page').classList.remove('wide');
     } catch(e){
       console.error(e);
       showError('Senden fehlgeschlagen. Bitte später erneut versuchen.');
@@ -506,6 +522,7 @@
     pickedApps = []; prio = 'normal'; plats = new Set();
     document.getElementById('formView').style.display='block';
     document.getElementById('successView').classList.remove('open');
+    document.getElementById('page').classList.add('wide');
     document.getElementById('appPickedList').innerHTML='';
     document.getElementById('plattformField').style.display='none';
     renderPlats();
