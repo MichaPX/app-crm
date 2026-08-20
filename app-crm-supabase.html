@@ -1059,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-20 13:00';
+const BUILD_STAMP = '2026-08-20 13:42';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3736,20 +3736,21 @@ function renderNewApps(ctx) {
     list = isModal ? (window._newAppsAll || []).slice(0, 5) : (window._newApps || []);
   }
   const rowsHtml = list.map(newAppRowHtml).join('');
+  const emptyTxt = mode === 'year' ? 'Noch keine neuen Apps ' + curYear : 'Noch keine neuen Apps';
   const body = rowsHtml
-    ? `<div class="recent-scroll">${rowsHtml}</div>`
-    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine neuen Apps ' + curYear : 'Noch keine neuen Apps'}</div>`;
-  const count = mode === 'year' && rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : '';
-  return `<div id="new-apps-wrap-${ctx}">
-    <div class="recent-head">
-      <span class="recent-sep">Neu dazugekommen${count}</span>
-      <select class="recent-mini-sel" onchange="setNewAppsMode(this.value,'${ctx}')">
-        <option value="recent"${mode==='recent'?' selected':''}>Neueste 5</option>
-        <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
-      </select>
-    </div>
-    ${body}
-  </div>`;
+    ? (isModal ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${emptyTxt}</div>`;
+  // Auswahl und Zähler nur in der großen Ansicht (Sidebar-Modal), im Stats-Panel schlicht
+  const head = isModal
+    ? `<div class="recent-head">
+        <span class="recent-sep">Neu dazugekommen${rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : ''}</span>
+        <select class="recent-mini-sel" onchange="setNewAppsMode(this.value,'${ctx}')">
+          <option value="recent"${mode==='recent'?' selected':''}>Neueste 5</option>
+          <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
+        </select>
+      </div>`
+    : `<div class="recent-sep">Neu dazugekommen</div>`;
+  return `<div id="new-apps-wrap-${ctx}">${head}${body}</div>`;
 }
 
 function setNewAppsMode(mode, ctx) {
@@ -4061,20 +4062,21 @@ function renderRecentUpdates(ctx) {
     list = isModal ? (window._doneRowsAll || []).slice(0, 3) : (window._recentUpdates || []);
   }
   const rowsHtml = list.map(recentUpdateRowHtml).filter(Boolean).join('');
+  const emptyTxt = mode === 'year' ? 'Noch keine Updates ' + curYear : 'Noch keine Updates abgeschlossen';
   const body = rowsHtml
-    ? `<div class="recent-scroll">${rowsHtml}</div>`
-    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine Updates ' + curYear : 'Noch keine Updates abgeschlossen'}</div>`;
-  const count = mode === 'year' && rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : '';
-  return `<div id="recent-updates-wrap-${ctx}">
-    <div class="recent-head">
-      <span class="recent-sep">Zuletzt aktualisiert${count}</span>
-      <select class="recent-mini-sel" onchange="setRecentMode(this.value,'${ctx}')">
-        <option value="recent"${mode==='recent'?' selected':''}>Neueste 3</option>
-        <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
-      </select>
-    </div>
-    ${body}
-  </div>`;
+    ? (isModal ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${emptyTxt}</div>`;
+  // Auswahl und Zähler nur in der großen Ansicht (Sidebar-Modal), im Stats-Panel schlicht
+  const head = isModal
+    ? `<div class="recent-head">
+        <span class="recent-sep">Zuletzt aktualisiert${rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : ''}</span>
+        <select class="recent-mini-sel" onchange="setRecentMode(this.value,'${ctx}')">
+          <option value="recent"${mode==='recent'?' selected':''}>Neueste 3</option>
+          <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
+        </select>
+      </div>`
+    : `<div class="recent-sep">Zuletzt aktualisiert</div>`;
+  return `<div id="recent-updates-wrap-${ctx}">${head}${body}</div>`;
 }
 
 function setRecentMode(mode, ctx) {
