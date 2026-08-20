@@ -645,6 +645,8 @@
   .recent-mini-sel:focus { border-color: var(--indigo); }
   .recent-empty { font-size: 11.5px; color: var(--muted); padding: 8px 2px 2px; display: flex; align-items: center; gap: 6px; }
   .recent-scroll { max-height: 210px; overflow-y: auto; margin-right: -4px; padding-right: 4px; }
+  .modal-list-wrap .recent-head { border-top: none; margin-top: 0; padding-top: 0; }
+  .modal-list-wrap .recent-scroll { max-height: 50vh; }
   .nbadge {
     position: absolute; top: 1px; right: 1px;
     background: #f43f5e; color: #fff;
@@ -834,6 +836,9 @@
   <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
   <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
   <div class="vnav-sep admin-only"></div>
+  <button title="Zuletzt aktualisiert" class="vnav-btn" onclick="openRecentUpdatesModal()"><i class="ti ti-history-toggle"></i><span class="tip">Zuletzt aktualisiert</span></button>
+  <button title="Neu dazugekommen" class="vnav-btn" onclick="openNewAppsModal()"><i class="ti ti-sparkles"></i><span class="tip">Neu dazugekommen</span></button>
+  <div class="vnav-sep"></div>
   <button title="Backup erstellen" class="vnav-btn admin-only" onclick="backupData()"><i class="ti ti-database-export"></i><span class="tip">Backup erstellen</span></button>
   <button title="Backup einspielen" class="vnav-btn admin-only" onclick="document.getElementById('backup-file').click()"><i class="ti ti-database-import"></i><span class="tip">Backup einspielen</span></button>
   <button title="Import CSV" class="vnav-btn admin-only" onclick="document.getElementById('csv-file').click()"><i class="ti ti-upload"></i><span class="tip">Import CSV</span></button>
@@ -919,9 +924,9 @@
   <div class="dash">
     <div class="dash-primary" onclick="clearF()" title="Alle Filter zurücksetzen">
       <div>
-        <div class="num" id="dv-total">—</div>
-        <div class="lbl">Apps gesamt</div>
-        <div class="lbl" id="dv-aktiv" style="margin-top:6px;font-weight:600;opacity:.95"></div>
+        <div class="num" id="dv-aktiv-num">—</div>
+        <div class="lbl">Apps aktiv</div>
+        <div class="lbl" id="dv-aktiv-sub" style="margin-top:6px;font-weight:600;opacity:.95"></div>
       </div>
       <div class="trend" id="dash-trend"></div>
     </div>
@@ -1052,7 +1057,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-20 12:43';
+const BUILD_STAMP = '2026-08-20 12:54';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3381,7 +3386,6 @@ async function updateDashboard() {
   const prodIdsCount=apps.filter(a=>a.produktIdsRequired).length;
   const gekuendigtCount=apps.filter(a=>a.gekuendigt&&!a.blockiert).length;
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  set('dv-total',total);
   set('dv-fertig',fertig);
   set('dv-block',block);
   set('dv-offen',offen);
@@ -3392,10 +3396,12 @@ async function updateDashboard() {
   set('dv-gekuendigt',gekuendigtCount);
   // Aktiv = gesamt minus Apps, die gekündigt UND/ODER blockiert sind (Überschneidung zählt nur einmal)
   const inaktiv = apps.filter(a => a.gekuendigt || a.blockiert).length;
-  const aktivEl = document.getElementById('dv-aktiv');
-  if (aktivEl) {
-    aktivEl.textContent = inaktiv > 0 ? ((total - inaktiv) + ' aktiv · −' + inaktiv + ' inaktiv') : 'alle aktiv';
-    aktivEl.title = inaktiv + ' Apps sind gekündigt und/oder blockiert';
+  const aktivCount = total - inaktiv;
+  set('dv-aktiv-num', aktivCount);
+  const aktivSubEl = document.getElementById('dv-aktiv-sub');
+  if (aktivSubEl) {
+    aktivSubEl.textContent = inaktiv > 0 ? (total + ' Apps gesamt · −' + inaktiv + ' inaktiv') : (total + ' Apps gesamt');
+    aktivSubEl.title = inaktiv + ' Apps sind gekündigt und/oder blockiert';
   }
 
   // Aktive Kachel markieren (Klick-Filter)
@@ -3884,7 +3890,7 @@ function renderStoreDonut() {
       </div>
     </div>
     <div style="flex:1;min-width:0">${legend}</div>
-  </div>` + renderRecentUpdates();
+  </div>`;
 }
 
 // Segment + Legendenzeile gemeinsam hervorheben, Mitte zeigt den Wert
@@ -3967,10 +3973,36 @@ function renderUpdateRanking() {
       <span class="rank-name" title="${(r.a.name||'').replace(/"/g,'&quot;')}">${r.a.name}</span>
       <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(r.n/max*100)}%;background:${i<3?'var(--indigo)':'#b9b3f3'}"></div></div>
       <span class="db-count">${r.n}</span>
-    </div>`).join('') + renderNewApps();
+    </div>`).join('');
 }
 
 // Die drei zuletzt abgeschlossenen Updates (unter dem Ranking)
+function openRecentUpdatesModal() {
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-top">
+        <div><h3>Zuletzt aktualisiert</h3><div class="sub">Abgeschlossene Updates</div></div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-list-wrap" style="margin-top:8px">${renderRecentUpdates()}</div>
+      <div class="modal-foot"><div class="modal-foot-right"><button class="btn-secondary" onclick="closeMod()">Schließen</button></div></div>
+    </div>
+  </div>`;
+}
+
+function openNewAppsModal() {
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-top">
+        <div><h3>Neu dazugekommen</h3><div class="sub">Neu angelegte Apps</div></div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-list-wrap" style="margin-top:8px">${renderNewApps()}</div>
+      <div class="modal-foot"><div class="modal-foot-right"><button class="btn-secondary" onclick="closeMod()">Schließen</button></div></div>
+    </div>
+  </div>`;
+}
+
 function recentUpdateRowHtml(r) {
   const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
   if (!a) return '';
