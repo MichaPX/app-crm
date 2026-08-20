@@ -632,6 +632,19 @@
   .recent-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
   .recent-ver { font-family: var(--mono); font-size: 9.5px; color: var(--indigo); background: var(--indigo-soft); border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
   .recent-when { color: var(--muted); font-size: 10px; white-space: nowrap; flex-shrink: 0; }
+  .recent-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: 12px; padding-top: 9px; border-top: 1px solid var(--slate-soft);
+  }
+  .recent-head .recent-sep { margin: 0; padding-top: 0; border-top: none; }
+  .recent-mini-sel {
+    font-family: inherit; font-size: 10.5px; font-weight: 600; color: var(--indigo);
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 2px 4px; cursor: pointer; outline: none; max-width: 120px; flex-shrink: 0;
+  }
+  .recent-mini-sel:focus { border-color: var(--indigo); }
+  .recent-empty { font-size: 11.5px; color: var(--muted); padding: 8px 2px 2px; display: flex; align-items: center; gap: 6px; }
+  .recent-scroll { max-height: 210px; overflow-y: auto; margin-right: -4px; padding-right: 4px; }
   .nbadge {
     position: absolute; top: 1px; right: 1px;
     background: #f43f5e; color: #fff;
@@ -1039,7 +1052,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-07-27 12:53';
+const BUILD_STAMP = '2026-08-20 12:43';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3676,32 +3689,61 @@ async function loadNewApps() {
       seen.add(String(r.app_id));
       news.push(r);
     });
+    window._newAppsAll = news;
     window._newApps = news.slice(0, 5);
     renderUpdateRanking();  // Ranking-Panel neu zeichnen, damit der untere Teil erscheint
   } catch(e) {}
 }
 
-function renderNewApps() {
-  const news = window._newApps;
-  if (!news || !news.length) return '';
+function newAppRowHtml(r) {
   const t0 = new Date(); t0.setHours(0,0,0,0);
-  const rows = news.map(r => {
-    const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
-    const name = a ? a.name : (r.app_name || '—');
-    const d = new Date(r.created_at);
-    const dd = new Date(d); dd.setHours(0,0,0,0);
-    const diff = Math.round((t0 - dd) / 864e5);
-    const when = diff === 0 ? 'heute' : diff === 1 ? 'gestern'
-      : diff < 7 ? ('vor ' + diff + ' T.')
-      : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
-    const click = a ? `onclick="openDetail('${a.id}')"` : '';
-    return `<div class="recent-row" ${click}>
-      <span class="recent-icon"><i class="ti ti-sparkles" style="color:var(--green)"></i></span>
-      <span class="recent-name">${name}</span>
-      <span class="recent-when">${when}</span>
-    </div>`;
-  }).join('');
-  return `<div class="recent-sep">Neu dazugekommen</div>${rows}`;
+  const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
+  const name = a ? a.name : (r.app_name || '—');
+  const d = new Date(r.created_at);
+  const dd = new Date(d); dd.setHours(0,0,0,0);
+  const diff = Math.round((t0 - dd) / 864e5);
+  const when = diff === 0 ? 'heute' : diff === 1 ? 'gestern'
+    : diff < 7 ? ('vor ' + diff + ' T.')
+    : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+  const click = a ? `onclick="openDetail('${a.id}')"` : '';
+  return `<div class="recent-row" ${click}>
+    <span class="recent-icon"><i class="ti ti-sparkles" style="color:var(--green)"></i></span>
+    <span class="recent-name">${name}</span>
+    <span class="recent-when">${when}</span>
+  </div>`;
+}
+
+// "Neu dazugekommen": letzte 5 oder komplette Liste des laufenden Jahres, umschaltbar.
+// Bleibt auch ohne Daten sichtbar (kein Verschwinden der Spalte).
+function renderNewApps() {
+  const mode = window._newAppsMode || 'recent';
+  const curYear = String(new Date().getFullYear());
+  let list;
+  if (mode === 'year') {
+    list = (window._newAppsAll || []).filter(r => String(r.created_at||'').slice(0,4) === curYear);
+  } else {
+    list = window._newApps || [];
+  }
+  const rowsHtml = list.map(newAppRowHtml).join('');
+  const body = rowsHtml
+    ? (mode === 'year' ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine neuen Apps ' + curYear : 'Noch keine neuen Apps'}</div>`;
+  return `<div id="new-apps-wrap">
+    <div class="recent-head">
+      <span class="recent-sep">Neu dazugekommen</span>
+      <select class="recent-mini-sel" onchange="setNewAppsMode(this.value)">
+        <option value="recent"${mode==='recent'?' selected':''}>Neueste 5</option>
+        <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
+      </select>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function setNewAppsMode(mode) {
+  window._newAppsMode = mode;
+  const wrap = document.getElementById('new-apps-wrap');
+  if (wrap) wrap.outerHTML = renderNewApps();
 }
 
 function renderAttention() {
@@ -3901,6 +3943,7 @@ async function loadUpdateRanking() {
     window._updCounts=counts;
     // Die drei jüngsten Abschlüsse (neueste zuerst)
     doneRows.sort((a,b)=>String(b.zeitpunkt||'').localeCompare(String(a.zeitpunkt||'')));
+    window._doneRowsAll = doneRows;
     window._recentUpdates = doneRows.slice(0,3);
     renderUpdateRanking();
     renderStoreDonut();
@@ -3928,45 +3971,72 @@ function renderUpdateRanking() {
 }
 
 // Die drei zuletzt abgeschlossenen Updates (unter dem Ranking)
-function renderRecentUpdates() {
-  const recent = window._recentUpdates;
-  if (!recent || !recent.length) return '';
+function recentUpdateRowHtml(r) {
+  const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
+  if (!a) return '';
   const t0 = new Date(); t0.setHours(0,0,0,0);
-  const rows = recent.map(r => {
-    const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
-    if (!a) return '';
-    const d = new Date(r.zeitpunkt);
-    const dd = new Date(d); dd.setHours(0,0,0,0);
-    const diff = Math.round((t0 - dd) / 864e5);
-    const when = diff === 0 ? ('heute ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))
-      : diff === 1 ? 'gestern'
-      : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
-    // Plattform aus der Aktion ableiten (z. B. "Apple 5.3.3 → 5.4.3")
-    const akt = String(r.aktion||'');
-    let hasA = /Apple/i.test(akt), hasG = /Google/i.test(akt);
-    // Fallback, falls die Aktion keine Plattform nennt: updateTarget der App heranziehen
-    if (!hasA && !hasG) {
-      const tgt = a.updateTarget || 'beide';
-      hasA = (tgt === 'apple' || tgt === 'beide');
-      hasG = (tgt === 'google' || tgt === 'beide');
-    }
-    const icoApple = '<i class="ti ti-brand-apple" style="color:#1f2430"></i>';
-    const icoAndroid = '<i class="ti ti-brand-android" style="color:#2e9e44"></i>';
-    const plat = (hasA && hasG) ? (icoApple + icoAndroid)
-      : hasA ? icoApple
-      : hasG ? icoAndroid
-      : '<i class="ti ti-check" style="color:var(--green)"></i>';
-    const verM = akt.match(/(\d+\.\d+(?:\.\d+)?)\s*→\s*(\d+\.\d+(?:\.\d+)?)/);
-    const ver = verM ? (verM[1] + ' → ' + verM[2]) : '';
-    return `<div class="recent-row" onclick="openDetail('${a.id}')" title="${akt.replace(/"/g,'&quot;')}">
-      <span class="recent-icon">${plat}</span>
-      <span class="recent-name">${a.name}</span>
-      ${ver ? `<span class="recent-ver">${ver}</span>` : ''}
-      <span class="recent-when">${when}</span>
-    </div>`;
-  }).filter(Boolean).join('');
-  if (!rows) return '';
-  return `<div class="recent-sep">Zuletzt aktualisiert</div>${rows}`;
+  const d = new Date(r.zeitpunkt);
+  const dd = new Date(d); dd.setHours(0,0,0,0);
+  const diff = Math.round((t0 - dd) / 864e5);
+  const when = diff === 0 ? ('heute ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))
+    : diff === 1 ? 'gestern'
+    : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+  // Plattform aus der Aktion ableiten (z. B. "Apple 5.3.3 → 5.4.3")
+  const akt = String(r.aktion||'');
+  let hasA = /Apple/i.test(akt), hasG = /Google/i.test(akt);
+  // Fallback, falls die Aktion keine Plattform nennt: updateTarget der App heranziehen
+  if (!hasA && !hasG) {
+    const tgt = a.updateTarget || 'beide';
+    hasA = (tgt === 'apple' || tgt === 'beide');
+    hasG = (tgt === 'google' || tgt === 'beide');
+  }
+  const icoApple = '<i class="ti ti-brand-apple" style="color:#1f2430"></i>';
+  const icoAndroid = '<i class="ti ti-brand-android" style="color:#2e9e44"></i>';
+  const plat = (hasA && hasG) ? (icoApple + icoAndroid)
+    : hasA ? icoApple
+    : hasG ? icoAndroid
+    : '<i class="ti ti-check" style="color:var(--green)"></i>';
+  const verM = akt.match(/(\d+\.\d+(?:\.\d+)?)\s*→\s*(\d+\.\d+(?:\.\d+)?)/);
+  const ver = verM ? (verM[1] + ' → ' + verM[2]) : '';
+  return `<div class="recent-row" onclick="openDetail('${a.id}')" title="${akt.replace(/"/g,'&quot;')}">
+    <span class="recent-icon">${plat}</span>
+    <span class="recent-name">${a.name}</span>
+    ${ver ? `<span class="recent-ver">${ver}</span>` : ''}
+    <span class="recent-when">${when}</span>
+  </div>`;
+}
+
+// "Zuletzt aktualisiert": Standardansicht (letzte 3) oder komplette Liste des laufenden Jahres,
+// umschaltbar über ein Dropdown. Bleibt auch ohne Daten sichtbar (kein Verschwinden der Spalte).
+function renderRecentUpdates() {
+  const mode = window._recentMode || 'recent';
+  const curYear = String(new Date().getFullYear());
+  let list;
+  if (mode === 'year') {
+    list = (window._doneRowsAll || []).filter(r => String(r.zeitpunkt||'').slice(0,4) === curYear);
+  } else {
+    list = window._recentUpdates || [];
+  }
+  const rowsHtml = list.map(recentUpdateRowHtml).filter(Boolean).join('');
+  const body = rowsHtml
+    ? (mode === 'year' ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine Updates ' + curYear : 'Noch keine Updates abgeschlossen'}</div>`;
+  return `<div id="recent-updates-wrap">
+    <div class="recent-head">
+      <span class="recent-sep">Zuletzt aktualisiert</span>
+      <select class="recent-mini-sel" onchange="setRecentMode(this.value)">
+        <option value="recent"${mode==='recent'?' selected':''}>Neueste 3</option>
+        <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
+      </select>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function setRecentMode(mode) {
+  window._recentMode = mode;
+  const wrap = document.getElementById('recent-updates-wrap');
+  if (wrap) wrap.outerHTML = renderRecentUpdates();
 }
 
 async function loadNotizBadge() {
