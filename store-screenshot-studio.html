@@ -640,7 +640,7 @@ const state = {
   iScale:55,
   iMask:'circle',
   iSafe:true,
-  iSize:432,
+  iSize:1024,
   slides:[],       // {img, name, headline, subline, thumb}
   cur:0,
   devScale:78,
@@ -763,6 +763,7 @@ segInit('iMaskSeg','iMask');
   });
 });
 $('iSize').addEventListener('change', e=>{ state.iSize = +e.target.value; draw(); });
+state.iSize = +$('iSize').value;   // Zustand folgt dem Auswahlfeld, nie umgekehrt
 const iconLogoInput = $('iconLogoInput');
 iconLogoInput.addEventListener('change', e=>{
   const file = e.target.files[0];
