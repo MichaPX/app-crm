@@ -645,6 +645,8 @@
   .recent-mini-sel:focus { border-color: var(--indigo); }
   .recent-empty { font-size: 11.5px; color: var(--muted); padding: 8px 2px 2px; display: flex; align-items: center; gap: 6px; }
   .recent-scroll { max-height: 210px; overflow-y: auto; margin-right: -4px; padding-right: 4px; }
+  .recent-scroll::-webkit-scrollbar { width: 6px; }
+  .recent-scroll::-webkit-scrollbar-thumb { background: #d5d8e0; border-radius: 3px; }
   .modal-list-wrap .recent-head { border-top: none; margin-top: 0; padding-top: 0; }
   .modal-list-wrap .recent-scroll { max-height: 50vh; }
   .nbadge {
@@ -1057,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-20 12:54';
+const BUILD_STAMP = '2026-08-20 13:00';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3721,23 +3723,27 @@ function newAppRowHtml(r) {
 
 // "Neu dazugekommen": letzte 5 oder komplette Liste des laufenden Jahres, umschaltbar.
 // Bleibt auch ohne Daten sichtbar (kein Verschwinden der Spalte).
-function renderNewApps() {
-  const mode = window._newAppsMode || 'recent';
+function renderNewApps(ctx) {
+  ctx = ctx || 'panel';                       // 'panel' = Stats-Spalte, 'modal' = große Ansicht
+  const isModal = ctx === 'modal';
+  const modeKey = isModal ? '_newAppsModeModal' : '_newAppsMode';
+  const mode = window[modeKey] || (isModal ? 'year' : 'recent');
   const curYear = String(new Date().getFullYear());
   let list;
   if (mode === 'year') {
     list = (window._newAppsAll || []).filter(r => String(r.created_at||'').slice(0,4) === curYear);
   } else {
-    list = window._newApps || [];
+    list = isModal ? (window._newAppsAll || []).slice(0, 5) : (window._newApps || []);
   }
   const rowsHtml = list.map(newAppRowHtml).join('');
   const body = rowsHtml
-    ? (mode === 'year' ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    ? `<div class="recent-scroll">${rowsHtml}</div>`
     : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine neuen Apps ' + curYear : 'Noch keine neuen Apps'}</div>`;
-  return `<div id="new-apps-wrap">
+  const count = mode === 'year' && rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : '';
+  return `<div id="new-apps-wrap-${ctx}">
     <div class="recent-head">
-      <span class="recent-sep">Neu dazugekommen</span>
-      <select class="recent-mini-sel" onchange="setNewAppsMode(this.value)">
+      <span class="recent-sep">Neu dazugekommen${count}</span>
+      <select class="recent-mini-sel" onchange="setNewAppsMode(this.value,'${ctx}')">
         <option value="recent"${mode==='recent'?' selected':''}>Neueste 5</option>
         <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
       </select>
@@ -3746,10 +3752,11 @@ function renderNewApps() {
   </div>`;
 }
 
-function setNewAppsMode(mode) {
-  window._newAppsMode = mode;
-  const wrap = document.getElementById('new-apps-wrap');
-  if (wrap) wrap.outerHTML = renderNewApps();
+function setNewAppsMode(mode, ctx) {
+  ctx = ctx || 'panel';
+  window[ctx === 'modal' ? '_newAppsModeModal' : '_newAppsMode'] = mode;
+  const wrap = document.getElementById('new-apps-wrap-' + ctx);
+  if (wrap) wrap.outerHTML = renderNewApps(ctx);
 }
 
 function renderAttention() {
@@ -3890,7 +3897,7 @@ function renderStoreDonut() {
       </div>
     </div>
     <div style="flex:1;min-width:0">${legend}</div>
-  </div>`;
+  </div>` + renderRecentUpdates();
 }
 
 // Segment + Legendenzeile gemeinsam hervorheben, Mitte zeigt den Wert
@@ -3973,7 +3980,7 @@ function renderUpdateRanking() {
       <span class="rank-name" title="${(r.a.name||'').replace(/"/g,'&quot;')}">${r.a.name}</span>
       <div class="db-bar-wrap"><div class="db-bar" style="width:${Math.round(r.n/max*100)}%;background:${i<3?'var(--indigo)':'#b9b3f3'}"></div></div>
       <span class="db-count">${r.n}</span>
-    </div>`).join('');
+    </div>`).join('') + renderNewApps();
 }
 
 // Die drei zuletzt abgeschlossenen Updates (unter dem Ranking)
@@ -3984,7 +3991,7 @@ function openRecentUpdatesModal() {
         <div><h3>Zuletzt aktualisiert</h3><div class="sub">Abgeschlossene Updates</div></div>
         <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
       </div>
-      <div class="modal-list-wrap" style="margin-top:8px">${renderRecentUpdates()}</div>
+      <div class="modal-list-wrap" style="margin-top:8px">${renderRecentUpdates('modal')}</div>
       <div class="modal-foot"><div class="modal-foot-right"><button class="btn-secondary" onclick="closeMod()">Schließen</button></div></div>
     </div>
   </div>`;
@@ -3997,7 +4004,7 @@ function openNewAppsModal() {
         <div><h3>Neu dazugekommen</h3><div class="sub">Neu angelegte Apps</div></div>
         <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
       </div>
-      <div class="modal-list-wrap" style="margin-top:8px">${renderNewApps()}</div>
+      <div class="modal-list-wrap" style="margin-top:8px">${renderNewApps('modal')}</div>
       <div class="modal-foot"><div class="modal-foot-right"><button class="btn-secondary" onclick="closeMod()">Schließen</button></div></div>
     </div>
   </div>`;
@@ -4040,23 +4047,28 @@ function recentUpdateRowHtml(r) {
 
 // "Zuletzt aktualisiert": Standardansicht (letzte 3) oder komplette Liste des laufenden Jahres,
 // umschaltbar über ein Dropdown. Bleibt auch ohne Daten sichtbar (kein Verschwinden der Spalte).
-function renderRecentUpdates() {
-  const mode = window._recentMode || 'recent';
+function renderRecentUpdates(ctx) {
+  ctx = ctx || 'panel';                       // 'panel' = Stats-Spalte, 'modal' = große Ansicht
+  const isModal = ctx === 'modal';
+  const modeKey = isModal ? '_recentModeModal' : '_recentMode';
+  // Im Modal standardmäßig die Jahresliste zeigen, im Panel die kompakte Ansicht
+  const mode = window[modeKey] || (isModal ? 'year' : 'recent');
   const curYear = String(new Date().getFullYear());
   let list;
   if (mode === 'year') {
     list = (window._doneRowsAll || []).filter(r => String(r.zeitpunkt||'').slice(0,4) === curYear);
   } else {
-    list = window._recentUpdates || [];
+    list = isModal ? (window._doneRowsAll || []).slice(0, 3) : (window._recentUpdates || []);
   }
   const rowsHtml = list.map(recentUpdateRowHtml).filter(Boolean).join('');
   const body = rowsHtml
-    ? (mode === 'year' ? `<div class="recent-scroll">${rowsHtml}</div>` : rowsHtml)
+    ? `<div class="recent-scroll">${rowsHtml}</div>`
     : `<div class="recent-empty"><i class="ti ti-info-circle" style="font-size:13px"></i> ${mode === 'year' ? 'Noch keine Updates ' + curYear : 'Noch keine Updates abgeschlossen'}</div>`;
-  return `<div id="recent-updates-wrap">
+  const count = mode === 'year' && rowsHtml ? ` <span style="color:var(--text3);font-weight:600">(${list.length})</span>` : '';
+  return `<div id="recent-updates-wrap-${ctx}">
     <div class="recent-head">
-      <span class="recent-sep">Zuletzt aktualisiert</span>
-      <select class="recent-mini-sel" onchange="setRecentMode(this.value)">
+      <span class="recent-sep">Zuletzt aktualisiert${count}</span>
+      <select class="recent-mini-sel" onchange="setRecentMode(this.value,'${ctx}')">
         <option value="recent"${mode==='recent'?' selected':''}>Neueste 3</option>
         <option value="year"${mode==='year'?' selected':''}>Dieses Jahr</option>
       </select>
@@ -4065,10 +4077,11 @@ function renderRecentUpdates() {
   </div>`;
 }
 
-function setRecentMode(mode) {
-  window._recentMode = mode;
-  const wrap = document.getElementById('recent-updates-wrap');
-  if (wrap) wrap.outerHTML = renderRecentUpdates();
+function setRecentMode(mode, ctx) {
+  ctx = ctx || 'panel';
+  window[ctx === 'modal' ? '_recentModeModal' : '_recentMode'] = mode;
+  const wrap = document.getElementById('recent-updates-wrap-' + ctx);
+  if (wrap) wrap.outerHTML = renderRecentUpdates(ctx);
 }
 
 async function loadNotizBadge() {
