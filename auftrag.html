@@ -41,7 +41,7 @@
   .subtitle{font-size:13.5px;color:var(--muted);margin-bottom:22px;}
 
   .field{margin-bottom:18px;}
-  .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--text);
     margin-bottom:7px;text-transform:uppercase;letter-spacing:.03em;}
   .field-hint{font-size:11.5px;color:var(--muted);margin-top:5px;}
 
@@ -85,6 +85,17 @@
   .app-result-sep{padding:7px 13px;font-size:11px;font-weight:700;letter-spacing:.04em;
     text-transform:uppercase;color:#0f766e;background:#f2fbf9;border-top:1px solid var(--border);
     border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+  .sep-add-all{border:1px solid #9dd8d0;background:#fff;color:#0f766e;border-radius:6px;
+    padding:3px 9px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;
+    letter-spacing:0;text-transform:none;white-space:nowrap;}
+  .sep-add-all:hover{background:#e3f6f3;}
+  .app-result-row.org-pick{cursor:pointer;}
+  .app-result-row.org-pick .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .org-chk{width:16px;height:16px;accent-color:#0f766e;cursor:pointer;flex-shrink:0;}
+  .org-pick-bar{display:flex;align-items:center;gap:10px;justify-content:flex-end;
+    padding:8px 13px;background:#f2fbf9;border-top:1px solid var(--border);
+    font-size:11.5px;color:var(--muted);}
+  .org-pick-bar.active{color:#0f766e;font-weight:600;}
   .app-result-row .org-hit{font-size:10.5px;font-weight:600;color:#0f766e;background:#e3f6f3;
     border-radius:5px;padding:1px 7px;margin-left:6px;}
 
@@ -231,7 +242,7 @@
 
           <div class="field">
             <label>Gewünschte Bearbeitung bis</label>
-            <input type="date" id="wunschInput">
+            <input type="date" id="wunschInput" style="width:auto;min-width:170px;max-width:220px">
             <div class="field-hint">Optional – bis wann sollte der Auftrag erledigt sein?</div>
           </div>
 
@@ -403,8 +414,27 @@
       let html = rows.map(r => rowHTML(r, '')).join('');
       if (orgOnly.length){
         const orgName = orgOnly[0].company || ('Organisation ' + (pegasusOrgId(orgOnly[0].pegasus) || q));
-        html += `<div class="app-result-sep"><i class="ti ti-building"></i> ${String(orgName).replace(/</g,'&lt;')} · ${orgOnly.length} weitere App${orgOnly.length!==1?'s':''}</div>`
-             +  orgOnly.map(r => rowHTML(r, 'Kunde')).join('');
+        _orgSearchHits = {};
+        orgOnly.forEach(r => { _orgSearchHits[r.id] = r; });
+        html += `<div class="app-result-sep">
+            <i class="ti ti-building"></i>
+            <span style="flex:1">${String(orgName).replace(/</g,'&lt;')} · ${orgOnly.length} weitere App${orgOnly.length!==1?'s':''}</span>
+            <button type="button" class="sep-add-all" onclick="toggleAllOrgChecks()">Alle markieren</button>
+          </div>`
+             +  orgOnly.map(r => {
+                  _searchResults[r.id] = r;
+                  const stores = (r.apple_store?'<i class="ti ti-brand-apple"></i>':'') + (r.google_store?'<i class="ti ti-brand-android"></i>':'');
+                  const already = pickedApps.some(a => a.id === r.id);
+                  return `<label class="app-result-row org-pick" style="${already?'opacity:.45;pointer-events:none':''}">
+                    <input type="checkbox" class="org-chk" value="${r.id}" onchange="updateOrgPickBar()">
+                    <span class="nm">${(r.name||'').replace(/</g,'&lt;')}</span>
+                    <span class="stores">${stores}${already?' <i class=\"ti ti-check\"></i>':''}</span>
+                  </label>`;
+                }).join('')
+             + `<div class="org-pick-bar" id="orgPickBar">
+                  <span id="orgPickCount">0 ausgewählt</span>
+                  <button type="button" class="sep-add-all" onclick="addCheckedOrgApps()">Ausgewählte übernehmen</button>
+                </div>`;
       }
       box.innerHTML = html;
     } catch(e){
@@ -489,6 +519,48 @@
   }
 
   function toggleOrgSuggestAll(){ _orgShowAll = !_orgShowAll; renderOrgSuggestions(); }
+
+  let _orgSearchHits = {};
+
+  // Anzeige "N ausgewählt" aktualisieren
+  function updateOrgPickBar(){
+    const boxes = document.querySelectorAll('.org-chk');
+    const n = [...boxes].filter(b => b.checked).length;
+    const bar = document.getElementById('orgPickBar');
+    const cnt = document.getElementById('orgPickCount');
+    if (cnt) cnt.textContent = n + ' ausgewählt';
+    if (bar) bar.classList.toggle('active', n > 0);
+  }
+
+  // Alle Häkchen setzen bzw. wieder entfernen
+  function toggleAllOrgChecks(){
+    const boxes = [...document.querySelectorAll('.org-chk')];
+    const alle = boxes.every(b => b.checked);
+    boxes.forEach(b => { b.checked = !alle; });
+    updateOrgPickBar();
+  }
+
+  // Nur die angehakten Apps in den Auftrag übernehmen
+  function addCheckedOrgApps(){
+    const ids = [...document.querySelectorAll('.org-chk')].filter(b => b.checked).map(b => b.value);
+    if (!ids.length) return;
+    let n = 0;
+    ids.forEach(id => {
+      const r = _searchResults[id];
+      if (!r) return;
+      if (pickedApps.some(a => String(a.id) === String(r.id))) return;
+      pickedApps.push({
+        id: r.id, name: r.name || '', pegasus: r.pegasus || '',
+        apple: !!r.apple_store, google: !!r.google_store
+      });
+      n++;
+    });
+    if (n){
+      renderPickedApps();
+      document.getElementById('appSearch').value = '';
+      document.getElementById('appResults').innerHTML = '';
+    }
+  }
 
   function addSuggestedApp(id){
     const r = _orgSuggestions[id];
