@@ -1059,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 05:31';
+const BUILD_STAMP = '2026-08-21 05:39';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2129,7 +2129,13 @@ function render() {
       const oldWarn = byVersion && isOldV(v);
       let note='';
       if(pruefung) note='<div class="plat-note pruefung">⏳ In Prüfung</div>';
-      else if(a.imUpdate && v && maxVer && /^\d/.test(v) && cmpV(v,maxVer,1)<0) note=`<div class="plat-note update">⟳ Update von ${v} auf ${maxVer}</div>`;
+      else if(a.imUpdate && v && /^\d/.test(v)){
+        // Ziel dieser App: die Version, mit der das laufende Update gestartet wurde;
+        // erst wenn dazu nichts protokolliert ist, gilt die aktuelle Zielversion
+        const st=(window._updStartTargets||{});
+        const appZiel = st[String(a.id)] || st[String(a._dbId)] || maxVer;
+        if(appZiel && cmpV(v,appZiel,1)<0) note=`<div class="plat-note update">⟳ Update von ${v} auf ${appZiel}</div>`;
+      }
       const storeBtn = link
         ? `<a class="store-btn" href="${link}" target="_blank" onclick="event.stopPropagation()">${isApple?'App Store':'Google Play'} ↗</a>`
         : '';
@@ -3951,14 +3957,23 @@ async function loadUpdateRanking() {
       doneRows.push(r);
     });
     // Startzeitpunkte der laufenden Updates merken (jeweils der jüngste Start je App)
-    const starts={};
+    // sowie die Zielversion, die zum Startzeitpunkt galt (steht im Log-Text: "… → 5.4.3")
+    const starts={}, startTargets={};
     rows.forEach(r=>{
       const isStart = r.feld==='update_start' || (typeof r.aktion==='string' && r.aktion.startsWith('Update gestartet'));
       if(!isStart) return;
       const z=String(r.zeitpunkt||'');
-      if(!starts[r.app_id] || z > starts[r.app_id]) starts[r.app_id]=z;
+      if(!starts[r.app_id] || z > starts[r.app_id]){
+        starts[r.app_id]=z;
+        // höchste im Text genannte Zielversion übernehmen (z. B. "Apple 4.19.2 → 5.4.3")
+        const targets=[...String(r.aktion||'').matchAll(/→\s*(\d+\.\d+(?:\.\d+)?)/g)].map(m=>m[1]);
+        let best='';
+        targets.forEach(t=>{ if(cmpV(t,best,1)>0) best=t; });
+        if(best) startTargets[r.app_id]=best; else delete startTargets[r.app_id];
+      }
     });
     window._updStarts=starts;
+    window._updStartTargets=startTargets;
     window._updCounts=counts;
     // Die drei jüngsten Abschlüsse (neueste zuerst)
     doneRows.sort((a,b)=>String(b.zeitpunkt||'').localeCompare(String(a.zeitpunkt||'')));
@@ -3966,6 +3981,8 @@ async function loadUpdateRanking() {
     window._recentUpdates = doneRows.slice(0,3);
     renderUpdateRanking();
     renderStoreDonut();
+    // Karten neu zeichnen: erst jetzt sind die Start-Zielversionen je App bekannt
+    if (typeof apps !== 'undefined' && apps.length) render();
   } catch(e) {}
 }
 
