@@ -1944,8 +1944,10 @@ function drawFeature(c, W, H, slide, preview){
 
   /* --- Layout "Logo mittig" (wie Referenzbild) --- */
   if(state.fLayout === 'logo'){
-    const size = H * 0.62 * (state.fLogoScale/100);
-    const lx = W/2 - size/2, ly = H/2 - size/2;
+    const hasTxt = !!(state.fApp || state.fHead || state.fSub);
+    const size = H * (hasTxt ? 0.40 : 0.62) * (state.fLogoScale/100);
+    const lx = W/2 - size/2;
+    const ly = hasTxt ? H*0.08 : H/2 - size/2;
     const lr = size * 0.22;
     if(state.fLogo){
       // weicher Schatten hinter dem Logo
@@ -1977,6 +1979,35 @@ function drawFeature(c, W, H, slide, preview){
       c.textAlign = 'center';
       c.fillText('Logo hochladen…', W/2, H/2);
     }
+
+    /* Text zentriert unter dem Logo */
+    if(hasTxt){
+      const fts = state.fTextScale/100;
+      const font = state.fFont;
+      const maxW = W * 0.86;
+      c.textAlign = 'center';
+      c.fillStyle = state.fTextColor;
+      let y = ly + size + H*0.10;
+
+      const drawWrapped = (txt, weight, sizePx, lh) => {
+        c.font = weight + ' ' + sizePx + 'px ' + font;
+        const words = String(txt).split(' ');
+        let line = '', lines = [];
+        for(const w of words){
+          const t = line ? line + ' ' + w : w;
+          if(c.measureText(t).width > maxW && line){ lines.push(line); line = w; }
+          else line = t;
+        }
+        if(line) lines.push(line);
+        for(const l of lines){ c.fillText(l, W/2, y); y += sizePx * lh; }
+      };
+
+      if(state.fApp)  drawWrapped(state.fApp,  '800', H*0.105*fts, 1.12);
+      if(state.fHead){ y += H*0.018; drawWrapped(state.fHead, '700', H*0.068*fts, 1.18); }
+      if(state.fSub){  y += H*0.016; drawWrapped(state.fSub,  '400', H*0.046*fts, 1.3); }
+      c.textAlign = 'left';
+    }
+
     drawFeatureArt(c, W, H);
     if(preview && state.fSafe){
       const m = W * (30/1024);
