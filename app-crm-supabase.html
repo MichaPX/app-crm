@@ -547,6 +547,27 @@
   .org-bar-meta { font-size: 11.5px; color: var(--text2); }
   .org-bar-id { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--card); border-radius: 5px; padding: 2px 7px; }
   .org-bar-inner .attn-bar-close { color: #0f766e; }
+  .auf-week { margin-bottom: 6px; }
+  .auf-week-head {
+    width: 100%; display: flex; align-items: center; gap: 7px;
+    background: transparent; border: none; cursor: pointer; font-family: inherit;
+    padding: 5px 6px; margin: 0 -6px; border-radius: 7px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text3);
+  }
+  .auf-week-head:hover { background: var(--slate-soft); color: var(--text2); }
+  .auf-week-head .chev { font-size: 13px; transition: transform .15s; }
+  .auf-week-head.open .chev { transform: rotate(90deg); }
+  .auf-week-head .wk { flex: 1; text-align: left; }
+  .auf-week-head .wk-count {
+    background: var(--slate-soft); color: var(--text2);
+    border-radius: 10px; padding: 1px 7px; font-size: 10px; letter-spacing: 0;
+  }
+  .auf-week-head .wk-hoch {
+    background: var(--red-soft); color: #991b1b;
+    border-radius: 10px; padding: 1px 6px; font-size: 10px; letter-spacing: 0;
+  }
+  .auf-week-body { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
   .attn-bar-inner {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     background: var(--indigo-soft); border: 1px solid #d5d8fb;
@@ -918,6 +939,7 @@
             <div class="mi"><b>Ticket</b><span id="auf-d-ticket"></span></div>
             <div class="mi"><b>Priorität</b><span id="auf-d-prio"></span></div>
             <div class="mi"><b>Eingegangen</b><span id="auf-d-date"></span></div>
+            <div class="mi" id="auf-d-wunsch-wrap" style="display:none"><b>Bearbeitung bis</b><span id="auf-d-wunsch"></span></div>
           </div>
           <div>
             <div class="auf-d-label">Status</div>
@@ -1083,7 +1105,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 11:24';
+const BUILD_STAMP = '2026-08-21 12:19';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2711,14 +2733,79 @@ function renderAuftraege() {
   ];
   document.getElementById('auf-board').innerHTML = colDef.map(c => {
     const list = cols[c.key];
-    const cards = list.length
-      ? list.map(aufCardHTML).join('')
+    const body = list.length
+      ? aufWeekGroupsHTML(list, c.key)
       : '<div class="auf-empty">Keine Aufträge</div>';
     return `<div class="auf-column">
       <div class="auf-col-head ${c.cls}"><span class="dot"></span><h3>${c.label}</h3><span class="auf-col-count">${list.length}</span></div>
-      <div class="auf-cards">${cards}</div>
+      <div class="auf-cards">${body}</div>
     </div>`;
   }).join('');
+}
+
+// ── Wochengruppierung der Auftragskarten ──
+// Erledigte werden nach Abschlussdatum gruppiert, alle anderen nach Eingang.
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const jan1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return { week: Math.ceil((((t - jan1) / 864e5) + 1) / 7), year: t.getUTCFullYear() };
+}
+
+// Welche Gruppen sind aufgeklappt? Standard: aktuelle Woche offen, Erledigt komplett zu.
+window._aufOpenGroups = window._aufOpenGroups || {};
+
+function aufWeekGroupsHTML(list, colKey) {
+  const dateOf = a => (colKey === 'erledigt' && a.erledigt_am) ? a.erledigt_am : a.erstellt_am;
+  const now = isoWeek(new Date());
+  const groups = {};
+  list.forEach(a => {
+    const raw = dateOf(a);
+    const d = raw ? new Date(raw) : null;
+    const key = d && !isNaN(d) ? (() => { const w = isoWeek(d); return w.year + '-' + String(w.week).padStart(2, '0'); })() : 'ohne';
+    (groups[key] = groups[key] || []).push(a);
+  });
+  const keys = Object.keys(groups).sort((a, b) => b.localeCompare(a));   // neueste Woche zuerst
+
+  return keys.map(key => {
+    const items = groups[key];
+    let label, istAktuell = false;
+    if (key === 'ohne') {
+      label = 'Ohne Datum';
+    } else {
+      const [y, w] = key.split('-').map(Number);
+      istAktuell = (y === now.year && w === now.week);
+      const letzte = (y === now.year && w === now.week - 1);
+      label = 'KW ' + w + (istAktuell ? ' · diese Woche' : letzte ? ' · letzte Woche' : (y !== now.year ? ' / ' + y : ''));
+    }
+    const gid = colKey + '|' + key;
+    // Standard: aktuelle Woche offen, außer in der Erledigt-Spalte
+    const def = (colKey !== 'erledigt') && istAktuell;
+    const open = (window._aufOpenGroups[gid] === undefined) ? def : window._aufOpenGroups[gid];
+    const hoch = items.filter(x => x.prioritaet === 'hoch' && x.status !== 'erledigt').length;
+
+    return `<div class="auf-week">
+      <button type="button" class="auf-week-head${open ? ' open' : ''}" onclick="toggleAufWeek('${gid}')">
+        <i class="ti ti-chevron-right chev"></i>
+        <span class="wk">${label}</span>
+        ${hoch ? `<span class="wk-hoch" title="${hoch}× hohe Priorität">${hoch}!</span>` : ''}
+        <span class="wk-count">${items.length}</span>
+      </button>
+      <div class="auf-week-body"${open ? '' : ' style="display:none"'}>${items.map(aufCardHTML).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAufWeek(gid) {
+  const cur = window._aufOpenGroups[gid];
+  // Standardzustand ermitteln, damit der erste Klick immer umschaltet
+  const parts = gid.split('|');
+  const now = isoWeek(new Date());
+  const istAktuell = parts[1] === (now.year + '-' + String(now.week).padStart(2, '0'));
+  const def = (parts[0] !== 'erledigt') && istAktuell;
+  window._aufOpenGroups[gid] = (cur === undefined) ? !def : !cur;
+  renderAuftraege();
 }
 
 function aufCardHTML(a) {
@@ -2778,6 +2865,26 @@ function openAuftragDetail(id) {
     ? '<span style="color:var(--red);font-weight:700">Hoch</span>' : 'Normal';
   document.getElementById('auf-d-date').textContent = a.erstellt_am
     ? new Date(a.erstellt_am).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  // Wunschdatum: farblich hervorheben, wenn überfällig oder in den nächsten Tagen fällig
+  const wWrap = document.getElementById('auf-d-wunsch-wrap');
+  const wEl = document.getElementById('auf-d-wunsch');
+  if (wWrap && wEl) {
+    if (a.wunschdatum && a.status !== 'erledigt') {
+      const d = new Date(a.wunschdatum); d.setHours(0,0,0,0);
+      const t0 = new Date(); t0.setHours(0,0,0,0);
+      const diff = Math.round((d - t0) / 864e5);
+      const txt = d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const zusatz = diff < 0 ? ' · überfällig' : diff === 0 ? ' · heute' : diff === 1 ? ' · morgen' : ' · in ' + diff + ' Tagen';
+      const farbe = diff < 0 ? 'var(--red)' : diff <= 2 ? 'var(--amber)' : 'var(--text)';
+      wEl.innerHTML = '<span style="color:' + farbe + ';font-weight:' + (diff <= 2 ? '700' : '500') + '">' + txt + zusatz + '</span>';
+      wWrap.style.display = '';
+    } else if (a.wunschdatum) {
+      wEl.textContent = new Date(a.wunschdatum).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+      wWrap.style.display = '';
+    } else {
+      wWrap.style.display = 'none';
+    }
+  }
   // Status-Buttons
   document.querySelectorAll('.auf-status-btn').forEach(b => {
     b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
