@@ -1059,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 08:22';
+const BUILD_STAMP = '2026-08-21 09:19';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2822,13 +2822,25 @@ function closeAuftragDetail() {
 // zum manuellen Umschalten behandelt werden.
 async function syncAuftragToApps(auftrag, status) {
   if (!auftrag) return;
-  const linked = Array.isArray(auftrag.apps) ? auftrag.apps : [];
+  // Sammelauftrag: Liste in auftrag.apps (mit app_id).
+  // Einzelauftrag: keine Liste, die App steckt nur als Name in auftrag.app_name.
+  let linked = Array.isArray(auftrag.apps) ? auftrag.apps.slice() : [];
+  if (!linked.length && auftrag.app_name) linked = [{ name: auftrag.app_name }];
   if (!linked.length) return;
   const wantRunning = (status === 'in_arbeit');
-  const changed = [], skipped = [], missingTicket = [];
+  const changed = [], skipped = [], missingTicket = [], notFound = [];
   for (const l of linked) {
-    const idx = apps.findIndex(x => String(x.id) === String(l.app_id) || String(x._dbId) === String(l.app_id));
-    if (idx < 0) continue;
+    let idx = -1;
+    if (l.app_id) {
+      idx = apps.findIndex(x => String(x.id) === String(l.app_id) || String(x._dbId) === String(l.app_id));
+    }
+    if (idx < 0 && l.name) {
+      // Namensabgleich tolerant: Groß-/Kleinschreibung und Mehrfach-Leerzeichen egal
+      const norm = v => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      const n = norm(l.name);
+      idx = apps.findIndex(x => norm(x.name) === n);
+    }
+    if (idx < 0) { notFound.push(l.name || l.app_id); continue; }
     const a = apps[idx];
     if (a.gekuendigt || a.blockiert) continue;              // gekündigte/blockierte nicht anfassen
     if (status === 'offen') continue;                        // "offen" ändert nichts an den Apps
@@ -2860,6 +2872,9 @@ async function syncAuftragToApps(auftrag, status) {
     }
     if (missingTicket.length) {
       toastWarn('Auftrag hat keine Zendesk-Nr — Apps starten ohne Ticket');
+    }
+    if (notFound.length) {
+      toastWarn('Im CRM nicht gefunden: ' + notFound.join(', '));
     }
   }
 }
