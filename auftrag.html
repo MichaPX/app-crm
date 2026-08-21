@@ -643,26 +643,32 @@
   }
   function buildSummary(apps, plattform, aufgaben, ticket, prioritaet, info, wunschdatum){
     const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
-    const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
     const prioText = prioritaet === 'hoch' ? 'Hoch' : 'Normal';
     let txt = '';
-    if (apps.length === 1){
-      txt += 'App: ' + apps[0].name + '\n';
-      if (apps[0].pegasus) txt += 'Pegasus: ' + apps[0].pegasus + '\n';
-    } else {
-      txt += 'Apps (' + apps.length + '):\n';
-      apps.forEach(a => {
-        txt += '• ' + a.name + (a.pegasus ? '\n  ' + a.pegasus : '') + '\n';
-      });
-    }
-    txt += 'Plattform: ' + platText + '\n';
-    txt += 'Ticket: #' + ticket + '\n';
-    txt += 'Priorität: ' + prioText + '\n';
-    if (wunschdatum) txt += 'Bearbeitung bis: ' + fmtDatum(wunschdatum) + '\n';
-    txt += '\nAufgaben:\n' + aufgabenText + '\n';
+
+    // Kopfzeilen
+    if (ZIEL_VERSION) txt += 'Zielversion ' + ZIEL_VERSION + '\n';
+    let kopf = 'Update an Produktion weitergeleitet / Priorität: ' + prioText;
+    if (wunschdatum) kopf += ' / Bearbeitung bis: ' + fmtDatum(wunschdatum);
+    txt += kopf + '\n';
+
+    // App-Liste, je App mit eigener Plattform-Angabe
+    txt += 'Apps Insgesamt (' + apps.length + ')\n';
+    apps.forEach(a => {
+      // Plattform der App: aus ihren Store-Links, sonst die gewählte Auswahl
+      let apps_plat = [];
+      if (a.apple) apps_plat.push(PLAT_LABELS.apple);
+      if (a.google) apps_plat.push(PLAT_LABELS.google);
+      if (!apps_plat.length) apps_plat = plattform.map(p => PLAT_LABELS[p] || p);
+      txt += '• ' + a.name + '\n';
+      txt += 'Plattform: ' + apps_plat.join(', ') + '\n';
+      if (a.pegasus) txt += a.pegasus + '\n';
+    });
+
+    txt += 'Update für das Ticket #' + String(ticket).replace(/[^0-9]/g, '') + '\n';
+    txt += 'Aufgaben:\n' + aufgabenText + '\n';
     if (info) txt += '\nInfo:\n' + info + '\n';
-    txt += '\nUpdate an Produktion weitergeleitet'
-        + (ZIEL_VERSION ? ' — Zielversion ' + ZIEL_VERSION : '') + '\n';
+
     document.getElementById('summaryText').textContent = txt;
   }
 
