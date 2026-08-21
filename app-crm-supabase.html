@@ -1059,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-20 13:42';
+const BUILD_STAMP = '2026-08-21 05:31';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1712,8 +1712,9 @@ async function loadZielVersion() {
   } catch(e) { ZIEL_VERSION = ''; }
   const el = document.getElementById('ziel-version-badge');
   if (el) el.textContent = ZIEL_VERSION || '—';
-  // Panel neu aufbauen, falls Apps schon geladen sind (Zielversion beeinflusst "Braucht Aufmerksamkeit")
-  if (typeof apps !== 'undefined' && apps.length) renderAttention();
+  // Panels und Karten neu aufbauen, falls Apps schon geladen sind
+  // (Zielversion beeinflusst "Braucht Aufmerksamkeit" und die "Update auf X"-Notiz auf den Karten)
+  if (typeof apps !== 'undefined' && apps.length) { renderAttention(); render(); }
 }
 async function setZielVersion() {
   const val = prompt('Zielversion für abgeschlossene Updates (z. B. 5.4.3):', ZIEL_VERSION || '');
@@ -1725,6 +1726,7 @@ async function setZielVersion() {
   const el = document.getElementById('ziel-version-badge');
   if (el) el.textContent = ZIEL_VERSION || '—';
   renderAttention();
+  render();   // "Update auf X"-Notizen auf den Karten aktualisieren
   toast(clean ? ('Zielversion: ' + clean + ' ✓') : 'Zielversion geleert');
 }
 
@@ -2061,11 +2063,14 @@ function render() {
   const grid=document.getElementById('grid');
   if(!list.length){grid.innerHTML='<div class="empty"><i class="ti ti-device-mobile-off"></i><p>Keine Apps gefunden — Filter anpassen oder zurücksetzen.</p></div>';return;}
 
-  // Neueste Version im Bestand (für "Update auf X"-Notizen)
-  let maxVer='';
-  apps.forEach(x=>{[x.vApple,x.vGoogle].forEach(v=>{
-    if(v&&/^\d+\.\d+/.test(v)&&cmpV(v,maxVer,1)>0) maxVer=v;
-  });});
+  // Zielversion für "Update auf X"-Notizen: gesetzte Zielversion hat Vorrang,
+  // sonst als Rückfall die höchste Version im Bestand
+  let maxVer = (typeof ZIEL_VERSION !== 'undefined' && ZIEL_VERSION) ? ZIEL_VERSION : '';
+  if(!maxVer){
+    apps.forEach(x=>{[x.vApple,x.vGoogle].forEach(v=>{
+      if(v&&/^\d+\.\d+/.test(v)&&cmpV(v,maxVer,1)>0) maxVer=v;
+    });});
+  }
 
   let html_prefix='';
   const runningMode = (fst==='imUpdate');   // durchgehendes Raster, keine Gruppen
