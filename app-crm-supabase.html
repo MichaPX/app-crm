@@ -348,6 +348,13 @@
   .mtab:hover:not(.active) { color: var(--text); }
   .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin-top: 18px; }
   .kv-stack .kv-row { grid-template-columns: 150px 1fr; }
+  .modal-detail { max-width: 900px; }
+  /* Ab genügend Breite die Feldblöcke nebeneinander, sonst weiter untereinander */
+  @media (min-width: 900px) {
+    .modal-detail .kv-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 0 34px; align-items: start; }
+    .modal-detail .kv-stack > div { margin-top: 0 !important; }
+    .modal-detail .org-list { max-height: 230px; }
+  }
   .kv-col-title, .sec-head {
     font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--muted);
@@ -568,6 +575,19 @@
     border-radius: 10px; padding: 1px 6px; font-size: 10px; letter-spacing: 0;
   }
   .auf-week-body { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .auf-app-actions { margin-left: auto; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .auf-app-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid var(--border); background: var(--card); color: var(--text2);
+    border-radius: 7px; padding: 3px 9px; font-size: 11px; font-weight: 600;
+    font-family: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .auf-app-btn:hover { background: var(--slate-soft); }
+  .auf-app-btn.upd:hover { border-color: var(--teal); color: #0f766e; }
+  .auf-app-btn.upd.on { border-color: var(--teal); background: var(--teal-soft); color: #0f766e; }
+  .auf-app-btn.done:hover { border-color: var(--green); color: var(--green); }
+  .auf-app-btn.undo { padding: 3px 7px; color: var(--muted); }
+  .auf-app-status { font-size: 11px; font-weight: 600; color: var(--green); display: inline-flex; align-items: center; gap: 4px; }
   .attn-bar-inner {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     background: var(--indigo-soft); border: 1px solid #d5d8fb;
@@ -1105,7 +1125,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 12:19';
+const BUILD_STAMP = '2026-08-21 17:45';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2911,10 +2931,22 @@ function renderAuftragAppList(a) {
     const peg = app.pegasus
       ? `<a class="peg" href="${app.pegasus}" target="_blank" onclick="event.stopPropagation()" title="Pegasus öffnen"><i class="ti ti-external-link"></i></a>`
       : '';
+    // Läuft für diese App im CRM gerade ein Update?
+    const crmApp = findCrmApp(app);
+    const laeuft = !!(crmApp && crmApp.imUpdate);
+    const btns = app.done
+      ? `<span class="auf-app-status"><i class="ti ti-check"></i> erledigt</span>
+         <button type="button" class="auf-app-btn undo" title="Häkchen entfernen" onclick="setAuftragAppDone(${i}, false)"><i class="ti ti-arrow-back-up"></i></button>`
+      : `<button type="button" class="auf-app-btn upd${laeuft ? ' on' : ''}" onclick="startAuftragAppUpdate(${i})" title="${laeuft ? 'Update läuft bereits' : 'Update für diese App starten'}">
+           <i class="ti ti-refresh"></i> ${laeuft ? 'läuft' : 'Update'}
+         </button>
+         <button type="button" class="auf-app-btn done" onclick="setAuftragAppDone(${i}, true)" title="Update abschließen und abhaken">
+           <i class="ti ti-check"></i> Erledigt
+         </button>`;
     return `<div class="auf-appitem ${app.done ? 'done' : ''}">
-      <span class="chk" onclick="toggleAuftragApp(${i})"><i class="ti ti-check"></i></span>
       <span class="nm">${(app.name || '').replace(/</g, '&lt;')}</span>
       ${peg}
+      <span class="auf-app-actions">${btns}</span>
     </div>`;
   }).join('');
 }
@@ -2965,33 +2997,91 @@ function renderAuftragOrgHint(a) {
 }
 
 // Einzelne App im Sammelauftrag ab-/anhaken; Gesamtstatus automatisch ableiten
-async function toggleAuftragApp(index) {
+// Findet die CRM-App zu einem Auftrags-Eintrag (Pegasus-ID zuerst, dann Name)
+function findCrmApp(entry) {
+  if (!entry || typeof apps === 'undefined') return null;
+  if (entry.pegasus) {
+    const pid = pegasusPubId(entry.pegasus);
+    if (pid) {
+      const hit = apps.find(x => pegasusPubId(x.pegasus) === pid);
+      if (hit) return hit;
+    }
+  }
+  if (entry.name) {
+    const norm = v => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return apps.find(x => norm(x.name) === norm(entry.name)) || null;
+  }
+  return null;
+}
+
+// "Update"-Knopf: nur diese eine App im CRM auf "Update läuft" setzen
+async function startAuftragAppUpdate(index) {
   if (!_aufCurrent) return;
-  const apps = Array.isArray(_aufCurrent.apps) ? _aufCurrent.apps.slice() : [];
-  if (!apps[index]) return;
-  apps[index] = { ...apps[index], done: !apps[index].done };
-  const doneCount = apps.filter(x => x.done).length;
+  const list = Array.isArray(_aufCurrent.apps) ? _aufCurrent.apps : [];
+  const entry = list[index];
+  if (!entry) return;
+  const crmApp = findCrmApp(entry);
+  if (!crmApp) { toastWarn('Im CRM nicht gefunden: ' + (entry.name || '—')); return; }
+  if (crmApp.imUpdate) { toast('Update läuft bereits'); return; }
+  await syncAuftragToApps({ apps: [entry], zendesk_nr: _aufCurrent.zendesk_nr }, 'in_arbeit');
+  // Auftrag auf "In Arbeit" heben, sobald die erste App gestartet wurde
+  if (_aufCurrent.status === 'offen') {
+    try {
+      await sbFetch('auftraege?id=eq.' + _aufCurrent.id, {
+        method: 'PATCH', body: JSON.stringify({ status: 'in_arbeit' }), prefer: ''
+      });
+      _aufCurrent.status = 'in_arbeit';
+      const i = _aufData.findIndex(x => x.id === _aufCurrent.id);
+      if (i >= 0) _aufData[i] = { ..._aufData[i], status: 'in_arbeit' };
+      renderAuftraege(); loadAuftragBadge();
+      document.querySelectorAll('.auf-status-btn').forEach(b => {
+        b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
+        if (b.dataset.status === 'in_arbeit') b.classList.add('sel-arbeit');
+      });
+    } catch (e) { console.error(e); }
+  }
+  renderAuftragAppList(_aufCurrent);
+  render();
+}
+
+// "Erledigt"-Knopf bzw. Häkchen zurücknehmen
+async function setAuftragAppDone(index, done) {
+  if (!_aufCurrent) return;
+  const list = Array.isArray(_aufCurrent.apps) ? _aufCurrent.apps.slice() : [];
+  if (!list[index]) return;
+  const entry = list[index];
+  list[index] = { ...entry, done: !!done };
+  const doneCount = list.filter(x => x.done).length;
   // Gesamtstatus ableiten
   let status;
   if (doneCount === 0) status = 'offen';
-  else if (doneCount === apps.length) status = 'erledigt';
+  else if (doneCount === list.length) status = 'erledigt';
   else status = 'in_arbeit';
-  const patch = { apps, status, erledigt_am: (status === 'erledigt') ? new Date().toISOString() : null };
+
+  const patch = { apps: list, status };
+  if (status === 'erledigt') patch.erledigt_am = new Date().toISOString();
   try {
     await sbFetch('auftraege?id=eq.' + _aufCurrent.id, { method: 'PATCH', body: JSON.stringify(patch), prefer: '' });
-    _aufCurrent.apps = apps; _aufCurrent.status = status; _aufCurrent.erledigt_am = patch.erledigt_am;
+    _aufCurrent.apps = list;
+    _aufCurrent.status = status;
+    if (patch.erledigt_am) _aufCurrent.erledigt_am = patch.erledigt_am;
+    const i = _aufData.findIndex(x => x.id === _aufCurrent.id);
+    if (i >= 0) _aufData[i] = { ..._aufData[i], ...patch };
     renderAuftragAppList(_aufCurrent);
-    // Status-Buttons spiegeln
     document.querySelectorAll('.auf-status-btn').forEach(b => {
       b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
-      if (b.dataset.s === status) b.classList.add(status === 'offen' ? 'sel-offen' : status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+      if (b.dataset.status === status) {
+        b.classList.add(status === 'offen' ? 'sel-offen' : status === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+      }
     });
     renderAuftraege();
     loadAuftragBadge();
-    // Nur die eine App mitziehen, die gerade abgehakt/wieder geöffnet wurde
-    const one = { apps: [apps[index]], zendesk_nr: _aufCurrent.zendesk_nr };
-    await syncAuftragToApps(one, apps[index].done ? 'erledigt' : 'in_arbeit');
-    render();
+    // Nur beim Abhaken das laufende Update im CRM abschließen
+    if (done) {
+      await syncAuftragToApps({ apps: [entry], zendesk_nr: _aufCurrent.zendesk_nr }, 'erledigt');
+      renderAuftragAppList(_aufCurrent);
+      render();
+    }
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
 function closeAuftragDetail() {
@@ -3285,7 +3375,7 @@ function openDetail(id){
   </div>`:'';
 
   document.getElementById('mc').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeMod()">
-  <div class="modal">
+  <div class="modal modal-detail">
     <div class="modal-top">
       <div style="min-width:0">
         <h3>${a.name}</h3>
