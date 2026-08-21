@@ -45,7 +45,7 @@
     margin-bottom:7px;text-transform:uppercase;letter-spacing:.03em;}
   .field-hint{font-size:11.5px;color:var(--muted);margin-top:5px;}
 
-  input[type=text],input[type=password],textarea,.app-search-input{
+  input[type=text],input[type=password],input[type=date],textarea,.app-search-input{
     width:100%;border:1px solid var(--border);border-radius:10px;
     padding:11px 13px;font-size:14.5px;outline:none;font-family:inherit;
     color:var(--text);background:var(--card);transition:border-color .15s;
@@ -82,6 +82,11 @@
   .org-suggest-all{margin-top:7px;border:none;background:transparent;color:#0f766e;font-size:11.5px;
     font-weight:600;cursor:pointer;font-family:inherit;padding:0;}
   .org-suggest-all:hover{text-decoration:underline;}
+  .app-result-sep{padding:7px 13px;font-size:11px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:#0f766e;background:#f2fbf9;border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+  .app-result-row .org-hit{font-size:10.5px;font-weight:600;color:#0f766e;background:#e3f6f3;
+    border-radius:5px;padding:1px 7px;margin-left:6px;}
 
   .task-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .task-opt{display:flex;align-items:center;gap:8px;border:1px solid var(--border);
@@ -203,7 +208,7 @@
         <div class="form-col">
           <div class="field">
             <label>Apps auswählen <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)">(mehrere möglich)</span></label>
-            <input type="text" class="app-search-input" id="appSearch" placeholder="App-Name suchen und hinzufügen…" autocomplete="off" oninput="onSearchInput()">
+            <input type="text" class="app-search-input" id="appSearch" placeholder="App, Kunde oder Organisations-Nr. suchen…" autocomplete="off" oninput="onSearchInput()">
             <div class="app-results" id="appResults"></div>
             <div class="app-picked-list" id="appPickedList"></div>
             <div class="org-suggest" id="orgSuggest" style="display:none"></div>
@@ -222,6 +227,12 @@
             <label>Zendesk-Ticketnummer <span style="color:var(--red)">*</span></label>
             <input type="text" id="ticketInput" placeholder="z.B. 48213 oder kompletter Link">
             <div class="field-hint">Pflichtfeld – Nummer oder Link.</div>
+          </div>
+
+          <div class="field">
+            <label>Gewünschte Bearbeitung bis</label>
+            <input type="date" id="wunschInput">
+            <div class="field-hint">Optional – bis wann sollte der Auftrag erledigt sein?</div>
           </div>
 
           <div class="field">
@@ -337,6 +348,15 @@
     return t ? JSON.parse(t) : null;
   }
 
+  // ═══════════════ Aktuelle Zielversion (für die Zusammenfassung) ═══════════════
+  let ZIEL_VERSION = '';
+  (async () => {
+    try {
+      const r = await sbAnon('rpc/aktuelle_zielversion', { method:'POST', prefer:'', body: '{}' });
+      ZIEL_VERSION = (typeof r === 'string') ? r : (r && r[0] ? (r[0].value || r[0].ziel_version || '') : '');
+    } catch(e) { ZIEL_VERSION = ''; }   // ohne Zielversion bleibt die Zeile einfach weg
+  })();
+
   // ═══════════════ App-Suche (über sichere RPC) ═══════════════
   let searchTimer = null, pickedApps = [];
 
@@ -354,18 +374,39 @@
   async function runSearch(q){
     const box = document.getElementById('appResults');
     try {
-      const rows = await sbAnon('rpc/suche_apps', {
-        method:'POST', prefer:'', body: JSON.stringify({ suchbegriff: q })
-      }) || [];
-      if (!rows.length){ box.innerHTML = '<div class="app-loading">Keine App gefunden.</div>'; return; }
+      // Zwei Suchwege gleichzeitig: nach App-Name und nach Organisation (Nummer oder Kundenname)
+      const [appRows, orgRows] = await Promise.all([
+        sbAnon('rpc/suche_apps', { method:'POST', prefer:'', body: JSON.stringify({ suchbegriff: q }) })
+          .catch(() => []),
+        sbAnon('rpc/suche_organisation', { method:'POST', prefer:'', body: JSON.stringify({ suchbegriff: q }) })
+          .catch(() => [])   // Ohne die RPC funktioniert die normale Suche weiter
+      ]);
+
+      const rows = appRows || [];
+      const orgList = orgRows || [];
+      const appIds = new Set(rows.map(r => String(r.id)));
+      const orgOnly = orgList.filter(r => !appIds.has(String(r.id)));
+
+      if (!rows.length && !orgOnly.length){ box.innerHTML = '<div class="app-loading">Keine App gefunden.</div>'; return; }
       _searchResults = {};
-      box.innerHTML = rows.map(r => {
+
+      const rowHTML = (r, orgHint) => {
         _searchResults[r.id] = r;
         const stores = (r.apple_store?'<i class="ti ti-brand-apple"></i>':'') + (r.google_store?'<i class="ti ti-brand-android"></i>':'');
         const already = pickedApps.some(a => a.id === r.id);
         return `<div class="app-result-row" onclick='pickApp(${r.id})' style="${already?'opacity:.45;pointer-events:none':''}">
-          <i class="ti ti-apps"></i> ${(r.name||'').replace(/</g,'&lt;')} <span class="stores">${stores}${already?' <i class=\"ti ti-check\"></i>':''}</span></div>`;
-      }).join('');
+          <i class="ti ti-apps"></i> ${(r.name||'').replace(/</g,'&lt;')}
+          ${orgHint ? `<span class="org-hit">${orgHint}</span>` : ''}
+          <span class="stores">${stores}${already?' <i class=\"ti ti-check\"></i>':''}</span></div>`;
+      };
+
+      let html = rows.map(r => rowHTML(r, '')).join('');
+      if (orgOnly.length){
+        const orgName = orgOnly[0].company || ('Organisation ' + (pegasusOrgId(orgOnly[0].pegasus) || q));
+        html += `<div class="app-result-sep"><i class="ti ti-building"></i> ${String(orgName).replace(/</g,'&lt;')} · ${orgOnly.length} weitere App${orgOnly.length!==1?'s':''}</div>`
+             +  orgOnly.map(r => rowHTML(r, 'Kunde')).join('');
+      }
+      box.innerHTML = html;
     } catch(e){
       box.innerHTML = '<div class="app-loading" style="color:var(--red)">Suche fehlgeschlagen.</div>';
       console.error(e);
@@ -576,11 +617,12 @@
           zendesk_nr: ticket,
           info: document.getElementById('infoInput').value.trim(),
           prioritaet: prio,
+          wunschdatum: document.getElementById('wunschInput').value || null,
           status: 'offen'
         })
       });
       // Zusammenfassung für Zendesk bauen
-      buildSummary(pickedApps, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim());
+      buildSummary(pickedApps, plattform, aufgaben, ticket, prio, document.getElementById('infoInput').value.trim(), document.getElementById('wunschInput').value);
 
       document.getElementById('formView').style.display='none';
       document.getElementById('successView').classList.add('open');
@@ -594,7 +636,12 @@
 
   // ═══════════════ Zusammenfassung für Zendesk ═══════════════
   const PLAT_LABELS = { apple: 'Apple', google: 'Google' };
-  function buildSummary(apps, plattform, aufgaben, ticket, prioritaet, info){
+  function fmtDatum(iso){
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+  function buildSummary(apps, plattform, aufgaben, ticket, prioritaet, info, wunschdatum){
     const aufgabenText = aufgaben.map(k => '• ' + (TASK_LABELS[k] || k)).join('\n');
     const platText = plattform.map(p => PLAT_LABELS[p] || p).join(', ');
     const prioText = prioritaet === 'hoch' ? 'Hoch' : 'Normal';
@@ -611,8 +658,11 @@
     txt += 'Plattform: ' + platText + '\n';
     txt += 'Ticket: #' + ticket + '\n';
     txt += 'Priorität: ' + prioText + '\n';
+    if (wunschdatum) txt += 'Bearbeitung bis: ' + fmtDatum(wunschdatum) + '\n';
     txt += '\nAufgaben:\n' + aufgabenText + '\n';
     if (info) txt += '\nInfo:\n' + info + '\n';
+    txt += '\nUpdate an Produktion weitergeleitet'
+        + (ZIEL_VERSION ? ' — Zielversion ' + ZIEL_VERSION : '') + '\n';
     document.getElementById('summaryText').textContent = txt;
   }
 
@@ -646,6 +696,7 @@
     renderPlats();
     document.getElementById('appSearch').value='';
     document.getElementById('ticketInput').value='';
+    document.getElementById('wunschInput').value='';
     document.getElementById('infoInput').value='';
     hideError();
     document.querySelectorAll('.task-opt input').forEach(i=>{i.checked=false;i.closest('.task-opt').classList.remove('checked');});
