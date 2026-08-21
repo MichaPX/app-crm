@@ -537,6 +537,16 @@
   .panel-head .chart-title { margin-bottom: 0; }
   .panel-link { border: none; background: transparent; color: var(--indigo); font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
   #attn-bar { display: none; margin-bottom: 14px; }
+  #org-bar { display: none; margin-bottom: 14px; }
+  .org-bar-inner {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: #f2fbf9; border: 1px solid #c8e8e4;
+    border-radius: 10px; padding: 9px 12px;
+  }
+  .org-bar-title { font-size: 12.5px; font-weight: 700; color: #0f766e; display: inline-flex; align-items: center; gap: 6px; }
+  .org-bar-meta { font-size: 11.5px; color: var(--text2); }
+  .org-bar-id { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--card); border-radius: 5px; padding: 2px 7px; }
+  .org-bar-inner .attn-bar-close { color: #0f766e; }
   .attn-bar-inner {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     background: var(--indigo-soft); border: 1px solid #d5d8fb;
@@ -645,6 +655,15 @@
   .recent-mini-sel:focus { border-color: var(--indigo); }
   .recent-empty { font-size: 11.5px; color: var(--muted); padding: 8px 2px 2px; display: flex; align-items: center; gap: 6px; }
   .recent-scroll { max-height: 210px; overflow-y: auto; margin-right: -4px; padding-right: 4px; }
+  .org-list { display: flex; flex-direction: column; gap: 2px; max-height: 190px; overflow-y: auto; }
+  .org-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; margin: 0 -8px; border-radius: 7px;
+    cursor: pointer; font-size: 12px; transition: background .12s;
+  }
+  .org-item:hover { background: var(--slate-soft); }
+  .org-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .org-ver { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
   .recent-scroll::-webkit-scrollbar { width: 6px; }
   .recent-scroll::-webkit-scrollbar-thumb { background: #d5d8e0; border-radius: 3px; }
   .modal-list-wrap .recent-head { border-top: none; margin-top: 0; padding-top: 0; }
@@ -891,6 +910,10 @@
             <div class="auf-d-label">Info</div>
             <div class="auf-d-info" id="auf-d-info"></div>
           </div>
+          <div id="auf-d-org-wrap" style="display:none">
+            <div class="auf-d-label">Weitere Apps dieses Kunden</div>
+            <div id="auf-d-org"></div>
+          </div>
           <div class="auf-d-meta">
             <div class="mi"><b>Ticket</b><span id="auf-d-ticket"></span></div>
             <div class="mi"><b>Priorität</b><span id="auf-d-prio"></span></div>
@@ -1051,6 +1074,7 @@
     <div id="kuendigung-banner"></div>
     <div id="prodids-banner"></div>
     <div id="attn-bar"></div>
+    <div id="org-bar"></div>
     <div class="grid" id="grid"></div>
   </div>
 </div>
@@ -1059,7 +1083,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 09:19';
+const BUILD_STAMP = '2026-08-21 11:24';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2027,6 +2051,9 @@ function render() {
     if(fst==='Offen'&&(a.updateStatus==='Fertig'||a.updateStatus==='In Arbeit'||a.blockiert)) return false;
     if(fst==='Gekündigt'&&(!a.gekuendigt||a.blockiert)) return false;
     if(fst==='imUpdate'&&!a.imUpdate) return false;
+    if(window._orgFilter){
+      if(pegasusOrgId(a.pegasus) !== String(window._orgFilter)) return false;
+    }
     if(window._attnFilter){
       if(a.gekuendigt || a.imUpdate) return false;
       const yr = String(a.year||'');
@@ -2082,6 +2109,7 @@ function render() {
     return da.localeCompare(db);
   });
   renderAttnBar();
+  renderOrgBar();
   const total=apps.length;
   document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
   updateDashboard();
@@ -2220,6 +2248,7 @@ function render() {
 function clearF(){
   window._attnFilter=false;
   window._attnCat=null;
+  window._orgFilter=null;
   window._featFilter=null;
   document.getElementById('search').value='';
   document.getElementById('search-company').value='';
@@ -2737,6 +2766,7 @@ function openAuftragDetail(id) {
   document.getElementById('auf-d-stores').innerHTML = aufStoreIcons(a.plattform);
   // App-Liste (nur bei Sammelauftrag)
   renderAuftragAppList(a);
+  renderAuftragOrgHint(a);
   document.getElementById('auf-d-chips').innerHTML =
     (a.aufgaben || []).map(k => `<span class="auf-chip">${AUF_TASK_LABELS[k] || k}</span>`).join('') || '<span style="color:var(--muted);font-size:12px">—</span>';
   const infoWrap = document.getElementById('auf-d-info-wrap');
@@ -2782,6 +2812,51 @@ function renderAuftragAppList(a) {
   }).join('');
 }
 
+// Zeigt Apps derselben Organisation, die (noch) nicht im Auftrag stehen –
+// hilfreich, um beim Sammelauftrag nichts zu übersehen.
+function renderAuftragOrgHint(a) {
+  const wrap = document.getElementById('auf-d-org-wrap');
+  const box = document.getElementById('auf-d-org');
+  if (!wrap || !box) return;
+  const linked = Array.isArray(a.apps) && a.apps.length
+    ? a.apps.slice()
+    : ((a.app_name || a.pegasus) ? [{ name: a.app_name, pegasus: a.pegasus }] : []);
+  if (!linked.length || typeof apps === 'undefined' || !apps.length) { wrap.style.display = 'none'; return; }
+
+  // Organisationen der verknüpften Apps sammeln
+  const orgs = new Set();
+  const linkedPubs = new Set();
+  linked.forEach(l => {
+    let org = pegasusOrgId(l.pegasus);
+    let match = null;
+    if (l.pegasus) {
+      const pid = pegasusPubId(l.pegasus);
+      if (pid) match = apps.find(x => pegasusPubId(x.pegasus) === pid);
+    }
+    if (!match && l.name) {
+      const norm = v => String(v || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      match = apps.find(x => norm(x.name) === norm(l.name));
+    }
+    if (match) { org = org || pegasusOrgId(match.pegasus); linkedPubs.add(pegasusPubId(match.pegasus)); }
+    if (org) orgs.add(org);
+  });
+  if (!orgs.size) { wrap.style.display = 'none'; return; }
+
+  const others = apps.filter(x => orgs.has(pegasusOrgId(x.pegasus)) && !linkedPubs.has(pegasusPubId(x.pegasus)));
+  if (!others.length) { wrap.style.display = 'none'; return; }
+
+  box.innerHTML = `<div style="font-size:11px;color:var(--text3);margin-bottom:5px">
+      ${others.length} weitere App${others.length!==1?'s':''} bei ${[...orgs].map(orgLabel).join(', ')} — nicht Teil dieses Auftrags
+    </div>` +
+    others.slice(0, 8).map(x => `<div class="org-item" onclick="closeAuftragDetail();closeAuftraege();openDetail('${x.id}')">
+      <i class="ti ti-app-window" style="color:var(--indigo);font-size:12px"></i>
+      <span class="org-name">${x.name}</span>
+      <span class="org-ver">${x.vApple||'—'} / ${x.vGoogle||'—'}</span>
+    </div>`).join('') +
+    (others.length > 8 ? `<div style="font-size:11px;color:var(--muted);padding:4px 2px 0">+ ${others.length - 8} weitere</div>` : '');
+  wrap.style.display = 'block';
+}
+
 // Einzelne App im Sammelauftrag ab-/anhaken; Gesamtstatus automatisch ableiten
 async function toggleAuftragApp(index) {
   if (!_aufCurrent) return;
@@ -2817,6 +2892,33 @@ function closeAuftragDetail() {
   _aufCurrent = null;
 }
 
+// Publication-ID aus einem Pegasus-Link lesen (…/publications/9799 → "9799").
+// Stabiler Schlüssel für den Abgleich zwischen Auftrag und CRM-App.
+// Organisations-ID aus einem Pegasus-Link lesen (…/organizations/7434/… → "7434").
+// Apps mit gleicher Organisations-ID gehören zum selben Kunden/Verlag.
+function pegasusOrgId(url) {
+  const m = String(url || '').match(/\/organizations\/(\d+)/);
+  return m ? m[1] : '';
+}
+
+// Alle Apps derselben Organisation (ohne die App selbst)
+function orgSiblings(app) {
+  const org = pegasusOrgId(app && app.pegasus);
+  if (!org) return [];
+  return apps.filter(x => x !== app && pegasusOrgId(x.pegasus) === org);
+}
+
+// Anzeigename für eine Organisation: erste gepflegte Firma, sonst ID
+function orgLabel(orgId) {
+  const withCompany = apps.find(x => pegasusOrgId(x.pegasus) === String(orgId) && (x.company || '').trim());
+  return withCompany ? withCompany.company : ('Organisation ' + orgId);
+}
+
+function pegasusPubId(url) {
+  const m = String(url || '').match(/\/publications\/(\d+)/);
+  return m ? m[1] : '';
+}
+
 // Verknüpfte Apps eines Auftrags automatisch auf "Update läuft" setzen bzw. abschließen.
 // Nutzt bewusst toggleImUpdate, damit Datum, Zielversion, Changelog und Log identisch
 // zum manuellen Umschalten behandelt werden.
@@ -2825,7 +2927,7 @@ async function syncAuftragToApps(auftrag, status) {
   // Sammelauftrag: Liste in auftrag.apps (mit app_id).
   // Einzelauftrag: keine Liste, die App steckt nur als Name in auftrag.app_name.
   let linked = Array.isArray(auftrag.apps) ? auftrag.apps.slice() : [];
-  if (!linked.length && auftrag.app_name) linked = [{ name: auftrag.app_name }];
+  if (!linked.length && (auftrag.app_name || auftrag.pegasus)) linked = [{ name: auftrag.app_name, pegasus: auftrag.pegasus }];
   if (!linked.length) return;
   const wantRunning = (status === 'in_arbeit');
   const changed = [], skipped = [], missingTicket = [], notFound = [];
@@ -2833,6 +2935,11 @@ async function syncAuftragToApps(auftrag, status) {
     let idx = -1;
     if (l.app_id) {
       idx = apps.findIndex(x => String(x.id) === String(l.app_id) || String(x._dbId) === String(l.app_id));
+    }
+    // Zuverlässigster Weg: Publication-ID am Ende des Pegasus-Links (…/publications/9799)
+    if (idx < 0 && l.pegasus) {
+      const pid = pegasusPubId(l.pegasus);
+      if (pid) idx = apps.findIndex(x => pegasusPubId(x.pegasus) === pid);
     }
     if (idx < 0 && l.name) {
       // Namensabgleich tolerant: Groß-/Kleinschreibung und Mehrfach-Leerzeichen egal
@@ -3135,6 +3242,26 @@ function openDetail(id){
           <button class="zd-open" onclick="openZendesk(document.getElementById('detail-zendesk-nr').value)">Ticket öffnen ↗</button>
         </div>
       </div>
+
+      ${(() => {
+        const sib = orgSiblings(a);
+        if (!sib.length) return '';
+        const orgId = pegasusOrgId(a.pegasus);
+        const shown = sib.slice(0, 6);
+        return `<div class="link-group">
+          <div class="link-group-title">Weitere Apps dieses Kunden (${sib.length}) — ${orgLabel(orgId)}</div>
+          <div class="org-list">
+            ${shown.map(x => `<div class="org-item" onclick="closeMod();openDetail('${x.id}')" title="${(x.name||'').replace(/"/g,'&quot;')}">
+              <i class="ti ti-app-window" style="color:var(--indigo);font-size:12px"></i>
+              <span class="org-name">${x.name}</span>
+              <span class="org-ver">${x.vApple||'—'} / ${x.vGoogle||'—'}</span>
+            </div>`).join('')}
+          </div>
+          <div style="margin-top:6px"><button class="btn-secondary" style="padding:5px 11px;font-size:11.5px" onclick="closeMod();filterByOrg('${orgId}')">
+            <i class="ti ti-filter" style="font-size:12px"></i> Alle ${sib.length + 1} Apps dieses Kunden zeigen
+          </button></div>
+        </div>`;
+      })()}
 
       ${extLinks?`<div class="link-group">
         <div class="link-group-title">Externe Links</div>
@@ -3757,6 +3884,35 @@ function attentionItems(cat) {
 }
 
 // Kategorie-Leiste über den Karten (nur sichtbar, wenn der Aufmerksamkeits-Filter aktiv ist)
+// Kartenübersicht auf einen Kunden (Organisations-ID) filtern
+function filterByOrg(orgId) {
+  clearF();
+  window._orgFilter = String(orgId);
+  document.getElementById('f-sort').value = 'name-asc';
+  render();
+  const fb = document.querySelector('.filterbar');
+  if (fb) fb.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const n = apps.filter(x => pegasusOrgId(x.pegasus) === String(orgId)).length;
+  if (typeof toast === 'function') toast('Kunde: ' + orgLabel(orgId) + ' (' + n + ' Apps)');
+}
+
+// Kunden-Leiste über den Karten (nur sichtbar, wenn ein Kundenfilter aktiv ist)
+function renderOrgBar() {
+  const bar = document.getElementById('org-bar');
+  if (!bar) return;
+  if (!window._orgFilter) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const orgId = String(window._orgFilter);
+  const list = apps.filter(x => pegasusOrgId(x.pegasus) === orgId);
+  const alt = list.filter(x => { const v = [x.vApple, x.vGoogle].filter(Boolean); return v.length && ZIEL_VERSION && v.some(y => /^\d+\.\d+/.test(y) && cmpV(ZIEL_VERSION, y, 1) > 0); }).length;
+  bar.innerHTML = `<div class="org-bar-inner">
+    <span class="org-bar-title"><i class="ti ti-building" style="font-size:13px"></i> ${orgLabel(orgId)}</span>
+    <span class="org-bar-meta">${list.length} App${list.length!==1?'s':''}${alt ? ' · ' + alt + ' unter Zielversion' : ''}</span>
+    <span class="org-bar-id">Org-ID ${orgId}</span>
+    <button class="attn-bar-close" onclick="clearF();render()">✕ Filter aufheben</button>
+  </div>`;
+  bar.style.display = 'block';
+}
+
 function renderAttnBar() {
   const bar = document.getElementById('attn-bar');
   if (!bar) return;
