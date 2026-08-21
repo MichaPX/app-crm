@@ -1059,7 +1059,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-21 05:58';
+const BUILD_STAMP = '2026-08-21 08:22';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2806,11 +2806,62 @@ async function toggleAuftragApp(index) {
     });
     renderAuftraege();
     loadAuftragBadge();
+    // Nur die eine App mitziehen, die gerade abgehakt/wieder geöffnet wurde
+    const one = { apps: [apps[index]], zendesk_nr: _aufCurrent.zendesk_nr };
+    await syncAuftragToApps(one, apps[index].done ? 'erledigt' : 'in_arbeit');
+    render();
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
 function closeAuftragDetail() {
   document.getElementById('auf-detail-overlay').classList.remove('open');
   _aufCurrent = null;
+}
+
+// Verknüpfte Apps eines Auftrags automatisch auf "Update läuft" setzen bzw. abschließen.
+// Nutzt bewusst toggleImUpdate, damit Datum, Zielversion, Changelog und Log identisch
+// zum manuellen Umschalten behandelt werden.
+async function syncAuftragToApps(auftrag, status) {
+  if (!auftrag) return;
+  const linked = Array.isArray(auftrag.apps) ? auftrag.apps : [];
+  if (!linked.length) return;
+  const wantRunning = (status === 'in_arbeit');
+  const changed = [], skipped = [], missingTicket = [];
+  for (const l of linked) {
+    const idx = apps.findIndex(x => String(x.id) === String(l.app_id) || String(x._dbId) === String(l.app_id));
+    if (idx < 0) continue;
+    const a = apps[idx];
+    if (a.gekuendigt || a.blockiert) continue;              // gekündigte/blockierte nicht anfassen
+    if (status === 'offen') continue;                        // "offen" ändert nichts an den Apps
+    if (wantRunning && a.imUpdate) continue;                 // läuft bereits
+    if (!wantRunning && !a.imUpdate) continue;               // war gar nicht im Update
+    // Zendesk-Nummer kommt immer aus dem Auftrag (nach Abschluss wird sie ohnehin geleert)
+    if (wantRunning) {
+      const auftragZd = auftrag.zendesk_nr ? String(auftrag.zendesk_nr) : '';
+      if (!auftragZd) missingTicket.push(a.name);
+      a.zendeskNr = auftragZd;
+      const zf = document.getElementById('detail-zendesk-nr');
+      if (zf && document.getElementById('detail-imUpdate')) zf.value = auftragZd;
+    }
+    try {
+      await toggleImUpdate(a.id, wantRunning);
+      // toggleImUpdate bricht bei offenen Checklistenpunkten ab, ohne zu speichern –
+      // dann ist der Status unverändert und die App gilt als übersprungen
+      if (apps[idx].imUpdate === wantRunning) changed.push(a.name);
+      else skipped.push(a.name);
+    } catch (e) { console.warn('Sync fehlgeschlagen für', a.name, e); }
+  }
+  if (typeof toast === 'function') {
+    if (changed.length) {
+      const verb = wantRunning ? 'auf "Update läuft" gesetzt' : 'abgeschlossen';
+      toast(changed.length + ' App' + (changed.length !== 1 ? 's' : '') + ' ' + verb);
+    }
+    if (skipped.length) {
+      toastWarn(skipped.length + ' App' + (skipped.length !== 1 ? 's' : '') + ' übersprungen (offene Punkte): ' + skipped.join(', '));
+    }
+    if (missingTicket.length) {
+      toastWarn('Auftrag hat keine Zendesk-Nr — Apps starten ohne Ticket');
+    }
+  }
 }
 
 async function setAuftragStatus(status) {
@@ -2836,6 +2887,9 @@ async function setAuftragStatus(status) {
     renderAuftraege();
     loadAuftragBadge();
     if (typeof toast === 'function') toast('Status aktualisiert');
+    // Verknüpfte Apps mitziehen (Update läuft / abschließen)
+    await syncAuftragToApps(_aufCurrent, status);
+    render();
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
 
@@ -4230,7 +4284,8 @@ async function toggleImUpdate(id, checked) {
 
   // GENAU EIN Log-Eintrag pro Vorgang (Ticket wird mit hineingeschrieben,
   // damit die "Meiste Updates"-Statistik nicht doppelt zählt)
-  let zNr = zField ? zField.value.trim() : '';
+  // Ticketnummer: aus dem Detail-Feld, sonst aus der App (z. B. beim Sync über einen Auftrag)
+  let zNr = (zField && zField.value.trim()) ? zField.value.trim() : String(apps[idx].zendeskNr || '').trim();
   const ticketPart = zNr ? (' ' + (/^https?:/i.test(zNr) ? zNr : ('#' + zNr.replace(/[^0-9]/g,'')))) : '';
   try {
     await sbFetch('update_notizen_log', {
@@ -4244,6 +4299,14 @@ async function toggleImUpdate(id, checked) {
       prefer: ''
     });
   } catch(e) {}
+
+  // Nach Abschluss die Ticketnummer aus der App entfernen – das Ticket ist erledigt.
+  // Im Changelog-Eintrag oben bleibt sie erhalten und damit nachvollziehbar.
+  if (!checked) {
+    apps[idx].zendeskNr = '';
+    const zf = document.getElementById('detail-zendesk-nr');
+    if (zf) zf.value = '';
+  }
 
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
   try {
