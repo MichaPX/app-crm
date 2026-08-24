@@ -1125,7 +1125,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-24 11:44';
+const BUILD_STAMP = '2026-08-24 13:03';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3017,6 +3017,21 @@ function findCrmApp(entry) {
   return null;
 }
 
+// Auftragsstatus aus dem Zustand der einzelnen Apps ableiten:
+//  • alle abgehakt            → erledigt
+//  • jede App läuft oder ist abgehakt → in Arbeit
+//  • sonst (mind. eine noch unangetastet) → offen
+function deriveAuftragStatus(list) {
+  if (!Array.isArray(list) || !list.length) return 'offen';
+  if (list.every(x => x.done)) return 'erledigt';
+  const alleAngefasst = list.every(x => {
+    if (x.done) return true;
+    const crm = findCrmApp(x);
+    return !!(crm && crm.imUpdate);
+  });
+  return alleAngefasst ? 'in_arbeit' : 'offen';
+}
+
 // "Update"-Knopf: nur diese eine App im CRM auf "Update läuft" setzen
 async function startAuftragAppUpdate(index) {
   if (!_aufCurrent) return;
@@ -3027,19 +3042,22 @@ async function startAuftragAppUpdate(index) {
   if (!crmApp) { toastWarn('Im CRM nicht gefunden: ' + (entry.name || '—')); return; }
   if (crmApp.imUpdate) { toast('Update läuft bereits'); return; }
   await syncAuftragToApps({ apps: [entry], zendesk_nr: _aufCurrent.zendesk_nr }, 'in_arbeit');
-  // Auftrag auf "In Arbeit" heben, sobald die erste App gestartet wurde
-  if (_aufCurrent.status === 'offen') {
+  // Status neu ableiten: "In Arbeit" erst, wenn keine App mehr unangetastet ist
+  const neuerStatus = deriveAuftragStatus(list);
+  if (neuerStatus !== _aufCurrent.status) {
     try {
       await sbFetch('auftraege?id=eq.' + _aufCurrent.id, {
-        method: 'PATCH', body: JSON.stringify({ status: 'in_arbeit' }), prefer: ''
+        method: 'PATCH', body: JSON.stringify({ status: neuerStatus }), prefer: ''
       });
-      _aufCurrent.status = 'in_arbeit';
+      _aufCurrent.status = neuerStatus;
       const i = _aufData.findIndex(x => x.id === _aufCurrent.id);
-      if (i >= 0) _aufData[i] = { ..._aufData[i], status: 'in_arbeit' };
+      if (i >= 0) _aufData[i] = { ..._aufData[i], status: neuerStatus };
       renderAuftraege(); loadAuftragBadge();
       document.querySelectorAll('.auf-status-btn').forEach(b => {
         b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
-        if (b.dataset.status === 'in_arbeit') b.classList.add('sel-arbeit');
+        if (b.dataset.status === neuerStatus) {
+          b.classList.add(neuerStatus === 'offen' ? 'sel-offen' : neuerStatus === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+        }
       });
     } catch (e) { console.error(e); }
   }
@@ -3054,13 +3072,7 @@ async function setAuftragAppDone(index, done) {
   if (!list[index]) return;
   const entry = list[index];
   list[index] = { ...entry, done: !!done };
-  const doneCount = list.filter(x => x.done).length;
-  // Gesamtstatus ableiten
-  let status;
-  if (doneCount === 0) status = 'offen';
-  else if (doneCount === list.length) status = 'erledigt';
-  else status = 'in_arbeit';
-
+  const status = deriveAuftragStatus(list);
   const patch = { apps: list, status };
   if (status === 'erledigt') patch.erledigt_am = new Date().toISOString();
   try {
