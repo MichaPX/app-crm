@@ -1125,7 +1125,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-24 13:03';
+const BUILD_STAMP = '2026-08-24 13:33';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2877,6 +2877,7 @@ function openAuftragDetail(id) {
   // App-Liste (nur bei Sammelauftrag)
   renderAuftragAppList(a);
   renderAuftragOrgHint(a);
+  korrigiereAuftragStatus(a);
   document.getElementById('auf-d-chips').innerHTML =
     (a.aufgaben || []).map(k => `<span class="auf-chip">${AUF_TASK_LABELS[k] || k}</span>`).join('') || '<span style="color:var(--muted);font-size:12px">—</span>';
   const infoWrap = document.getElementById('auf-d-info-wrap');
@@ -3030,6 +3031,33 @@ function deriveAuftragStatus(list) {
     return !!(crm && crm.imUpdate);
   });
   return alleAngefasst ? 'in_arbeit' : 'offen';
+}
+
+// Beim Öffnen prüfen, ob der gespeicherte Status noch zum Zustand der Apps passt.
+// Nötig für Aufträge, die vor dieser Regel angelegt wurden. Manuell gesetzte
+// "Erledigt"-Aufträge bleiben unangetastet.
+async function korrigiereAuftragStatus(a) {
+  if (!a || !Array.isArray(a.apps) || !a.apps.length) return;
+  if (a.status === 'erledigt') return;
+  const soll = deriveAuftragStatus(a.apps);
+  if (soll === a.status) return;
+  try {
+    await sbFetch('auftraege?id=eq.' + a.id, {
+      method: 'PATCH', body: JSON.stringify({ status: soll }), prefer: ''
+    });
+    a.status = soll;
+    if (_aufCurrent && _aufCurrent.id === a.id) _aufCurrent.status = soll;
+    const i = _aufData.findIndex(x => x.id === a.id);
+    if (i >= 0) _aufData[i] = { ..._aufData[i], status: soll };
+    document.querySelectorAll('.auf-status-btn').forEach(b => {
+      b.classList.remove('sel-offen', 'sel-arbeit', 'sel-erledigt');
+      if (b.dataset.status === soll) {
+        b.classList.add(soll === 'offen' ? 'sel-offen' : soll === 'in_arbeit' ? 'sel-arbeit' : 'sel-erledigt');
+      }
+    });
+    renderAuftraege();
+    loadAuftragBadge();
+  } catch (e) { console.error(e); }
 }
 
 // "Update"-Knopf: nur diese eine App im CRM auf "Update läuft" setzen
