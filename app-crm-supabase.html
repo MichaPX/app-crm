@@ -554,27 +554,19 @@
   .org-bar-meta { font-size: 11.5px; color: var(--text2); }
   .org-bar-id { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--card); border-radius: 5px; padding: 2px 7px; }
   .org-bar-inner .attn-bar-close { color: #0f766e; }
-  .auf-week { margin-bottom: 6px; }
-  .auf-week-head {
-    width: 100%; display: flex; align-items: center; gap: 7px;
-    background: transparent; border: none; cursor: pointer; font-family: inherit;
-    padding: 5px 6px; margin: 0 -6px; border-radius: 7px;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-    color: var(--text3);
-  }
-  .auf-week-head:hover { background: var(--slate-soft); color: var(--text2); }
-  .auf-week-head .chev { font-size: 13px; transition: transform .15s; }
-  .auf-week-head.open .chev { transform: rotate(90deg); }
-  .auf-week-head .wk { flex: 1; text-align: left; }
-  .auf-week-head .wk-count {
-    background: var(--slate-soft); color: var(--text2);
-    border-radius: 10px; padding: 1px 7px; font-size: 10px; letter-spacing: 0;
-  }
-  .auf-week-head .wk-hoch {
-    background: var(--red-soft); color: #991b1b;
-    border-radius: 10px; padding: 1px 6px; font-size: 10px; letter-spacing: 0;
-  }
   .auf-week-body { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .auf-wk-sel {
+    margin-left: auto; font-family: inherit; font-size: 10.5px; font-weight: 600;
+    color: var(--text2); background: var(--card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 4px; cursor: pointer; outline: none; max-width: 150px;
+  }
+  .auf-wk-sel:focus { border-color: var(--indigo); }
+  .auf-col-head .auf-col-count { margin-left: 8px; }
+  .auf-wk-hint {
+    font-size: 11px; color: var(--indigo); font-weight: 600;
+    padding: 8px 2px 0; cursor: pointer; text-align: center;
+  }
+  .auf-wk-hint:hover { text-decoration: underline; }
   .auf-app-actions { margin-left: auto; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
   .auf-app-btn {
     display: inline-flex; align-items: center; gap: 4px;
@@ -1125,7 +1117,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-24 13:33';
+const BUILD_STAMP = '2026-08-25 12:47';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2760,7 +2752,10 @@ function renderAuftraege() {
       ? aufWeekGroupsHTML(list, c.key)
       : '<div class="auf-empty">Keine Aufträge</div>';
     return `<div class="auf-column">
-      <div class="auf-col-head ${c.cls}"><span class="dot"></span><h3>${c.label}</h3><span class="auf-col-count">${list.length}</span></div>
+      <div class="auf-col-head ${c.cls}"><span class="dot"></span><h3>${c.label}</h3>
+        ${aufWeekSelectHTML(list, c.key)}
+        <span class="auf-col-count">${list.length}</span>
+      </div>
       <div class="auf-cards">${body}</div>
     </div>`;
   }).join('');
@@ -2776,59 +2771,71 @@ function isoWeek(d) {
   return { week: Math.ceil((((t - jan1) / 864e5) + 1) / 7), year: t.getUTCFullYear() };
 }
 
-// Welche Gruppen sind aufgeklappt? Standard: aktuelle Woche offen, Erledigt komplett zu.
-window._aufOpenGroups = window._aufOpenGroups || {};
-
-function aufWeekGroupsHTML(list, colKey) {
-  const dateOf = a => (colKey === 'erledigt' && a.erledigt_am) ? a.erledigt_am : a.erstellt_am;
-  const now = isoWeek(new Date());
-  const groups = {};
-  list.forEach(a => {
-    const raw = dateOf(a);
-    const d = raw ? new Date(raw) : null;
-    const key = d && !isNaN(d) ? (() => { const w = isoWeek(d); return w.year + '-' + String(w.week).padStart(2, '0'); })() : 'ohne';
-    (groups[key] = groups[key] || []).push(a);
-  });
-  const keys = Object.keys(groups).sort((a, b) => b.localeCompare(a));   // neueste Woche zuerst
-
-  return keys.map(key => {
-    const items = groups[key];
-    let label, istAktuell = false;
-    if (key === 'ohne') {
-      label = 'Ohne Datum';
-    } else {
-      const [y, w] = key.split('-').map(Number);
-      istAktuell = (y === now.year && w === now.week);
-      const letzte = (y === now.year && w === now.week - 1);
-      label = 'KW ' + w + (istAktuell ? ' · diese Woche' : letzte ? ' · letzte Woche' : (y !== now.year ? ' / ' + y : ''));
-    }
-    const gid = colKey + '|' + key;
-    // Standard: aktuelle Woche offen, außer in der Erledigt-Spalte
-    const def = (colKey !== 'erledigt') && istAktuell;
-    const open = (window._aufOpenGroups[gid] === undefined) ? def : window._aufOpenGroups[gid];
-    const hoch = items.filter(x => x.prioritaet === 'hoch' && x.status !== 'erledigt').length;
-
-    return `<div class="auf-week">
-      <button type="button" class="auf-week-head${open ? ' open' : ''}" onclick="toggleAufWeek('${gid}')">
-        <i class="ti ti-chevron-right chev"></i>
-        <span class="wk">${label}</span>
-        ${hoch ? `<span class="wk-hoch" title="${hoch}× hohe Priorität">${hoch}!</span>` : ''}
-        <span class="wk-count">${items.length}</span>
-      </button>
-      <div class="auf-week-body"${open ? '' : ' style="display:none"'}>${items.map(aufCardHTML).join('')}</div>
-    </div>`;
-  }).join('');
+// Wochen-Schlüssel eines Auftrags (Erledigte nach Abschluss, sonst nach Eingang)
+function aufWeekKey(a, colKey) {
+  const raw = (colKey === 'erledigt' && a.erledigt_am) ? a.erledigt_am : a.erstellt_am;
+  const d = raw ? new Date(raw) : null;
+  if (!d || isNaN(d)) return 'ohne';
+  const w = isoWeek(d);
+  return w.year + '-' + String(w.week).padStart(2, '0');
 }
 
-function toggleAufWeek(gid) {
-  const cur = window._aufOpenGroups[gid];
-  // Standardzustand ermitteln, damit der erste Klick immer umschaltet
-  const parts = gid.split('|');
+function aufWeekLabel(key) {
+  if (key === 'ohne') return 'Ohne Datum';
   const now = isoWeek(new Date());
-  const istAktuell = parts[1] === (now.year + '-' + String(now.week).padStart(2, '0'));
-  const def = (parts[0] !== 'erledigt') && istAktuell;
-  window._aufOpenGroups[gid] = (cur === undefined) ? !def : !cur;
+  const [y, w] = key.split('-').map(Number);
+  if (y === now.year && w === now.week) return 'KW ' + w + ' · diese Woche';
+  if (y === now.year && w === now.week - 1) return 'KW ' + w + ' · letzte Woche';
+  return 'KW ' + w + (y !== now.year ? ' / ' + y : '');
+}
+
+// Welche Woche ist je Spalte ausgewählt? Standard: Erledigt kompakt auf diese Woche,
+// die übrigen Spalten zeigen alle Wochen.
+window._aufWeekSel = window._aufWeekSel || {};
+function aufWeekSelValue(colKey) {
+  if (window._aufWeekSel[colKey] !== undefined) return window._aufWeekSel[colKey];
+  if (colKey === 'erledigt') {
+    const now = isoWeek(new Date());
+    return now.year + '-' + String(now.week).padStart(2, '0');
+  }
+  return 'alle';
+}
+
+function aufWeekSelectHTML(list, colKey) {
+  const counts = {};
+  list.forEach(a => { const k = aufWeekKey(a, colKey); counts[k] = (counts[k] || 0) + 1; });
+  const keys = Object.keys(counts).sort((a, b) => b.localeCompare(a));
+  if (keys.length < 2) return '';           // bei nur einer Woche lohnt die Auswahl nicht
+  const sel = aufWeekSelValue(colKey);
+  const opts = ['<option value="alle"' + (sel === 'alle' ? ' selected' : '') + '>Alle Wochen (' + list.length + ')</option>']
+    .concat(keys.map(k => '<option value="' + k + '"' + (sel === k ? ' selected' : '') + '>' + aufWeekLabel(k) + ' (' + counts[k] + ')</option>'));
+  return '<select class="auf-wk-sel" onchange="setAufWeekSel(\'' + colKey + '\', this.value)">' + opts.join('') + '</select>';
+}
+
+function setAufWeekSel(colKey, val) {
+  window._aufWeekSel[colKey] = val;
   renderAuftraege();
+}
+
+function aufWeekGroupsHTML(list, colKey) {
+  const sel = aufWeekSelValue(colKey);
+  // Immer eine schlichte Kartenliste – die Woche wählt man oben im Dropdown.
+  // Neueste zuerst; Erledigte nach Abschlussdatum, sonst nach Eingang.
+  const zeit = a => (colKey === 'erledigt' && a.erledigt_am) ? a.erledigt_am : a.erstellt_am;
+  const sortiert = list.slice().sort((a, b) => String(zeit(b) || '').localeCompare(String(zeit(a) || '')));
+
+  if (sel === 'alle') {
+    return '<div class="auf-week-body">' + sortiert.map(aufCardHTML).join('') + '</div>';
+  }
+
+  const items = sortiert.filter(a => aufWeekKey(a, colKey) === sel);
+  const rest = list.length - items.length;
+  if (!items.length) {
+    return '<div class="auf-empty">Nichts in ' + aufWeekLabel(sel) + '</div>'
+         + '<div class="auf-wk-hint" onclick="setAufWeekSel(\'' + colKey + '\',\'alle\')">Alle Wochen anzeigen</div>';
+  }
+  return '<div class="auf-week-body">' + items.map(aufCardHTML).join('') + '</div>'
+       + (rest > 0 ? '<div class="auf-wk-hint" onclick="setAufWeekSel(\'' + colKey + '\',\'alle\')">+ ' + rest + ' weitere in anderen Wochen</div>' : '');
 }
 
 function aufCardHTML(a) {
