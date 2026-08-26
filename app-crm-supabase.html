@@ -1117,7 +1117,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-26 08:54';
+const BUILD_STAMP = '2026-08-26 09:29';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3171,12 +3171,19 @@ function pegasusPubId(url) {
 async function auftragAusAppAnlegen(app, zendeskNr) {
   const nr = String(zendeskNr || '').trim();
   if (!nr || !app) return;
-  // Kommt der Start aus einem bestehenden Auftrag, keinen zweiten erzeugen
-  if (window._skipAuftragCreate) return;
   try {
-    // Gibt es zu diesem Ticket schon einen Auftrag?
-    const vorhanden = await sbFetch('auftraege?zendesk_nr=eq.' + encodeURIComponent(nr) + '&select=id,app_name', { prefer: '' });
-    if (vorhanden && vorhanden.length) return;
+    // Gibt es zu diesem Ticket schon einen Auftrag? Vergleich über die reinen Ziffern,
+    // damit "#265796", "265796" und ein kompletter Link als dasselbe Ticket gelten.
+    const ziffern = nr.replace(/[^0-9]/g, '');
+    let vorhanden = [];
+    try {
+      const alle = await sbFetch('auftraege?select=id,zendesk_nr&status=neq.erledigt', { prefer: '' }) || [];
+      vorhanden = alle.filter(x => String(x.zendesk_nr || '').replace(/[^0-9]/g, '') === ziffern);
+    } catch (e) { console.warn('Prüfung auf bestehenden Auftrag fehlgeschlagen', e); }
+    if (vorhanden.length) {
+      if (typeof toast === 'function') toast('Auftrag zu Ticket #' + ziffern + ' existiert bereits');
+      return;
+    }
 
     const plattform = [];
     const tgt = app.updateTarget || 'beide';
@@ -3200,7 +3207,10 @@ async function auftragAusAppAnlegen(app, zendeskNr) {
     if (typeof loadAuftraege === 'function') loadAuftraege();
     else if (typeof loadAuftragBadge === 'function') loadAuftragBadge();
     if (typeof toast === 'function') toast('Auftrag zu Ticket #' + nr.replace(/[^0-9]/g, '') + ' angelegt');
-  } catch (e) { console.warn('Auftrag konnte nicht angelegt werden', e); }
+  } catch (e) {
+    console.warn('Auftrag konnte nicht angelegt werden', e);
+    if (typeof toastWarn === 'function') toastWarn('Auftrag nicht angelegt: ' + (e && e.message ? e.message : e));
+  }
 }
 
 // Verknüpfte Apps eines Auftrags automatisch auf "Update läuft" setzen bzw. abschließen.
@@ -3214,7 +3224,6 @@ async function syncAuftragToApps(auftrag, status) {
   if (!linked.length && (auftrag.app_name || auftrag.pegasus)) linked = [{ name: auftrag.app_name, pegasus: auftrag.pegasus }];
   if (!linked.length) return;
   const wantRunning = (status === 'in_arbeit');
-  window._skipAuftragCreate = true;   // aus einem Auftrag heraus keinen neuen anlegen
   const changed = [], skipped = [], missingTicket = [], notFound = [];
   for (const l of linked) {
     let idx = -1;
@@ -3247,7 +3256,7 @@ async function syncAuftragToApps(auftrag, status) {
       if (zf && document.getElementById('detail-imUpdate')) zf.value = auftragZd;
     }
     try {
-      await toggleImUpdate(a.id, wantRunning);
+      await toggleImUpdate(a.id, wantRunning, true);
       // toggleImUpdate bricht bei offenen Checklistenpunkten ab, ohne zu speichern –
       // dann ist der Status unverändert und die App gilt als übersprungen
       if (apps[idx].imUpdate === wantRunning) changed.push(a.name);
@@ -3269,7 +3278,6 @@ async function syncAuftragToApps(auftrag, status) {
       toastWarn('Im CRM nicht gefunden: ' + notFound.join(', '));
     }
   }
-  window._skipAuftragCreate = false;
 }
 
 async function setAuftragStatus(status) {
@@ -4662,7 +4670,7 @@ async function setUpdateTarget(id, t) {
   saveAppSb(apps[idx]).catch(e => toast('Fehler: ' + e.message));
 }
 
-async function toggleImUpdate(id, checked) {
+async function toggleImUpdate(id, checked, ausAuftrag) {
   const label = document.getElementById('detail-imUpdate-label');
   if(label) label.textContent = checked ? 'Aktiv' : 'Inaktiv';
   const zField = document.getElementById('detail-zendesk-nr');
@@ -4735,6 +4743,15 @@ async function toggleImUpdate(id, checked) {
       versionInfo = ' — ' + bumped.join(' & ');
     }
   }
+
+  // Rückmeldung, wenn beim Abschließen keine Version übernommen wurde
+  if (!checked && !versionInfo) {
+    if (!ZIEL_VERSION) {
+      if (typeof toastWarn === 'function') toastWarn('Keine Zielversion gesetzt – Versionsnummer nicht übernommen');
+    } else if (typeof toastWarn === 'function') {
+      toastWarn('Version unverändert – ' + ZIEL_VERSION + ' ist nicht höher als der aktuelle Stand');
+    }
+  }
   // Datum im Detail-View aktualisieren
   const datumEl = document.querySelector('.info-row-datum');
   if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'});
@@ -4766,7 +4783,8 @@ async function toggleImUpdate(id, checked) {
   }
 
   // Beim Start mit hinterlegtem Ticket automatisch einen Auftrag anlegen
-  if (checked && zNr) {
+  // (nicht, wenn der Start ohnehin aus einem Auftrag kommt)
+  if (checked && zNr && !ausAuftrag) {
     await auftragAusAppAnlegen(apps[idx], zNr);
   }
 
