@@ -1117,7 +1117,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-25 12:47';
+const BUILD_STAMP = '2026-08-26 08:54';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3166,6 +3166,43 @@ function pegasusPubId(url) {
   return m ? m[1] : '';
 }
 
+// Legt beim direkten Update-Start aus der App-Karte automatisch einen Auftrag an –
+// aber nur, wenn eine Zendesk-Nummer hinterlegt ist und es dazu noch keinen gibt.
+async function auftragAusAppAnlegen(app, zendeskNr) {
+  const nr = String(zendeskNr || '').trim();
+  if (!nr || !app) return;
+  // Kommt der Start aus einem bestehenden Auftrag, keinen zweiten erzeugen
+  if (window._skipAuftragCreate) return;
+  try {
+    // Gibt es zu diesem Ticket schon einen Auftrag?
+    const vorhanden = await sbFetch('auftraege?zendesk_nr=eq.' + encodeURIComponent(nr) + '&select=id,app_name', { prefer: '' });
+    if (vorhanden && vorhanden.length) return;
+
+    const plattform = [];
+    const tgt = app.updateTarget || 'beide';
+    if (tgt === 'apple' || tgt === 'beide') plattform.push('apple');
+    if (tgt === 'google' || tgt === 'beide') plattform.push('google');
+
+    await sbFetch('auftraege', {
+      method: 'POST', prefer: 'return=minimal',
+      body: JSON.stringify({
+        app_id: app._dbId || app.id,
+        app_name: app.name || '',
+        apps: [{ id: app._dbId || app.id, name: app.name || '', pegasus: app.pegasus || '', done: false }],
+        plattform: plattform,
+        aufgaben: ['update'],
+        zendesk_nr: nr,
+        info: 'Automatisch aus dem CRM erstellt – Update direkt an der App gestartet.',
+        prioritaet: 'normal',
+        status: 'in_arbeit'
+      })
+    });
+    if (typeof loadAuftraege === 'function') loadAuftraege();
+    else if (typeof loadAuftragBadge === 'function') loadAuftragBadge();
+    if (typeof toast === 'function') toast('Auftrag zu Ticket #' + nr.replace(/[^0-9]/g, '') + ' angelegt');
+  } catch (e) { console.warn('Auftrag konnte nicht angelegt werden', e); }
+}
+
 // Verknüpfte Apps eines Auftrags automatisch auf "Update läuft" setzen bzw. abschließen.
 // Nutzt bewusst toggleImUpdate, damit Datum, Zielversion, Changelog und Log identisch
 // zum manuellen Umschalten behandelt werden.
@@ -3177,6 +3214,7 @@ async function syncAuftragToApps(auftrag, status) {
   if (!linked.length && (auftrag.app_name || auftrag.pegasus)) linked = [{ name: auftrag.app_name, pegasus: auftrag.pegasus }];
   if (!linked.length) return;
   const wantRunning = (status === 'in_arbeit');
+  window._skipAuftragCreate = true;   // aus einem Auftrag heraus keinen neuen anlegen
   const changed = [], skipped = [], missingTicket = [], notFound = [];
   for (const l of linked) {
     let idx = -1;
@@ -3231,6 +3269,7 @@ async function syncAuftragToApps(auftrag, status) {
       toastWarn('Im CRM nicht gefunden: ' + notFound.join(', '));
     }
   }
+  window._skipAuftragCreate = false;
 }
 
 async function setAuftragStatus(status) {
@@ -4724,6 +4763,11 @@ async function toggleImUpdate(id, checked) {
     apps[idx].zendeskNr = '';
     const zf = document.getElementById('detail-zendesk-nr');
     if (zf) zf.value = '';
+  }
+
+  // Beim Start mit hinterlegtem Ticket automatisch einen Auftrag anlegen
+  if (checked && zNr) {
+    await auftragAusAppAnlegen(apps[idx], zNr);
   }
 
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
