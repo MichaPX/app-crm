@@ -1128,7 +1128,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-26 12:21';
+const BUILD_STAMP = '2026-08-27 08:37';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -4352,7 +4352,7 @@ async function loadNewApps() {
 function newAppRowHtml(r) {
   const t0 = new Date(); t0.setHours(0,0,0,0);
   const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
-  const name = a ? a.name : (r.app_name || '—');
+  const name = (a && a.name) || r.app_name || 'Nicht mehr im Bestand';
   const d = new Date(r.created_at);
   const dd = new Date(d); dd.setHours(0,0,0,0);
   const diff = Math.round((t0 - dd) / 864e5);
@@ -4360,9 +4360,9 @@ function newAppRowHtml(r) {
     : diff < 7 ? ('vor ' + diff + ' T.')
     : d.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
   const click = a ? `onclick="openDetail('${a.id}')"` : '';
-  return `<div class="recent-row" ${click}>
+  return `<div class="recent-row" ${click}${a ? '' : ' style="cursor:default"'} title="${String(name).replace(/"/g,'&quot;')}">
     <span class="recent-icon"><i class="ti ti-sparkles" style="color:var(--green)"></i></span>
-    <span class="recent-name">${name}</span>
+    <span class="recent-name"${a ? '' : ' style="color:var(--muted)"'}>${name}</span>
     <span class="recent-when">${when}</span>
   </div>`;
 }
@@ -4678,7 +4678,8 @@ function openNewAppsModal() {
 
 function recentUpdateRowHtml(r) {
   const a = apps.find(x => String(x.id)===String(r.app_id) || String(x._dbId)===String(r.app_id));
-  if (!a) return '';
+  // App nicht (mehr) im Bestand: Zeile trotzdem zeigen, Name aus dem Protokoll
+  const titel = a ? (a.name || '—') : (r.app_name || 'Nicht mehr im Bestand');
   const t0 = new Date(); t0.setHours(0,0,0,0);
   const d = new Date(r.zeitpunkt);
   const dd = new Date(d); dd.setHours(0,0,0,0);
@@ -4691,7 +4692,7 @@ function recentUpdateRowHtml(r) {
   let hasA = /Apple/i.test(akt), hasG = /Google/i.test(akt);
   // Fallback, falls die Aktion keine Plattform nennt: updateTarget der App heranziehen
   if (!hasA && !hasG) {
-    const tgt = a.updateTarget || 'beide';
+    const tgt = (a && a.updateTarget) || 'beide';
     hasA = (tgt === 'apple' || tgt === 'beide');
     hasG = (tgt === 'google' || tgt === 'beide');
   }
@@ -4703,9 +4704,9 @@ function recentUpdateRowHtml(r) {
     : '<i class="ti ti-check" style="color:var(--green)"></i>';
   const verM = akt.match(/(\d+\.\d+(?:\.\d+)?)\s*→\s*(\d+\.\d+(?:\.\d+)?)/);
   const ver = verM ? (verM[1] + ' → ' + verM[2]) : '';
-  return `<div class="recent-row" onclick="openDetail('${a.id}')" title="${akt.replace(/"/g,'&quot;')}">
+  return `<div class="recent-row"${a ? ` onclick="openDetail('${a.id}')"` : ' style="cursor:default"'} title="${akt.replace(/"/g,'&quot;')}">
     <span class="recent-icon">${plat}</span>
-    <span class="recent-name">${a.name}</span>
+    <span class="recent-name"${a ? '' : ' style="color:var(--muted)"'}>${titel}</span>
     ${ver ? `<span class="recent-ver">${ver}</span>` : ''}
     <span class="recent-when">${when}</span>
   </div>`;
