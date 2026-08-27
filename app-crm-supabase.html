@@ -1128,7 +1128,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-27 08:37';
+const BUILD_STAMP = '2026-08-27 08:48';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -4332,21 +4332,38 @@ function setAttnCat(cat) {
 
 // Neu hinzugekommene Apps (aus dem Changelog: _new-Einträge)
 async function loadNewApps() {
-  try {
-    const rows = await sbFetch('changelog?select=app_id,app_name,changes,created_at&order=created_at.desc&limit=500',{prefer:''})||[];
+  const auswerten = rows => {
     const seen = new Set();
     const news = [];
-    rows.forEach(r => {
+    (rows || []).forEach(r => {
       const isNew = Array.isArray(r.changes) && r.changes[0] && r.changes[0].field === '_new';
       if (!isNew) return;
       if (seen.has(String(r.app_id))) return;
       seen.add(String(r.app_id));
       news.push(r);
     });
-    window._newAppsAll = news;
-    window._newApps = news.slice(0, 5);
-    renderUpdateRanking();  // Ranking-Panel neu zeichnen, damit der untere Teil erscheint
-  } catch(e) {}
+    return news;
+  };
+  const felder = 'select=app_id,app_name,changes,created_at&order=created_at.desc';
+  let news = [];
+  try {
+    // Direkt in der Datenbank auf Neuanlagen filtern – sonst gehen ältere Einträge
+    // verloren, sobald der Changelog viele gewöhnliche Änderungen enthält.
+    const rows = await sbFetch('changelog?' + felder + '&changes->0->>field=eq._new&limit=500', { prefer: '' });
+    news = auswerten(rows);
+  } catch (e) {
+    console.warn('Gefilterte Changelog-Abfrage nicht möglich, nutze Rückfall', e);
+  }
+  if (!news.length) {
+    // Rückfall ohne Filter, dafür mit größerem Fenster
+    try {
+      const rows = await sbFetch('changelog?' + felder + '&limit=5000', { prefer: '' });
+      news = auswerten(rows);
+    } catch (e) { console.warn('Neu-dazugekommen konnte nicht geladen werden', e); }
+  }
+  window._newAppsAll = news;
+  window._newApps = news.slice(0, 5);
+  renderUpdateRanking();  // Ranking-Panel neu zeichnen, damit der untere Teil erscheint
 }
 
 function newAppRowHtml(r) {
