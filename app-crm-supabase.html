@@ -1130,7 +1130,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-28 10:38';
+const BUILD_STAMP = '2026-08-28 13:13';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -4610,9 +4610,19 @@ async function loadUpdateRanking() {
     rows.forEach(r=>{
       const done = r.feld==='update_done' || (typeof r.aktion==='string' && r.aktion.startsWith('Update abgeschlossen'));
       if(!done) return;
-      // Schlüssel auf Minute genau: doppelte Einträge desselben Vorgangs zählen nur einmal
-      const minute = (r.zeitpunkt||'').slice(0,16);
-      const key = r.app_id + '|' + minute;
+      // Ein Update je App und Zielversion: Schließt man Apple und Google zu
+      // unterschiedlichen Zeiten auf dieselbe Version ab, zählt das als EIN Update.
+      // Ohne Versionsangabe (ältere Einträge) wird auf die Minute zurückgefallen,
+      // damit doppelt protokollierte Vorgänge nicht doppelt zählen.
+      const zielM = String(r.aktion||'').match(/→\s*(\d+\.\d+(?:\.\d+)?)/g);
+      let ziel = '';
+      if (zielM && zielM.length) {
+        // höchste genannte Zielversion verwenden
+        zielM.map(x => x.replace(/→\s*/,'')).forEach(v => { if (cmpV(v, ziel, 1) > 0) ziel = v; });
+      }
+      const key = ziel
+        ? (r.app_id + '|v' + ziel)
+        : (r.app_id + '|' + (r.zeitpunkt||'').slice(0,16));
       if(seen.has(key)) return;
       seen.add(key);
       counts[r.app_id]=(counts[r.app_id]||0)+1;
