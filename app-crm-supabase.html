@@ -620,7 +620,8 @@
     transition: background .15s;
   }
   .legend-row:hover { background: var(--slate-soft); }
-  .legend-row .db-count { margin-left: auto; min-width: 26px; text-align: right; }
+  .legend-row > span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .legend-row .db-count { margin-left: 0; min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
   .tr-bar { display: flex; align-items: center; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
   .tr-label { font-size: 10px; font-weight: 600; color: var(--text3); display: inline-flex; align-items: center; gap: 4px; margin-right: 2px; }
   .tr-btn {
@@ -648,7 +649,8 @@
   .tr-loading, .tr-error { padding: 8px 10px; font-size: 11.5px; color: var(--text2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .tr-error { color: #991b1b; }
   .tr-error a { color: var(--indigo); font-weight: 600; }
-  .legend-pct { font-size: 10px; color: var(--text3); font-variant-numeric: tabular-nums; margin-left: auto; }
+  .legend-pct { font-size: 10.5px; color: var(--text3); font-variant-numeric: tabular-nums;
+    margin-left: auto; min-width: 32px; text-align: right; padding-right: 2px; }
   .legend-row.legend-on { background: var(--slate-soft); }
   .legend-row.legend-on span:nth-child(2) { font-weight: 650; }
   .rank-row {
@@ -1128,7 +1130,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-27 08:51';
+const BUILD_STAMP = '2026-08-28 10:38';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
