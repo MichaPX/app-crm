@@ -1130,7 +1130,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-08-28 13:13';
+const BUILD_STAMP = '2026-09-03 08:13';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -4854,30 +4854,38 @@ async function toggleImUpdate(id, checked, ausAuftrag) {
       if (_wantGoogle && cmpV(ZIEL_VERSION, apps[idx].vGoogle, 1) > 0) geplant.push('Google ' + _vor(apps[idx].vGoogle) + ' → ' + ZIEL_VERSION);
       if (geplant.length) versionInfo = ' — ' + geplant.join(' & ');
     }
-  } else if (ZIEL_VERSION) {
-    // Update ABGESCHLOSSEN → Zielversion übernehmen (nur wenn höher) und Sprung festhalten
-    const bumped = [];
-    if (_wantApple && cmpV(ZIEL_VERSION, apps[idx].vApple, 1) > 0) {
-      bumped.push('Apple ' + _vor(apps[idx].vApple) + ' → ' + ZIEL_VERSION);
-      apps[idx].vApple = ZIEL_VERSION;
-    }
-    if (_wantGoogle && cmpV(ZIEL_VERSION, apps[idx].vGoogle, 1) > 0) {
-      bumped.push('Google ' + _vor(apps[idx].vGoogle) + ' → ' + ZIEL_VERSION);
-      apps[idx].vGoogle = ZIEL_VERSION;
-    }
-    if (bumped.length) {
-      apps[idx].updateStatus = 'Fertig';
-      apps[idx].benoetigtUpdate = false;
-      versionInfo = ' — ' + bumped.join(' & ');
-    }
-  }
+  } else {
+    // Update ABGESCHLOSSEN → es gilt die Version, mit der das Update GESTARTET wurde.
+    // Eine zwischenzeitlich geänderte Zielversion darf den laufenden Vorgang nicht überschreiben.
+    const _st = (window._updStartTargets || {});
+    const _startZiel = _st[String(apps[idx].id)] || _st[String(apps[idx]._dbId)] || '';
+    const _abschlussZiel = _startZiel || ZIEL_VERSION;
 
-  // Rückmeldung, wenn beim Abschließen keine Version übernommen wurde
-  if (!checked && !versionInfo) {
-    if (!ZIEL_VERSION) {
-      if (typeof toastWarn === 'function') toastWarn('Keine Zielversion gesetzt – Versionsnummer nicht übernommen');
-    } else if (typeof toastWarn === 'function') {
-      toastWarn('Version unverändert – ' + ZIEL_VERSION + ' ist nicht höher als der aktuelle Stand');
+    if (_abschlussZiel) {
+      const bumped = [];
+      if (_wantApple && cmpV(_abschlussZiel, apps[idx].vApple, 1) > 0) {
+        bumped.push('Apple ' + _vor(apps[idx].vApple) + ' → ' + _abschlussZiel);
+        apps[idx].vApple = _abschlussZiel;
+      }
+      if (_wantGoogle && cmpV(_abschlussZiel, apps[idx].vGoogle, 1) > 0) {
+        bumped.push('Google ' + _vor(apps[idx].vGoogle) + ' → ' + _abschlussZiel);
+        apps[idx].vGoogle = _abschlussZiel;
+      }
+      if (bumped.length) {
+        apps[idx].updateStatus = 'Fertig';
+        apps[idx].benoetigtUpdate = false;
+        versionInfo = ' — ' + bumped.join(' & ');
+        // Hinweis, falls inzwischen eine neuere Zielversion gilt
+        if (_startZiel && ZIEL_VERSION && cmpV(ZIEL_VERSION, _startZiel, 1) > 0 && typeof toastWarn === 'function') {
+          toastWarn('Abgeschlossen auf ' + _startZiel + ' (Startversion) – aktuelle Zielversion ist ' + ZIEL_VERSION);
+        }
+      }
+    }
+
+    // Rückmeldung, wenn keine Version übernommen wurde
+    if (!versionInfo && typeof toastWarn === 'function') {
+      if (!_abschlussZiel) toastWarn('Keine Zielversion gesetzt – Versionsnummer nicht übernommen');
+      else toastWarn('Version unverändert – ' + _abschlussZiel + ' ist nicht höher als der aktuelle Stand');
     }
   }
   // Datum im Detail-View aktualisieren
