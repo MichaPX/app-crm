@@ -714,6 +714,55 @@
     border: 2px solid #23264a;
   }
 
+  /* ================= Tagesplan ================= */
+  .tp-kap { border: 1px solid #c8e8e4; background: #f2fbf9; border-radius: 12px; padding: 14px 16px; }
+  .tp-kap-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .tp-kap-titel { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #0f766e; }
+  .tp-kap-zahl { font-size: 13px; color: var(--text2); }
+  .tp-kap-zahl b { font-size: 16px; font-weight: 800; color: var(--text); }
+  .tp-bar { height: 12px; background: #e3efed; border-radius: 7px; margin-top: 10px; display: flex; overflow: hidden; }
+  .tp-bar i { display: block; height: 100%; }
+  .tp-legende { display: flex; gap: 16px; margin-top: 9px; flex-wrap: wrap; font-size: 11.5px; color: var(--text2); }
+  .tp-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .tp-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+  .tp-sek { margin-top: 22px; }
+  .tp-sek-kopf { display: flex; align-items: center; gap: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .tp-sek-kopf h3 { font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--text2); margin: 0; }
+  .tp-anz { background: var(--slate-soft); color: var(--text2); border-radius: 10px; padding: 1px 8px; font-size: 10.5px; font-weight: 700; }
+  .tp-sek-kopf .tp-zeit { margin-left: auto; font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+
+  .tp-zeile { display: flex; align-items: center; gap: 11px; padding: 9px 8px; margin: 0 -8px; border-radius: 9px; cursor: pointer; }
+  .tp-zeile:hover { background: var(--slate-soft); }
+  .tp-zeile + .tp-zeile { border-top: 1px solid var(--slate-soft); }
+  .tp-marke { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .tp-haupt { flex: 1; min-width: 0; }
+  .tp-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tp-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tp-tag { font-size: 10px; font-weight: 650; border-radius: 5px; padding: 1.5px 7px; white-space: nowrap; }
+  .tp-ticket { font-family: var(--mono); font-size: 10.5px; color: var(--indigo); background: var(--indigo-soft); border-radius: 5px; padding: 1.5px 7px; }
+  .tp-dauer { font-family: var(--mono); font-size: 11.5px; color: var(--text3); white-space: nowrap; flex-shrink: 0; }
+  .tp-leer { font-size: 12.5px; color: var(--muted); padding: 10px 2px; display: flex; align-items: center; gap: 7px; }
+
+  .tp-fort { margin-top: 12px; background: var(--slate-soft); border-radius: 10px; padding: 12px 14px; }
+  .tp-fort-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--text2); }
+  .tp-fort-top b { color: var(--text); font-size: 13.5px; }
+  .tp-fort-bar { height: 8px; background: #e4e6eb; border-radius: 5px; margin-top: 8px; overflow: hidden; }
+  .tp-fort-bar i { display: block; height: 100%; background: linear-gradient(90deg,#14b8a6,#0d9488); border-radius: 5px; }
+
+  .tp-woche { display: grid; grid-template-columns: repeat(5,1fr); gap: 9px; margin-top: 10px; }
+  .tp-tag-karte { border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px; background: var(--card); min-height: 92px; }
+  .tp-tag-karte.heute { border-color: var(--indigo); background: var(--indigo-soft); }
+  .tp-tag-name { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .tp-tag-karte.heute .tp-tag-name { color: var(--indigo); }
+  .tp-tag-last { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-top: 5px; }
+  .tp-tag-detail { font-size: 11px; color: var(--text2); margin-top: 5px; line-height: 1.45; }
+  .tp-tag-bar { height: 5px; border-radius: 3px; background: #e4e6eb; margin-top: 8px; overflow: hidden; }
+  .tp-tag-bar i { display: block; height: 100%; border-radius: 3px; }
+  .tp-mehr { font-size: 11.5px; color: var(--indigo); font-weight: 600; padding: 8px 2px 0; cursor: pointer; }
+  .tp-mehr:hover { text-decoration: underline; }
+  @media (max-width: 820px) { .tp-woche { grid-template-columns: repeat(2,1fr); } }
+
   /* ================= Aufträge ================= */
   .auf-overlay { position: fixed; inset: 0; background: rgba(20,20,35,.55); z-index: 9000;
     display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
@@ -893,6 +942,7 @@
   <button title="Zugangsdaten (PW)" class="vnav-btn admin-only" onclick="openStorePW()"><i class="ti ti-key"></i><span class="tip">Zugangsdaten (PW)</span></button>
   <button title="Zielversion setzen" class="vnav-btn admin-only" onclick="setZielVersion()"><i class="ti ti-tag"></i><span class="tip">Zielversion: <b id="ziel-version-badge">—</b></span></button>
   <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
+  <button title="Tagesplan" class="vnav-btn" onclick="openTagesplan()"><i class="ti ti-sun"></i><span class="tip">Tagesplan</span><span class="nbadge" id="tagesplan-badge" style="display:none"></span></button>
   <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
   <div class="vnav-sep admin-only"></div>
   <button title="Zuletzt aktualisiert" class="vnav-btn" onclick="openRecentUpdatesModal()"><i class="ti ti-history-toggle"></i><span class="tip">Zuletzt aktualisiert</span></button>
@@ -911,6 +961,21 @@
 <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="importCSV(this)">
 
 <!-- ===== Aufträge-Modal ===== -->
+<div class="auf-overlay" id="tp-overlay">
+  <div class="auf-modal" style="max-width:1000px">
+    <div class="auf-head">
+      <h2><i class="ti ti-sun" style="color:var(--amber)"></i> Tagesplan</h2>
+      <span id="tp-datum" style="font-size:12.5px;color:var(--muted)"></span>
+      <button class="auf-close" style="margin-left:auto" onclick="copyTagesplan()"><i class="ti ti-copy"></i> Als Text</button>
+      <button class="auf-close" style="margin-left:8px" onclick="openTagesplanZeiten()"><i class="ti ti-adjustments"></i> Zeitwerte</button>
+      <button class="auf-close" style="margin-left:8px" onclick="closeTagesplan()"><i class="ti ti-x"></i> Schließen</button>
+    </div>
+    <div id="tp-body" style="padding:20px 22px 26px">
+      <div class="auf-empty">Lädt…</div>
+    </div>
+  </div>
+</div>
+
 <div class="auf-overlay" id="auf-overlay">
   <div class="auf-modal">
     <div class="auf-head">
@@ -1130,7 +1195,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-03 08:13';
+const BUILD_STAMP = '2026-09-08 13:46';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1801,6 +1866,357 @@ async function setZielVersion() {
   toast(clean ? ('Zielversion: ' + clean + ' ✓') : 'Zielversion geleert');
 }
 
+// ════════════════════════════════════════
+// TAGESPLAN
+// ════════════════════════════════════════
+const TP_STD = { update: 90, kontrolle: 20, kleinkram: 20, kapazitaet: 420 };
+function tpZeiten() {
+  try { return { ...TP_STD, ...JSON.parse(localStorage.getItem('crm_tp_zeiten') || '{}') }; }
+  catch (e) { return { ...TP_STD }; }
+}
+function tpDauer(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? (h + ' Std.' + (m ? ' ' + m + ' Min.' : '')) : (m + ' Min.');
+}
+function tpTage(iso) {
+  if (!iso) return null;
+  const d = new Date(iso); if (isNaN(d)) return null;
+  d.setHours(0,0,0,0);
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.round((t - d) / 864e5);
+}
+
+async function openTagesplan() {
+  document.getElementById('tp-overlay').classList.add('open');
+  document.getElementById('tp-datum').textContent =
+    new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  try {
+    const auftraege = await sbFetch('auftraege?select=*&status=neq.erledigt&order=erstellt_am.desc', { prefer: '' }) || [];
+    window._tpAuftraege = auftraege;
+  } catch (e) { window._tpAuftraege = []; }
+  renderTagesplan();
+}
+function closeTagesplan() { document.getElementById('tp-overlay').classList.remove('open'); }
+
+// Sammelt alle Positionen des Plans aus Aufträgen und Apps
+function tpDaten() {
+  const Z = tpZeiten();
+  const auftraege = window._tpAuftraege || [];
+  const heuteISO = new Date().toISOString().slice(0,10);
+
+  // 1. Heute fällig: Wunschdatum heute oder überschritten
+  const faellig = auftraege
+    .filter(a => a.wunschdatum && String(a.wunschdatum).slice(0,10) <= heuteISO)
+    .sort((a,b) => {
+      if ((a.prioritaet === 'hoch') !== (b.prioritaet === 'hoch')) return a.prioritaet === 'hoch' ? -1 : 1;
+      return String(a.wunschdatum).localeCompare(String(b.wunschdatum));
+    });
+
+  // 2. Läuft schon: Apps im Update, älteste zuerst
+  const starts = window._updStarts || {};
+  const laufend = apps.filter(a => a.imUpdate).map(a => {
+    const st = starts[String(a.id)] || starts[String(a._dbId)] || (a.datum ? a.datum + 'T00:00' : null);
+    return { app: a, start: st, tage: tpTage(st) };
+  }).sort((x,y) => (y.tage ?? -1) - (x.tage ?? -1));
+
+  // 3. Wartet auf den Store
+  const pruefung = apps.filter(a => a.inPruefungApple || a.inPruefungGoogle);
+
+  // 4. Neu reingekommen: offene Aufträge ohne Wunschdatum, letzte 7 Tage
+  const neu = auftraege.filter(a => !a.wunschdatum && a.status === 'offen' && (tpTage(a.erstellt_am) ?? 99) <= 7);
+
+  // 5. Rückstand
+  const dlFehlt = apps.filter(a => a.deeplinks === 'Daten Fehlen');
+  const jg2023 = apps.filter(a => String(a.year) === '2023' && !a.gekuendigt && !a.imUpdate);
+  const blockiert = apps.filter(a => a.blockiert);
+
+  // Fortschritt zur Zielversion
+  const live = a => a.store === 'verfügbar' || a.store === 'nur Apple' || a.store === 'nur Google';
+  const aktive = apps.filter(live);
+  const aufZiel = ZIEL_VERSION
+    ? aktive.filter(a => {
+        const vs = [a.vApple, a.vGoogle].filter(v => v && /^\d/.test(v));
+        return vs.length && vs.every(v => cmpV(ZIEL_VERSION, v, 1) <= 0);
+      }).length
+    : 0;
+
+  const minFaellig = faellig.length * Z.update;
+  const minKontrolle = pruefung.length * Z.kontrolle;
+  const minKlein = dlFehlt.length ? Z.kleinkram : 0;
+
+  return { Z, faellig, laufend, pruefung, neu, dlFehlt, jg2023, blockiert,
+           aktive, aufZiel, minFaellig, minKontrolle, minKlein };
+}
+
+// Zahl für den roten Zähler an der Sidebar: überfällig + zu lange laufend
+function tpDringend() {
+  const d = window._tpDaten;
+  if (!d) return 0;
+  const heuteISO = new Date().toISOString().slice(0,10);
+  const ueberfaellig = d.faellig.filter(a => String(a.wunschdatum).slice(0,10) < heuteISO).length;
+  const lange = d.laufend.filter(x => (x.tage ?? 0) > 14).length;
+  return ueberfaellig + lange;
+}
+
+function renderTagesplan() {
+  const d = tpDaten();
+  window._tpDaten = d;
+  const Z = d.Z;
+  const body = document.getElementById('tp-body');
+  if (!body) return;
+
+  const gesamt = d.minFaellig + d.minKontrolle + d.minKlein;
+  const pct = m => Math.min(100, Math.round(m / Z.kapazitaet * 100));
+  const puffer = Z.kapazitaet - gesamt;
+
+  const zeile = (opts) => `<div class="tp-zeile"${opts.klick ? ` onclick="${opts.klick}"` : ' style="cursor:default"'}>
+      <div class="tp-marke" style="background:${opts.bg};color:${opts.fg}"><i class="ti ${opts.icon}"></i></div>
+      <div class="tp-haupt">
+        <div class="tp-name">${opts.name}</div>
+        <div class="tp-sub">${opts.sub || ''}</div>
+      </div>
+      ${opts.dauer ? `<div class="tp-dauer">${opts.dauer}</div>` : ''}
+    </div>`;
+
+  const heuteISO = new Date().toISOString().slice(0,10);
+  const esc = v => String(v || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  // ── Heute fällig ──
+  const faelligHtml = d.faellig.length ? d.faellig.map(a => {
+    const tage = tpTage(a.wunschdatum);
+    const ueber = String(a.wunschdatum).slice(0,10) < heuteISO;
+    const label = ueber ? ('überfällig seit ' + tage + (tage === 1 ? ' Tag' : ' Tagen')) : 'heute fällig';
+    const erledigt = Array.isArray(a.apps) ? a.apps.filter(x => x.done).length : 0;
+    const gesamtApps = Array.isArray(a.apps) ? a.apps.length : 0;
+    return zeile({
+      bg: ueber ? 'var(--red-soft)' : 'var(--amber-soft)', fg: ueber ? 'var(--red)' : 'var(--amber)',
+      icon: ueber ? 'ti-alert-triangle' : 'ti-calendar-due',
+      name: esc(a.app_name || 'Auftrag'),
+      sub: `${a.zendesk_nr ? `<span class="tp-ticket">#${esc(String(a.zendesk_nr).replace(/[^0-9]/g,''))}</span>` : ''}
+            <span class="tp-tag" style="background:${ueber?'var(--red-soft)':'var(--amber-soft)'};color:${ueber?'#991b1b':'var(--amber)'}">${label}</span>
+            ${a.prioritaet === 'hoch' ? '<span class="tp-tag" style="background:var(--red-soft);color:#991b1b">Hohe Priorität</span>' : ''}
+            ${gesamtApps > 1 ? `<span>${erledigt} von ${gesamtApps} erledigt</span>` : ''}`,
+      dauer: tpDauer(Z.update),
+      klick: `closeTagesplan();openAuftraege();setTimeout(()=>openAuftragDetail('${a.id}'),250)`
+    });
+  }).join('') : '<div class="tp-leer"><i class="ti ti-circle-check" style="color:var(--green)"></i> Heute steht nichts Terminiertes an</div>';
+
+  // ── Läuft schon ──
+  const laufendHtml = d.laufend.length ? d.laufend.slice(0,5).map(x => {
+    const t = x.tage ?? 0;
+    const alt = t > 14, mittel = t > 7 && t <= 14;
+    const tgt = x.app.updateTarget || 'beide';
+    const plat = tgt === 'apple' ? 'nur Apple' : tgt === 'google' ? 'nur Google' : 'Apple & Google';
+    return zeile({
+      bg: alt ? 'var(--red-soft)' : mittel ? 'var(--amber-soft)' : 'var(--teal-soft)',
+      fg: alt ? 'var(--red)' : mittel ? 'var(--amber)' : '#0f766e',
+      icon: alt || mittel ? 'ti-clock-exclamation' : 'ti-refresh',
+      name: esc(x.app.name),
+      sub: `<span class="tp-tag" style="background:${alt?'var(--red-soft)':mittel?'var(--amber-soft)':'var(--teal-soft)'};color:${alt?'#991b1b':mittel?'var(--amber)':'#0f766e'}">seit ${t} ${t===1?'Tag':'Tagen'}</span><span>${plat}</span>`,
+      dauer: alt ? 'nachfassen' : 'läuft',
+      klick: `closeTagesplan();openDetail('${x.app.id}')`
+    });
+  }).join('') + (d.laufend.length > 5 ? `<div class="tp-mehr" onclick="closeTagesplan();document.getElementById('f-status').value='imUpdate';render();">+ ${d.laufend.length - 5} weitere anzeigen</div>` : '')
+    : '<div class="tp-leer"><i class="ti ti-coffee" style="color:var(--muted)"></i> Kein Update in Arbeit</div>';
+
+  // ── Wartet auf den Store ──
+  const pruefungHtml = d.pruefung.length ? d.pruefung.slice(0,5).map(a => zeile({
+      bg: 'var(--slate-soft)', fg: 'var(--text3)',
+      icon: a.inPruefungApple ? 'ti-brand-apple' : 'ti-brand-android',
+      name: esc(a.name),
+      sub: `<span class="tp-tag" style="background:var(--slate-soft);color:var(--text2)">In Prüfung bei ${a.inPruefungApple && a.inPruefungGoogle ? 'Apple & Google' : a.inPruefungApple ? 'Apple' : 'Google'}</span>`,
+      klick: `closeTagesplan();openDetail('${a.id}')`
+    })).join('') : '<div class="tp-leer"><i class="ti ti-hourglass-off" style="color:var(--muted)"></i> Nichts in Prüfung</div>';
+
+  // ── Neu reingekommen ──
+  const neuHtml = d.neu.length ? d.neu.map(a => {
+    const t = tpTage(a.erstellt_am);
+    return zeile({
+      bg: 'var(--indigo-soft)', fg: 'var(--indigo)', icon: 'ti-inbox',
+      name: esc(a.app_name || 'Auftrag'),
+      sub: `${a.zendesk_nr ? `<span class="tp-ticket">#${esc(String(a.zendesk_nr).replace(/[^0-9]/g,''))}</span>` : ''}
+            <span>${t === 0 ? 'heute' : t === 1 ? 'gestern' : 'vor ' + t + ' Tagen'} eingegangen</span>`,
+      dauer: tpDauer(Z.update),
+      klick: `closeTagesplan();openAuftraege();setTimeout(()=>openAuftragDetail('${a.id}'),250)`
+    });
+  }).join('') : '<div class="tp-leer"><i class="ti ti-inbox-off" style="color:var(--muted)"></i> Keine neuen Aufträge</div>';
+
+  // ── Wenn Zeit bleibt ──
+  const rueck = [];
+  if (d.dlFehlt.length) rueck.push(zeile({
+    bg:'var(--amber-soft)', fg:'var(--amber)', icon:'ti-link-off',
+    name:`Deeplinks nachtragen — ${d.dlFehlt.length} App${d.dlFehlt.length!==1?'s':''}`,
+    sub:`<span>${d.dlFehlt.slice(0,4).map(a=>esc(a.name)).join(', ')}${d.dlFehlt.length>4?' …':''}</span>`,
+    dauer:'≈ ' + tpDauer(Z.kleinkram),
+    klick:`closeTagesplan();window._attnFilter=true;window._attnCat='dl';render();`
+  }));
+  if (d.jg2023.length) rueck.push(zeile({
+    bg:'var(--indigo-soft)', fg:'var(--indigo)', icon:'ti-calendar-clock',
+    name:`Jahrgang 2023 aufarbeiten — ${d.jg2023.length} Apps`,
+    sub:`<span>Vorschlag: ${d.jg2023.slice(0,3).map(a=>esc(a.name)).join(', ')}</span>`,
+    dauer:'3 × ' + tpDauer(Z.update),
+    klick:`closeTagesplan();window._attnFilter=true;window._attnCat='2023';render();`
+  }));
+  if (d.blockiert.length) rueck.push(zeile({
+    bg:'var(--red-soft)', fg:'var(--red)', icon:'ti-lock',
+    name:`Blockierte Apps prüfen — ${d.blockiert.length}`,
+    sub:`<span>${d.blockiert.slice(0,3).map(a=>esc(a.name)).join(', ')}${d.blockiert.length>3?' …':''}</span>`,
+    dauer:'≈ 30 Min.',
+    klick:`closeTagesplan();document.getElementById('f-status').value='Blockiert';render();`
+  }));
+  const rueckHtml = rueck.length ? rueck.join('') : '<div class="tp-leer"><i class="ti ti-confetti" style="color:var(--green)"></i> Kein Rückstand</div>';
+
+  const fortPct = d.aktive.length ? Math.round(d.aufZiel / d.aktive.length * 100) : 0;
+
+  // ── Woche: nur was durch Wunschdaten feststeht ──
+  const wocheHtml = tpWocheHtml(Z);
+
+  body.innerHTML = `
+    <div class="tp-kap">
+      <div class="tp-kap-top">
+        <span class="tp-kap-titel">Heute eingeplant</span>
+        <span class="tp-kap-zahl"><b>${tpDauer(gesamt)}</b> von ${tpDauer(Z.kapazitaet)}
+          &nbsp;·&nbsp; ${puffer >= 0 ? tpDauer(puffer) + ' Puffer' : '<span style="color:var(--red);font-weight:700">' + tpDauer(-puffer) + ' zu viel</span>'}</span>
+      </div>
+      <div class="tp-bar">
+        <i style="width:${pct(d.minFaellig)}%;background:#4f46e5"></i>
+        <i style="width:${pct(d.minKontrolle)}%;background:#14b8a6"></i>
+        <i style="width:${pct(d.minKlein)}%;background:#d97706"></i>
+      </div>
+      <div class="tp-legende">
+        <span><i class="tp-dot" style="background:#4f46e5"></i> ${d.faellig.length} fällig · ${tpDauer(d.minFaellig)}</span>
+        <span><i class="tp-dot" style="background:#14b8a6"></i> ${d.pruefung.length} Kontrollen · ${tpDauer(d.minKontrolle)}</span>
+        <span><i class="tp-dot" style="background:#d97706"></i> Kleinkram · ${tpDauer(d.minKlein)}</span>
+        <span style="margin-left:auto;color:var(--text3)">Update ${Z.update} Min. · Kontrolle ${Z.kontrolle} Min.</span>
+      </div>
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Heute fällig</h3><span class="tp-anz">${d.faellig.length}</span>
+        <span class="tp-zeit">${d.faellig.length ? '≈ ' + tpDauer(d.minFaellig) : ''}</span></div>
+      ${faelligHtml}
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Läuft schon</h3><span class="tp-anz">${d.laufend.length}</span>
+        <span class="tp-zeit">${d.laufend.filter(x=>(x.tage??0)>14).length ? d.laufend.filter(x=>(x.tage??0)>14).length + ' über 14 Tage' : ''}</span></div>
+      ${laufendHtml}
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Wartet auf den Store</h3><span class="tp-anz">${d.pruefung.length}</span>
+        <span class="tp-zeit">nichts zu tun</span></div>
+      ${pruefungHtml}
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Neu reingekommen</h3><span class="tp-anz">${d.neu.length}</span>
+        <span class="tp-zeit">ohne Wunschdatum</span></div>
+      ${neuHtml}
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Wenn Zeit bleibt</h3>
+        <span class="tp-zeit">Vorschläge aus dem Rückstand</span></div>
+      ${rueckHtml}
+      ${ZIEL_VERSION ? `<div class="tp-fort">
+        <div class="tp-fort-top"><span><b>${d.aufZiel}</b> von ${d.aktive.length} aktiven Apps auf Zielversion ${ZIEL_VERSION}</span><span>${fortPct} %</span></div>
+        <div class="tp-fort-bar"><i style="width:${fortPct}%"></i></div>
+      </div>` : ''}
+    </div>
+
+    <div class="tp-sek">
+      <div class="tp-sek-kopf"><h3>Diese Woche — was feststeht</h3>
+        <span class="tp-zeit">nur Aufträge mit Wunschdatum</span></div>
+      <div class="tp-woche">${wocheHtml}</div>
+    </div>`;
+
+  // Zähler an der Sidebar aktualisieren
+  const b = document.getElementById('tagesplan-badge');
+  const n = tpDringend();
+  if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
+}
+
+function tpWocheHtml(Z) {
+  const auftraege = window._tpAuftraege || [];
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const montag = new Date(heute);
+  montag.setDate(montag.getDate() - ((montag.getDay() + 6) % 7));
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const tag = new Date(montag); tag.setDate(montag.getDate() + i);
+    const iso = tag.toISOString().slice(0,10);
+    const drauf = auftraege.filter(a => a.wunschdatum && String(a.wunschdatum).slice(0,10) === iso);
+    const min = drauf.length * Z.update;
+    const hoch = drauf.filter(a => a.prioritaet === 'hoch').length;
+    const istHeute = tag.getTime() === heute.getTime();
+    const pct = Math.min(100, Math.round(min / Z.kapazitaet * 100));
+    const farbe = pct > 85 ? '#dc2626' : pct > 60 ? '#d97706' : '#14b8a6';
+    html += `<div class="tp-tag-karte${istHeute ? ' heute' : ''}">
+      <div class="tp-tag-name">${['Mo','Di','Mi','Do','Fr'][i]} · ${istHeute ? 'heute' : tag.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}</div>
+      <div class="tp-tag-last">${min ? tpDauer(min) : '—'}</div>
+      <div class="tp-tag-detail">${drauf.length ? drauf.length + ' Auftrag' + (drauf.length !== 1 ? 'e' : '') + ' fällig' + (hoch ? '<br>davon ' + hoch + '× hohe Priorität' : '') : '<span style="color:var(--text3)">nichts terminiert</span>'}</div>
+      <div class="tp-tag-bar"><i style="width:${pct}%;background:${farbe}"></i></div>
+    </div>`;
+  }
+  return html;
+}
+
+function openTagesplanZeiten() {
+  const Z = tpZeiten();
+  const u = prompt('Dauer für ein Update in Minuten:', Z.update);
+  if (u === null) return;
+  const k = prompt('Dauer für eine Kontrolle in Minuten:', Z.kontrolle);
+  if (k === null) return;
+  const kap = prompt('Tageskapazität in Stunden:', (Z.kapazitaet / 60).toString());
+  if (kap === null) return;
+  const neu = {
+    update: Math.max(1, parseInt(u) || Z.update),
+    kontrolle: Math.max(1, parseInt(k) || Z.kontrolle),
+    kleinkram: Z.kleinkram,
+    kapazitaet: Math.max(30, Math.round((parseFloat(String(kap).replace(',', '.')) || 7) * 60))
+  };
+  localStorage.setItem('crm_tp_zeiten', JSON.stringify(neu));
+  renderTagesplan();
+  toast('Zeitwerte gespeichert');
+}
+
+function copyTagesplan() {
+  const d = window._tpDaten || tpDaten();
+  const Z = d.Z;
+  const heuteISO = new Date().toISOString().slice(0,10);
+  let t = 'Tagesplan · ' + new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) + '\n';
+  t += 'Eingeplant: ' + tpDauer(d.minFaellig + d.minKontrolle + d.minKlein) + ' von ' + tpDauer(Z.kapazitaet) + '\n\n';
+  t += 'HEUTE FÄLLIG (' + d.faellig.length + ')\n';
+  t += d.faellig.length ? d.faellig.map(a => {
+    const ueber = String(a.wunschdatum).slice(0,10) < heuteISO;
+    return '• ' + (a.app_name || 'Auftrag') + (a.zendesk_nr ? ' #' + String(a.zendesk_nr).replace(/[^0-9]/g,'') : '')
+      + (ueber ? ' (überfällig)' : '') + (a.prioritaet === 'hoch' ? ' (hohe Priorität)' : '');
+  }).join('\n') : '• nichts';
+  t += '\n\nLÄUFT SCHON (' + d.laufend.length + ')\n';
+  t += d.laufend.length ? d.laufend.map(x => '• ' + x.app.name + ' — seit ' + (x.tage ?? '?') + ' Tagen').join('\n') : '• nichts';
+  t += '\n\nWARTET AUF DEN STORE (' + d.pruefung.length + ')\n';
+  t += d.pruefung.length ? d.pruefung.map(a => '• ' + a.name).join('\n') : '• nichts';
+  t += '\n\nNEU REINGEKOMMEN (' + d.neu.length + ')\n';
+  t += d.neu.length ? d.neu.map(a => '• ' + (a.app_name || 'Auftrag') + (a.zendesk_nr ? ' #' + String(a.zendesk_nr).replace(/[^0-9]/g,'') : '')).join('\n') : '• nichts';
+  t += '\n\nWENN ZEIT BLEIBT\n';
+  if (d.dlFehlt.length) t += '• Deeplinks nachtragen: ' + d.dlFehlt.length + ' Apps\n';
+  if (d.jg2023.length) t += '• Jahrgang 2023: ' + d.jg2023.length + ' Apps\n';
+  if (d.blockiert.length) t += '• Blockierte Apps prüfen: ' + d.blockiert.length + '\n';
+  navigator.clipboard.writeText(t).then(() => toast('Tagesplan kopiert ✓'));
+}
+
+// Zähler beim Start füllen, ohne den Plan zu öffnen
+async function loadTagesplanBadge() {
+  try {
+    window._tpAuftraege = await sbFetch('auftraege?select=*&status=neq.erledigt&order=erstellt_am.desc', { prefer: '' }) || [];
+    window._tpDaten = tpDaten();
+    const b = document.getElementById('tagesplan-badge');
+    const n = tpDringend();
+    if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
+  } catch (e) {}
+}
+
 // ── Changelog ──
 async function openChangelog() {
   showLoader('Changelog laden…');
@@ -1997,6 +2413,8 @@ function initApp() {
   document.getElementById('hdate').textContent = new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      const tpOverlay = document.getElementById('tp-overlay');
+      if (tpOverlay && tpOverlay.classList.contains('open')) { closeTagesplan(); return; }
       const aufDetail = document.getElementById('auf-detail-overlay');
       const aufOverlay = document.getElementById('auf-overlay');
       if (aufDetail && aufDetail.classList.contains('open')) { closeAuftragDetail(); return; }
@@ -2011,6 +2429,7 @@ function initApp() {
   loadNotizBadge();
   loadZielVersion();
   loadNewApps();
+  loadTagesplanBadge();
   loadAuftragBadge();
 }
 
