@@ -1098,14 +1098,14 @@
     border-radius: 0;
   }
   .marker::before, .plat-note::before {
-    content: ""; position: absolute; inset: -2px -5px -1px -6px; z-index: -1;
-    border-radius: 12px 9px 11px 8px / 9px 12px 8px 11px;
-    transform: rotate(-.6deg); mix-blend-mode: multiply; opacity: .85;
+    content: ""; position: absolute; inset: -3px -7px -2px -8px; z-index: -1;
+    background-repeat: no-repeat; background-size: 100% 100%;
+    transform: rotate(-.5deg); mix-blend-mode: multiply; opacity: .9;
   }
-  .plat-note.update::before, .m-gelb::before { background: var(--marker-gelb); }
-  .plat-note.pruefung::before, .m-blau::before { background: var(--marker-blau); }
-  .m-gruen::before { background: var(--marker-gruen); }
-  .m-rot::before { background: var(--marker-rot); }
+  .plat-note.update::before, .m-gelb::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%2C17%20C10%2C9%2022%2C13%2034%2C10%20C48%2C7%2062%2C12%2076%2C9%20C90%2C6%20104%2C13%20118%2C10%20C132%2C7%20146%2C12%20160%2C9%20C174%2C6%20186%2C11%20197%2C8%20L197%2C30%20C186%2C34%20174%2C29%20160%2C32%20C146%2C35%20132%2C30%20118%2C33%20C104%2C36%2090%2C29%2076%2C32%20C62%2C35%2048%2C30%2034%2C33%20C22%2C35%2010%2C31%203%2C26%20Z%22%20fill%3D%22%23ffe27a%22%2F%3E%3Cpath%20d%3D%22M6%2C14%20C20%2C11%2040%2C15%2060%2C12%20C80%2C9%20100%2C14%20120%2C11%20C140%2C8%20165%2C13%20194%2C10%22%20stroke%3D%22%23ffe27a%22%20stroke-width%3D%227%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E"); }
+  .plat-note.pruefung::before, .m-blau::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%2C17%20C10%2C9%2022%2C13%2034%2C10%20C48%2C7%2062%2C12%2076%2C9%20C90%2C6%20104%2C13%20118%2C10%20C132%2C7%20146%2C12%20160%2C9%20C174%2C6%20186%2C11%20197%2C8%20L197%2C30%20C186%2C34%20174%2C29%20160%2C32%20C146%2C35%20132%2C30%20118%2C33%20C104%2C36%2090%2C29%2076%2C32%20C62%2C35%2048%2C30%2034%2C33%20C22%2C35%2010%2C31%203%2C26%20Z%22%20fill%3D%22%237fe3e0%22%2F%3E%3Cpath%20d%3D%22M6%2C14%20C20%2C11%2040%2C15%2060%2C12%20C80%2C9%20100%2C14%20120%2C11%20C140%2C8%20165%2C13%20194%2C10%22%20stroke%3D%22%237fe3e0%22%20stroke-width%3D%227%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E"); }
+  .m-gruen::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%2C17%20C10%2C9%2022%2C13%2034%2C10%20C48%2C7%2062%2C12%2076%2C9%20C90%2C6%20104%2C13%20118%2C10%20C132%2C7%20146%2C12%20160%2C9%20C174%2C6%20186%2C11%20197%2C8%20L197%2C30%20C186%2C34%20174%2C29%20160%2C32%20C146%2C35%20132%2C30%20118%2C33%20C104%2C36%2090%2C29%2076%2C32%20C62%2C35%2048%2C30%2034%2C33%20C22%2C35%2010%2C31%203%2C26%20Z%22%20fill%3D%22%23b6e6a8%22%2F%3E%3Cpath%20d%3D%22M6%2C14%20C20%2C11%2040%2C15%2060%2C12%20C80%2C9%20100%2C14%20120%2C11%20C140%2C8%20165%2C13%20194%2C10%22%20stroke%3D%22%23b6e6a8%22%20stroke-width%3D%227%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E"); }
+  .m-rot::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%2C17%20C10%2C9%2022%2C13%2034%2C10%20C48%2C7%2062%2C12%2076%2C9%20C90%2C6%20104%2C13%20118%2C10%20C132%2C7%20146%2C12%20160%2C9%20C174%2C6%20186%2C11%20197%2C8%20L197%2C30%20C186%2C34%20174%2C29%20160%2C32%20C146%2C35%20132%2C30%20118%2C33%20C104%2C36%2090%2C29%2076%2C32%20C62%2C35%2048%2C30%2034%2C33%20C22%2C35%2010%2C31%203%2C26%20Z%22%20fill%3D%22%23ffab9c%22%2F%3E%3Cpath%20d%3D%22M6%2C14%20C20%2C11%2040%2C15%2060%2C12%20C80%2C9%20100%2C14%20120%2C11%20C140%2C8%20165%2C13%20194%2C10%22%20stroke%3D%22%23ffab9c%22%20stroke-width%3D%227%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E"); }
   .plat-note {
     color: var(--tinte) !important; font-weight: 700; line-height: 1.75;
     border-radius: 0 !important; padding: 1px 4px !important;
@@ -1147,9 +1147,9 @@
   .blatt-zu:hover { color: var(--tinte); }
   .blatt-titel { font-family: var(--hand); font-size: 26px; font-weight: 700; font-style: italic;
     display: inline-block; margin: 6px 0 20px 32px; position: relative; z-index: 0; }
-  .blatt-titel::before { content: ""; position: absolute; inset: -4px -12px -2px -12px;
-    background: var(--marker-blau); border-radius: 14px 10px 13px 9px / 10px 14px 9px 13px;
-    transform: rotate(-1.2deg); mix-blend-mode: multiply; opacity: .85; z-index: -1; }
+  .blatt-titel::before { content: ""; position: absolute; inset: -6px -14px -4px -14px;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2040%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%2C17%20C10%2C9%2022%2C13%2034%2C10%20C48%2C7%2062%2C12%2076%2C9%20C90%2C6%20104%2C13%20118%2C10%20C132%2C7%20146%2C12%20160%2C9%20C174%2C6%20186%2C11%20197%2C8%20L197%2C30%20C186%2C34%20174%2C29%20160%2C32%20C146%2C35%20132%2C30%20118%2C33%20C104%2C36%2090%2C29%2076%2C32%20C62%2C35%2048%2C30%2034%2C33%20C22%2C35%2010%2C31%203%2C26%20Z%22%20fill%3D%22%237fe3e0%22%2F%3E%3Cpath%20d%3D%22M6%2C14%20C20%2C11%2040%2C15%2060%2C12%20C80%2C9%20100%2C14%20120%2C11%20C140%2C8%20165%2C13%20194%2C10%22%20stroke%3D%22%237fe3e0%22%20stroke-width%3D%227%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.85%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-size: 100% 100%;
+    transform: rotate(-1.2deg); mix-blend-mode: multiply; opacity: .9; z-index: -1; }
   .blatt-zeile { display: grid; grid-template-columns: 132px 1fr; gap: 10px; font-size: 13px; padding: 4px 0; }
   .blatt-zeile b { font-weight: 800; }
   .blatt-trenner { height: 1px; background: rgba(34,32,29,.14); margin: 16px 0 14px; }
@@ -1458,7 +1458,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 16:29';
+const BUILD_STAMP = '2026-09-09 16:39';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2548,13 +2548,23 @@ async function loadTagesplanBadge() {
 // Verzeichnis: welche App hat welchen offenen Auftrag? (für die Büroklammer auf der Karte)
 function aufIndexAufbauen() {
   const idx = {};
+  const merken = (crm, auf) => { if (crm && !idx[String(crm.id)]) idx[String(crm.id)] = auf; };
   (window._tpAuftraege || []).forEach(auf => {
+    // 1. Direkt über die im Auftrag gespeicherte App-ID
+    if (auf.app_id != null) {
+      const treffer = apps.find(x => String(x.id) === String(auf.app_id) || String(x._dbId) === String(auf.app_id));
+      merken(treffer, auf);
+    }
+    // 2. Über die Einträge der App-Liste (Pegasus-ID, sonst Name)
     const liste = Array.isArray(auf.apps) && auf.apps.length
       ? auf.apps
       : ((auf.app_name || auf.pegasus) ? [{ name: auf.app_name, pegasus: auf.pegasus }] : []);
     liste.forEach(e => {
-      const crm = findCrmApp(e);
-      if (crm && !idx[String(crm.id)]) idx[String(crm.id)] = auf;
+      let crm = findCrmApp(e);
+      if (!crm && e.id != null) {
+        crm = apps.find(x => String(x.id) === String(e.id) || String(x._dbId) === String(e.id));
+      }
+      merken(crm, auf);
     });
   });
   window._aufIndex = idx;
