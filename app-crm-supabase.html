@@ -714,6 +714,30 @@
     border: 2px solid #23264a;
   }
 
+  /* ================= Erledigt-Text ================= */
+  .erl-ok { width: 30px; height: 30px; border-radius: 9px; background: var(--green-soft); color: var(--green);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .erl-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+  .erl-chip { font-size: 10.5px; font-weight: 650; border-radius: 6px; padding: 2px 8px; }
+  .erl-chip.c-ticket { font-family: var(--mono); background: var(--indigo-soft); color: var(--indigo); }
+  .erl-chip.c-ver { font-family: var(--mono); background: var(--teal-soft); color: #0f766e; }
+  .erl-chip.c-store { background: var(--slate-soft); color: var(--text2);
+    display: inline-flex; align-items: center; gap: 4px; }
+  .erl-box { margin-top: 14px; border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  .erl-box-kopf { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--slate-soft);
+    border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text2); }
+  .erl-box-kopf .rechts { margin-left: auto; display: flex; gap: 6px; }
+  .erl-mini { border: 1px solid var(--border); background: var(--card); color: var(--text2); border-radius: 6px;
+    padding: 3px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px; text-transform: none; letter-spacing: 0; }
+  .erl-mini:hover { background: var(--slate-soft); }
+  .erl-box textarea { width: 100%; border: none; outline: none; resize: vertical; padding: 13px 14px;
+    font-family: inherit; font-size: 13px; line-height: 1.62; color: var(--text); background: var(--card); }
+  .erl-fuss { display: flex; align-items: center; gap: 8px; padding-top: 16px; margin-top: 16px;
+    border-top: 1px solid var(--slate-soft); flex-wrap: wrap; }
+  .erl-fuss-links { font-size: 11.5px; color: var(--muted); }
+
   /* ================= Tagesplan ================= */
   .tp-wrap { display: flex; align-items: stretch; }
   #tp-body { flex: 1; min-width: 0; }
@@ -1246,7 +1270,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 06:37';
+const BUILD_STAMP = '2026-09-09 07:13';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2348,6 +2372,178 @@ async function loadTagesplanBadge() {
     const n = tpDringend();
     if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
   } catch (e) {}
+}
+
+// ════════════════════════════════════════
+// ERLEDIGT-TEXT fürs Zendesk-Ticket
+// ════════════════════════════════════════
+const ERL_VORLAGE_EINZEL = `Das Update für {app} ist abgeschlossen.
+
+Aufgabe: {aufgabe}
+Version: {version}
+Veröffentlicht für: {stores}`;
+
+const ERL_VORLAGE_SAMMEL = `Der Auftrag ist abgeschlossen. Folgende Apps wurden aktualisiert:
+
+{app-liste}
+
+Aufgabe: {aufgabe}
+Version: {version}`;
+
+function erlVorlagen() {
+  try {
+    const v = JSON.parse(localStorage.getItem('crm_erl_vorlagen') || '{}');
+    return { einzel: v.einzel || ERL_VORLAGE_EINZEL, sammel: v.sammel || ERL_VORLAGE_SAMMEL };
+  } catch (e) { return { einzel: ERL_VORLAGE_EINZEL, sammel: ERL_VORLAGE_SAMMEL }; }
+}
+
+// Für welche Stores wurde eine App aktualisiert?
+function erlStores(eintrag, auftrag) {
+  const crm = findCrmApp(eintrag);
+  let tgt = crm && crm.updateTarget;
+  if (!tgt) {
+    const p = Array.isArray(auftrag && auftrag.plattform) ? auftrag.plattform : [];
+    if (p.length === 1) tgt = p[0];
+    else tgt = 'beide';
+  }
+  if (tgt === 'apple')  return { lang: 'Apple App Store', kurz: 'nur Apple' };
+  if (tgt === 'google') return { lang: 'Google Play',      kurz: 'nur Google' };
+  return { lang: 'Apple App Store und Google Play', kurz: 'Apple & Google' };
+}
+
+// Version: die beim Update gestartete, sonst die aktuelle Zielversion
+function erlVersion(eintraege) {
+  const st = window._updStartTargets || {};
+  let best = '';
+  (eintraege || []).forEach(e => {
+    const crm = findCrmApp(e);
+    if (!crm) return;
+    const v = st[String(crm.id)] || st[String(crm._dbId)] || '';
+    if (v && cmpV(v, best, 1) > 0) best = v;
+  });
+  return best || ZIEL_VERSION || '—';
+}
+
+function erlTextBauen(auftrag) {
+  if (!auftrag) return '';
+  const V = erlVorlagen();
+  const liste = Array.isArray(auftrag.apps) && auftrag.apps.length
+    ? auftrag.apps
+    : [{ name: auftrag.app_name, pegasus: auftrag.pegasus }];
+  const aufgabe = (Array.isArray(auftrag.aufgaben) && auftrag.aufgaben.length
+    ? auftrag.aufgaben.map(k => (typeof AUF_TASK_LABELS !== 'undefined' && AUF_TASK_LABELS[k]) || k)
+    : ['Neue Version']).join(', ');
+  const version = erlVersion(liste);
+  const ticket = String(auftrag.zendesk_nr || '').replace(/[^0-9]/g, '');
+
+  if (liste.length > 1) {
+    const zeilen = liste.map(e => '• ' + (e.name || '—') + ' — ' + erlStores(e, auftrag).kurz).join('\n');
+    return V.sammel
+      .replace(/\{app-liste\}/g, zeilen)
+      .replace(/\{aufgabe\}/g, aufgabe)
+      .replace(/\{version\}/g, version)
+      .replace(/\{ticket\}/g, ticket)
+      .replace(/\{app\}/g, auftrag.app_name || '')
+      .replace(/\{stores\}/g, erlStores(liste[0], auftrag).lang);
+  }
+  return V.einzel
+    .replace(/\{app\}/g, liste[0].name || auftrag.app_name || '')
+    .replace(/\{aufgabe\}/g, aufgabe)
+    .replace(/\{version\}/g, version)
+    .replace(/\{stores\}/g, erlStores(liste[0], auftrag).lang)
+    .replace(/\{ticket\}/g, ticket)
+    .replace(/\{app-liste\}/g, '• ' + (liste[0].name || ''));
+}
+
+function openErledigtText(auftrag) {
+  if (!auftrag || !auftrag.zendesk_nr) return;   // ohne Ticket kein Fenster
+  const liste = Array.isArray(auftrag.apps) && auftrag.apps.length ? auftrag.apps : [{ name: auftrag.app_name }];
+  const ticket = String(auftrag.zendesk_nr).replace(/[^0-9]/g, '');
+  const version = erlVersion(liste);
+  const mehrere = liste.length > 1;
+  const storeChips = mehrere
+    ? `<span class="erl-chip c-store"><i class="ti ti-apps"></i> ${liste.length} Apps</span>`
+    : (() => {
+        const s = erlStores(liste[0], auftrag);
+        return (s.kurz !== 'nur Google' ? '<span class="erl-chip c-store"><i class="ti ti-brand-apple"></i> App Store</span>' : '')
+             + (s.kurz !== 'nur Apple'  ? '<span class="erl-chip c-store"><i class="ti ti-brand-android"></i> Google Play</span>' : '');
+      })();
+
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-top">
+        <div class="erl-ok"><i class="ti ti-check"></i></div>
+        <div style="min-width:0">
+          <h3>Erledigt — ${(auftrag.app_name || 'Auftrag').replace(/</g,'&lt;')}</h3>
+          <div class="sub">${mehrere ? liste.length + ' Apps abgeschlossen' : 'Update abgeschlossen'}, Text für das Ticket</div>
+        </div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+
+      <div class="erl-meta">
+        <span class="erl-chip c-ticket">#${ticket}</span>
+        ${version && version !== '—' ? `<span class="erl-chip c-ver">${version}</span>` : ''}
+        ${storeChips}
+      </div>
+
+      <div class="erl-box">
+        <div class="erl-box-kopf">Text
+          <div class="rechts">
+            <button class="erl-mini" onclick="openErlVorlagen()"><i class="ti ti-pencil"></i> Vorlage bearbeiten</button>
+          </div>
+        </div>
+        <textarea id="erl-text" rows="${mehrere ? 9 : 6}">${erlTextBauen(auftrag).replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div class="erl-fuss">
+        <span class="erl-fuss-links">Text ist bearbeitbar, bevor du ihn kopierst.</span>
+        <a class="btn" style="margin-left:auto" href="${ZENDESK_TICKET_URL}${ticket}" target="_blank"><i class="ti ti-external-link"></i> Ticket öffnen</a>
+        <button class="btn-primary" onclick="erlKopieren()"><i class="ti ti-copy"></i> Kopieren</button>
+      </div>
+    </div></div>`;
+}
+
+function erlKopieren() {
+  const el = document.getElementById('erl-text');
+  if (!el) return;
+  navigator.clipboard.writeText(el.value).then(() => toast('Text kopiert ✓'));
+}
+
+function openErlVorlagen() {
+  const V = erlVorlagen();
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-top">
+        <div class="erl-ok" style="background:var(--indigo-soft);color:var(--indigo)"><i class="ti ti-pencil"></i></div>
+        <div><h3>Textvorlage</h3><div class="sub">Gilt künftig für alle erledigten Aufträge</div></div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="erl-box"><div class="erl-box-kopf">Einzelne App</div>
+        <textarea id="erl-v-einzel" rows="5">${V.einzel.replace(/</g,'&lt;')}</textarea></div>
+      <div class="erl-box"><div class="erl-box-kopf">Sammelauftrag</div>
+        <textarea id="erl-v-sammel" rows="6">${V.sammel.replace(/</g,'&lt;')}</textarea></div>
+      <div class="erl-fuss">
+        <span class="erl-fuss-links">Platzhalter: {app} · {app-liste} · {aufgabe} · {version} · {stores} · {ticket}</span>
+        <button class="btn" style="margin-left:auto" onclick="erlVorlagenZuruecksetzen()">Zurücksetzen</button>
+        <button class="btn-primary" onclick="erlVorlagenSpeichern()"><i class="ti ti-device-floppy"></i> Speichern</button>
+      </div>
+    </div></div>`;
+}
+
+function erlVorlagenSpeichern() {
+  const e = document.getElementById('erl-v-einzel');
+  const s = document.getElementById('erl-v-sammel');
+  localStorage.setItem('crm_erl_vorlagen', JSON.stringify({
+    einzel: (e && e.value) || ERL_VORLAGE_EINZEL,
+    sammel: (s && s.value) || ERL_VORLAGE_SAMMEL
+  }));
+  closeMod();
+  toast('Vorlage gespeichert');
+}
+function erlVorlagenZuruecksetzen() {
+  localStorage.removeItem('crm_erl_vorlagen');
+  openErlVorlagen();
+  toast('Vorlage zurückgesetzt');
 }
 
 // ── Changelog ──
@@ -3723,6 +3919,8 @@ async function setAuftragAppDone(index, done) {
       await syncAuftragToApps({ apps: [entry], zendesk_nr: _aufCurrent.zendesk_nr }, 'erledigt');
       renderAuftragAppList(_aufCurrent);
       render();
+      // Ist der Auftrag damit komplett erledigt: Text fürs Ticket anbieten
+      if (status === 'erledigt') openErledigtText({ ..._aufCurrent, apps: list });
     }
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
@@ -3951,6 +4149,7 @@ async function setAuftragStatus(status) {
     // Verknüpfte Apps mitziehen (Update läuft / abschließen)
     await syncAuftragToApps(_aufCurrent, status);
     render();
+    if (status === 'erledigt') openErledigtText(_aufCurrent);
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
 
