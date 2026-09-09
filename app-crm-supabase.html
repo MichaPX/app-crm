@@ -1231,7 +1231,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 06:23';
+const BUILD_STAMP = '2026-09-09 06:31';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1908,16 +1908,11 @@ async function setZielVersion() {
 
 // Vorgabezeiten je Aufgabenart (Minuten), anpassbar über "Zeitwerte"
 const TP_ARTEN = {
-  update:    { label: 'Neue Version',           min: 90 },
-  bugfix:    { label: 'Bugfix',                 min: 60 },
-  store:     { label: 'Store-Anpassung',        min: 30 },
-  grafiken:  { label: 'Screenshots / Grafiken', min: 45 },
-  texte:     { label: 'Texte / Beschreibung',   min: 30 },
-  design:    { label: 'App-Design',             min: 60 },
-  funktion:  { label: 'Neue Funktion',          min: 120 },
-  kontrolle: { label: 'Kontrolle / Nachfassen', min: 20 },
-  deeplinks: { label: 'Deeplinks nachtragen',   min: 15 },
-  pruefen:   { label: 'App prüfen',             min: 15 }
+  update:    { label: 'Update (je App)',            min: 65 },
+  arbeit:    { label: 'App in Arbeit · Kontrolle',  min: 20 },
+  store:     { label: 'Freigabe im Store prüfen',   min: 10 },
+  deeplinks: { label: 'Deeplinks nachtragen',       min: 15 },
+  pruefen:   { label: 'Blockierte App prüfen',      min: 15 }
 };
 const TP_START = 8 * 60;        // Arbeitsbeginn 08:00
 const TP_ENDE  = 16 * 60 + 30;  // Arbeitsende 16:30
@@ -1986,8 +1981,8 @@ function tpVorrat() {
     const appsListe = Array.isArray(a.apps) ? a.apps : [];
     const offeneApps = appsListe.filter(x => !x.done);
     const anzahl = Math.max(1, offeneApps.length || appsListe.length || 1);
-    const proApp = arten.reduce((sum, k) => sum + tpMin(k), 0);
-    const min = proApp * anzahl;
+    // Texte, Screenshots usw. stecken im Update mit drin – daher eine Zeit je App
+    const min = tpMin('update') * anzahl;
 
     // Status: läuft schon eine der Apps, ist der Auftrag in Arbeit
     const inArbeit = offeneApps.some(laeuft) || a.status === 'in_arbeit';
@@ -1998,7 +1993,7 @@ function tpVorrat() {
       id: 'auf-' + a.id, typ: 'auftrag', refId: a.id,
       name: esc(a.app_name || 'Auftrag'), min,
       status: inArbeit ? 'arbeit' : 'offen',
-      arten: arten.map(k => (TP_ARTEN[k] || {}).label || k),
+      arten: arten.map(k => ((typeof AUF_TASK_LABELS !== 'undefined' && AUF_TASK_LABELS[k]) || k)),
       ticket: a.zendesk_nr ? String(a.zendesk_nr).replace(/[^0-9]/g,'') : '',
       prio: a.prioritaet === 'hoch',
       frist: a.wunschdatum ? (ueber ? 'überfällig' : (tage === 0 ? 'heute fällig' : 'bis ' + new Date(a.wunschdatum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}))) : '',
@@ -2014,8 +2009,8 @@ function tpVorrat() {
     const t = tpTage(st);
     items.push({
       id: 'upd-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
-      min: tpMin('kontrolle'), status: 'arbeit',
-      arten: ['Kontrolle / Nachfassen'],
+      min: tpMin('arbeit'), status: 'arbeit',
+      arten: ['Kontrolle'],
       frist: t != null ? ('läuft seit ' + t + (t === 1 ? ' Tag' : ' Tagen')) : '',
       dringend: (t ?? 0) > 14
     });
@@ -2026,7 +2021,7 @@ function tpVorrat() {
     const wo = a.inPruefungApple && a.inPruefungGoogle ? 'Apple & Google' : a.inPruefungApple ? 'Apple' : 'Google';
     items.push({
       id: 'prf-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
-      min: tpMin('kontrolle'), status: 'pruefung',
+      min: tpMin('store'), status: 'pruefung',
       arten: ['Freigabe prüfen'], frist: 'bei ' + wo
     });
   });
