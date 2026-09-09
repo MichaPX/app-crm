@@ -1014,15 +1014,15 @@
   /* Plattform-Kacheln in Pastell */
   .platforms { gap: 10px; margin-top: 13px; }
   .plat-col { border: none; border-radius: 16px; padding: 12px 13px 11px; gap: 3px; }
-  .plat-col.pc-ios { background: var(--himmel); }
-  .plat-col.pc-android { background: var(--salbei); }
+  .plat-col.pc-ios { background: #e9f1f9; }
+  .plat-col.pc-android { background: #edf4e9; }
   .plat-col.inactive, .plat-col.pc-ios.inactive, .plat-col.pc-android.inactive { background: #e8e5de; opacity: 1; }
   .plat-head { font-size: 10.5px; font-weight: 700; color: inherit; opacity: .72; }
   .plat-icon { background: transparent !important; width: auto; height: auto; font-size: 12px; }
   .plat-version { font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-top: 2px; }
   .plat-version.txt { font-size: 12.5px; font-weight: 700; letter-spacing: 0; line-height: 1.35;
     margin-top: 4px; white-space: normal; overflow: visible; opacity: .8; }
-  .plat-note { font-size: 10px; font-weight: 700; background: rgba(255,255,255,.62); color: inherit;
+  .plat-note { font-size: 10px; font-weight: 700; background: rgba(28,27,25,.07); color: inherit;
     border-radius: 999px; padding: 2px 9px; margin-top: 4px; }
   .plat-note.pruefung { background: rgba(255,255,255,.75); color: #7a4b12; }
   .store-btn { font-size: 10.5px; font-weight: 700; color: inherit; opacity: .66; padding-top: 8px; }
@@ -1043,14 +1043,15 @@
 
   /* Dashboard im gleichen Ton */
   .dash-primary {
-    background: var(--himmel);
-    color: var(--tinte);
+    background: var(--flieder);
+    color: #2e2560;
     border-radius: 22px;
     box-shadow: none;
   }
+  .dash-primary #dv-aktiv-sub { color: #2e2560; }
   .dash-primary .num { font-size: 40px; letter-spacing: -.04em; }
   .dash-primary .lbl { opacity: .62; font-weight: 700; }
-  .dash-primary .trend { background: rgba(255,255,255,.6); color: var(--tinte); font-weight: 700; }
+  .dash-primary .trend { background: rgba(255,255,255,.55); color: #2e2560; font-weight: 700; }
   .dash-group {
     background: var(--karte-papier);
     border: 1px solid rgba(28,27,25,.08);
@@ -1355,7 +1356,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 08:55';
+const BUILD_STAMP = '2026-09-09 09:02';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3008,10 +3009,10 @@ function appleZugangTitel(a) {
 function iconStyle(a) {
   // Farbe nach Apple-Zugang, damit die Zuordnung schon am Farbton erkennbar ist
   const k = appleZugangKuerzel(a);
-  if (k === 'A') return 'background:var(--butter);color:#6b5518';
-  if (k === 'B') return 'background:var(--salbei);color:#2f5b32';
-  if (k === 'C') return 'background:var(--flieder);color:#463a7a';
-  if (k === 'K') return 'background:var(--himmel);color:#204a72';
+  if (k === 'A') return 'background:#faeecb;color:#7a6320';
+  if (k === 'B') return 'background:#edf4e9;color:#48704b';
+  if (k === 'C') return 'background:#eeeaf9;color:#544a86';
+  if (k === 'K') return 'background:#e9f1f9;color:#2c5a86';
   if (a.blockiert || a.gekuendigt) return 'background:#f4cdc4;color:#8c3122';
   return 'background:#e8e5de;color:#8a8880';
 }
