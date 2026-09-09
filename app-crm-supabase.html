@@ -715,6 +715,18 @@
   }
 
   /* ================= Tagesplan ================= */
+  .tp-wrap { display: flex; align-items: stretch; }
+  #tp-body { flex: 1; min-width: 0; }
+  .tp-zeitpanel { width: 0; flex-shrink: 0; overflow: hidden; background: var(--card);
+    border-left: 1px solid var(--border); transition: width .18s ease; }
+  .tp-zeitpanel.offen { width: 290px; }
+  .tp-zp-kopf { display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 10px; border-bottom: 1px solid var(--border); }
+  .tp-zp-body { padding: 12px 16px 18px; }
+  .tp-zp-hinweis { margin-top: 14px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+  @media (max-width: 980px) {
+    .tp-zeitpanel.offen { width: 240px; }
+  }
   .tp-split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .tp-spalte { min-width: 0; }
   .tp-spalte-kopf { display: flex; align-items: center; gap: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
@@ -998,7 +1010,7 @@
 
 <!-- ===== Aufträge-Modal ===== -->
 <div class="auf-overlay" id="tp-overlay">
-  <div class="auf-modal" style="max-width:1000px">
+  <div class="auf-modal" style="max-width:1180px">
     <div class="auf-head">
       <h2><i class="ti ti-sun" style="color:var(--amber)"></i> Tagesplan</h2>
       <span id="tp-datum" style="font-size:12.5px;color:var(--muted)"></span>
@@ -1006,8 +1018,11 @@
       <button class="auf-close" style="margin-left:8px" onclick="openTagesplanZeiten()"><i class="ti ti-adjustments"></i> Zeitwerte</button>
       <button class="auf-close" style="margin-left:8px" onclick="closeTagesplan()"><i class="ti ti-x"></i> Schließen</button>
     </div>
-    <div id="tp-body" style="padding:20px 22px 26px">
-      <div class="auf-empty">Lädt…</div>
+    <div class="tp-wrap">
+      <div id="tp-body" style="padding:20px 22px 26px">
+        <div class="auf-empty">Lädt…</div>
+      </div>
+      <aside class="tp-zeitpanel" id="tp-zeitpanel"></aside>
     </div>
   </div>
 </div>
@@ -1231,7 +1246,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 06:31';
+const BUILD_STAMP = '2026-09-09 06:37';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1910,7 +1925,7 @@ async function setZielVersion() {
 const TP_ARTEN = {
   update:    { label: 'Update (je App)',            min: 65 },
   arbeit:    { label: 'App in Arbeit · Kontrolle',  min: 20 },
-  store:     { label: 'Freigabe im Store prüfen',   min: 10 },
+  store:     { label: 'Freigabe im Store prüfen',   min: 5 },
   deeplinks: { label: 'Deeplinks nachtragen',       min: 15 },
   pruefen:   { label: 'Blockierte App prüfen',      min: 15 }
 };
@@ -1960,7 +1975,10 @@ async function openTagesplan() {
   window._tpTag = tpTagLaden();
   renderTagesplan();
 }
-function closeTagesplan() { document.getElementById('tp-overlay').classList.remove('open'); }
+function closeTagesplan() {
+  closeTagesplanZeiten();
+  document.getElementById('tp-overlay').classList.remove('open');
+}
 
 // ── Verfügbare Aufgaben zusammenstellen ──
 function tpVorrat() {
@@ -1986,14 +2004,16 @@ function tpVorrat() {
 
     // Status: läuft schon eine der Apps, ist der Auftrag in Arbeit
     const inArbeit = offeneApps.some(laeuft) || a.status === 'in_arbeit';
+    // Bei laufendem Update steht nur noch die Kontrolle an, nicht das ganze Update
+    const dauer = inArbeit ? tpMin('arbeit') * anzahl : min;
     const ueber = a.wunschdatum && String(a.wunschdatum).slice(0,10) < heuteISO;
     const tage = tpTage(a.wunschdatum ? a.wunschdatum + 'T00:00' : null);
 
     items.push({
       id: 'auf-' + a.id, typ: 'auftrag', refId: a.id,
-      name: esc(a.app_name || 'Auftrag'), min,
+      name: esc(a.app_name || 'Auftrag'), min: dauer,
       status: inArbeit ? 'arbeit' : 'offen',
-      arten: arten.map(k => ((typeof AUF_TASK_LABELS !== 'undefined' && AUF_TASK_LABELS[k]) || k)),
+      arten: inArbeit ? ['Kontrolle'] : arten.map(k => ((typeof AUF_TASK_LABELS !== 'undefined' && AUF_TASK_LABELS[k]) || k)),
       ticket: a.zendesk_nr ? String(a.zendesk_nr).replace(/[^0-9]/g,'') : '',
       prio: a.prioritaet === 'hoch',
       frist: a.wunschdatum ? (ueber ? 'überfällig' : (tage === 0 ? 'heute fällig' : 'bis ' + new Date(a.wunschdatum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}))) : '',
@@ -2002,9 +2022,14 @@ function tpVorrat() {
     });
   });
 
-  // ── Laufende Updates (ohne zugehörigen Auftrag doppelt zu zeigen) ──
+  // ── Laufende Updates, sofern nicht schon über einen Auftrag abgedeckt ──
+  const inAuftrag = new Set();
+  auftraege.forEach(a => (Array.isArray(a.apps) ? a.apps : []).forEach(e => {
+    const crm = findCrmApp(e);
+    if (crm) inAuftrag.add(String(crm.id));
+  }));
   const starts = window._updStarts || {};
-  apps.filter(a => a.imUpdate).forEach(a => {
+  apps.filter(a => a.imUpdate && !inAuftrag.has(String(a.id))).forEach(a => {
     const st = starts[String(a.id)] || starts[String(a._dbId)] || (a.datum ? a.datum + 'T00:00' : null);
     const t = tpTage(st);
     items.push({
@@ -2239,33 +2264,40 @@ function tpOeffnen(typ, refId) {
 
 // ── Zeitwerte je Aufgabenart ──
 function openTagesplanZeiten() {
+  const panel = document.getElementById('tp-zeitpanel');
+  if (!panel) return;
+  if (panel.classList.contains('offen')) { closeTagesplanZeiten(); return; }
   const Z = tpZeiten();
-  const zeilen = Object.keys(TP_ARTEN).map(k => `
-    <div class="tp-zeit-zeile">
-      <label>${TP_ARTEN[k].label}</label>
-      <input type="number" min="5" step="5" id="tpz-${k}" value="${Z[k]}"> <span>Min.</span>
-    </div>`).join('');
-  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
-    <div class="modal" style="max-width:460px">
-      <div class="modal-top">
-        <div><h3>Zeitwerte</h3><div class="sub">Vorgabe je Aufgabenart</div></div>
-        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
-      </div>
-      <div style="margin-top:16px">${zeilen}
-        <div class="tp-zeit-zeile" style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px">
-          <label><b>Arbeitsbeginn</b></label>
-          <input type="time" id="tpz-start" value="${tpUhr(Z.start)}" style="width:auto"> <span></span>
-        </div>
+  panel.innerHTML = `
+    <div class="tp-zp-kopf">
+      <span class="tp-kap-titel">Zeitwerte</span>
+      <button class="tp-mini" onclick="closeTagesplanZeiten()" title="Schließen"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="tp-zp-body">
+      ${Object.keys(TP_ARTEN).map(k => `
         <div class="tp-zeit-zeile">
-          <label><b>Arbeitsende</b></label>
-          <input type="time" id="tpz-ende" value="${tpUhr(Z.ende)}" style="width:auto"> <span></span>
-        </div>
+          <label>${TP_ARTEN[k].label}</label>
+          <input type="number" min="1" step="5" id="tpz-${k}" value="${Z[k]}" oninput="tpZeitenSpeichern()"> <span>Min.</span>
+        </div>`).join('')}
+      <div class="tp-zeit-zeile" style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px">
+        <label><b>Arbeitsbeginn</b></label>
+        <input type="time" id="tpz-start" value="${tpUhr(Z.start)}" oninput="tpZeitenSpeichern()" style="width:auto"> <span></span>
       </div>
-      <div class="modal-foot"><div class="modal-foot-right">
-        <button class="btn-secondary" onclick="closeMod()">Abbrechen</button>
-        <button class="btn-primary" onclick="tpZeitenSpeichern()">Speichern</button>
-      </div></div>
-    </div></div>`;
+      <div class="tp-zeit-zeile">
+        <label><b>Arbeitsende</b></label>
+        <input type="time" id="tpz-ende" value="${tpUhr(Z.ende)}" oninput="tpZeitenSpeichern()" style="width:auto"> <span></span>
+      </div>
+      <div class="tp-zp-hinweis">Änderungen wirken sofort. Einzelne Karten lassen sich weiterhin per Klick auf die Zeitangabe abweichend setzen.</div>
+    </div>`;
+  panel.classList.add('offen');
+  document.getElementById('tp-body').classList.add('mit-panel');
+}
+
+function closeTagesplanZeiten() {
+  const panel = document.getElementById('tp-zeitpanel');
+  if (panel) { panel.classList.remove('offen'); panel.innerHTML = ''; }
+  const body = document.getElementById('tp-body');
+  if (body) body.classList.remove('mit-panel');
 }
 function tpZeitenSpeichern() {
   const neu = {};
@@ -2280,9 +2312,7 @@ function tpZeitenSpeichern() {
   neu.ende  = (ev != null && ev > neu.start) ? ev : TP_ENDE;
   neu.kapazitaet = neu.ende - neu.start;
   localStorage.setItem('crm_tp_zeiten', JSON.stringify(neu));
-  closeMod();
   renderTagesplan();
-  toast('Zeitwerte gespeichert');
 }
 
 // ── Zähler an der Sidebar: überfällige Aufträge + lange laufende Updates ──
