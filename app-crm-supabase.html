@@ -1020,6 +1020,8 @@
   .plat-head { font-size: 10.5px; font-weight: 700; color: inherit; opacity: .72; }
   .plat-icon { background: transparent !important; width: auto; height: auto; font-size: 12px; }
   .plat-version { font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-top: 2px; }
+  .plat-version.txt { font-size: 12.5px; font-weight: 700; letter-spacing: 0; line-height: 1.35;
+    margin-top: 4px; white-space: normal; overflow: visible; opacity: .8; }
   .plat-note { font-size: 10px; font-weight: 700; background: rgba(255,255,255,.62); color: inherit;
     border-radius: 999px; padding: 2px 9px; margin-top: 4px; }
   .plat-note.pruefung { background: rgba(255,255,255,.75); color: #7a4b12; }
@@ -1252,7 +1254,7 @@
         </div>
         <div class="dash-cell" id="dc-fertig" onclick="setStatusFilter('Fertig')">
           <div class="num" style="color:var(--green)" id="dv-fertig">—</div>
-          <div class="lbl">Fertig</div>
+          <div class="lbl">Aktuell</div>
           <div class="cell-delta" id="dl-fertig"></div>
         </div>
         <div class="dash-cell" id="dc-gekuendigt" onclick="setStatusFilter('Gekündigt')">
@@ -1308,7 +1310,7 @@
     </select>
     <select class="f-input" id="f-status" onchange="render()">
       <option value="">Alle Status</option>
-      <option>Fertig</option><option>Offen</option><option>Blockiert</option><option>Gekündigt</option>
+      <option value="Fertig">Aktuell</option><option>Offen</option><option>Blockiert</option><option>Gekündigt</option>
       <option value="imUpdate">Update läuft</option>
       <option value="benoetigtUpdate">Benötigt Update</option>
     </select>
@@ -1353,7 +1355,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 08:45';
+const BUILD_STAMP = '2026-09-09 08:55';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3202,7 +3204,8 @@ function render() {
       const head = isApple
         ? '<div class="plat-head"><span class="plat-icon ios"><i class="ti ti-brand-apple"></i></span>iOS</div>'
         : '<div class="plat-head"><span class="plat-icon and"><i class="ti ti-brand-android"></i></span>Android</div>';
-      const inactive = !v;
+      const istVersion = !!v && /^\d/.test(v);
+      const inactive = !v || !istVersion;   // Textwerte wie "Aus dem Store" wie leere Spalte behandeln
       const oldWarn = byVersion && isOldV(v);
       // Betrifft das laufende Update überhaupt diese Plattform?
       const tgt = a.updateTarget || 'beide';
@@ -3221,7 +3224,7 @@ function render() {
         : '';
       return `<div class="plat-col ${isApple?'pc-ios':'pc-android'}${inactive?' inactive':''}">
         ${head}
-        <div class="plat-version" style="${oldWarn?'color:#dc2626':''}">${v||'—'}${oldWarn?' ⚠':''}</div>
+        <div class="plat-version${istVersion?'':' txt'}" style="${oldWarn?'color:#dc2626':''}">${v||'—'}${oldWarn?' ⚠':''}</div>
         ${note}
         ${storeBtn}
       </div>`;
@@ -3229,7 +3232,7 @@ function render() {
 
     // Badges
     const statusPill = (a.updateStatus==='Fertig' && a.imUpdate) ? ''
-      : a.updateStatus==='Fertig' ? '<span class="pill status-done">Fertig</span>'
+      : a.updateStatus==='Fertig' ? '<span class="pill status-done">Aktuell</span>'
       : a.updateStatus==='In Arbeit' ? '<span class="pill status-running">In Arbeit</span>'
       : '<span class="pill status-open">Offen</span>';
     const pills=[
@@ -4496,7 +4499,7 @@ function openDetail(id){
     a.store?`<span class="pill prop">${a.store}</span>`:'',
     a.vApple?`<span class="pill prop">iOS ${a.vApple}</span>`:'',
     a.vGoogle?`<span class="pill prop">Android ${a.vGoogle}</span>`:'',
-    a.updateStatus==='Fertig'?'<span class="pill status-done">Fertig</span>':a.updateStatus==='In Arbeit'?'<span class="pill status-running">In Arbeit</span>':'<span class="pill status-open">Offen</span>',
+    a.updateStatus==='Fertig'?'<span class="pill status-done">Aktuell</span>':a.updateStatus==='In Arbeit'?'<span class="pill status-running">In Arbeit</span>':'<span class="pill status-open">Offen</span>',
     a.imUpdate?'<span class="pill status-running"><i class="ti ti-refresh" style="font-size:9px"></i> Update läuft</span>':'',
     a.benoetigtUpdate?'<span class="pill" style="background:var(--amber-soft);color:var(--amber)"><i class="ti ti-refresh-alert" style="font-size:9px"></i> Benötigt Update</span>':'',
     a.blockiert?'<span class="pill" style="background:var(--red-soft);color:#991b1b"><i class="ti ti-lock" style="font-size:9px"></i> Blockiert</span>':'',
@@ -4691,7 +4694,7 @@ function formHTML(a,title){
     <div class="field"><label>CRM Status</label>
       <select id="f-updateStatus">
         <option${sel('updateStatus','Offen')}>Offen</option>
-        <option${sel('updateStatus','Fertig')}>Fertig</option>
+        <option value="Fertig"${sel('updateStatus','Fertig')}>Aktuell</option>
       </select></div>
     <div class="field"><label>Freischaltcode</label>
       <select id="f-fcs">
@@ -5144,7 +5147,7 @@ async function loadWeeklyTrend() {
       'dl-ac':         {feld:'A.C',             typ:'gefuellt', name:'A.C',         up:'var(--indigo)', down:'var(--text3)'},
       'dl-prodids':    {feld:'Prod. IDs nötig', typ:'bool', name:'Prod. IDs',       up:'var(--indigo)', down:'var(--text3)'},
       'dl-offen':      {feld:'Status', typ:'wert', wert:'Offen',  name:'Offen',     up:'var(--amber)',  down:'var(--green)'},
-      'dl-fertig':     {feld:'Status', typ:'wert', wert:'Fertig', name:'Fertig',    up:'var(--green)',  down:'var(--text3)'},
+      'dl-fertig':     {feld:'Status', typ:'wert', wert:'Fertig', name:'Aktuell',   up:'var(--green)',  down:'var(--text3)'},
       'dl-gekuendigt': {feld:'Gekündigt',       typ:'bool', name:'Gekündigt',       up:'var(--red)',    down:'var(--green)'},
       'dl-block':      {feld:'Blockiert',       typ:'bool', name:'Blockiert',       up:'var(--red)',    down:'var(--green)'}
     };
