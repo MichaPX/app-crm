@@ -1014,7 +1014,7 @@
   <button title="Zugangsdaten (PW)" class="vnav-btn admin-only" onclick="openStorePW()"><i class="ti ti-key"></i><span class="tip">Zugangsdaten (PW)</span></button>
   <button title="Zielversion setzen" class="vnav-btn admin-only" onclick="setZielVersion()"><i class="ti ti-tag"></i><span class="tip">Zielversion: <b id="ziel-version-badge">—</b></span></button>
   <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
-  <button title="Tagesplan" class="vnav-btn" onclick="openTagesplan()"><i class="ti ti-sun"></i><span class="tip">Tagesplan</span><span class="nbadge" id="tagesplan-badge" style="display:none"></span></button>
+  <button title="Tagesplan" class="vnav-btn" onclick="openTagesplan()"><i class="ti ti-sun"></i><span class="tip">Tagesplan</span></button>
   <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
   <div class="vnav-sep admin-only"></div>
   <button title="Zuletzt aktualisiert" class="vnav-btn" onclick="openRecentUpdatesModal()"><i class="ti ti-history-toggle"></i><span class="tip">Zuletzt aktualisiert</span></button>
@@ -1270,7 +1270,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 07:28';
+const BUILD_STAMP = '2026-09-09 07:53';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1639,7 +1639,7 @@ async function doRestore(backup) {
 // ── Save / Delete ──
 const CHANGELOG_LABELS = {
   name:'Name', vApple:'iOS', vGoogle:'Android', store:'Store', year:'Jahr',
-  updateStatus:'Status', fcs:'FCS', blockiert:'Blockiert', gekuendigt:'Gekündigt',
+  updateStatus:'Status', fcs:'Freischaltcode', blockiert:'Blockiert', gekuendigt:'Gekündigt',
   gekuendigtDatum:'Kündigungsdatum', storeZugang:'Store Zugang', deeplinks:'Deeplinks',
   push:'Push', datum:'Datum', imUpdate:'Update läuft', benoetigtUpdate:'Benötigt Update',
   zendeskNr:'Zendesk #', produktIdsRequired:'Prod. IDs nötig', updateTarget:'Update für',
@@ -2192,9 +2192,6 @@ function renderTagesplan() {
       </div>
     </div>`;
 
-  const b = document.getElementById('tagesplan-badge');
-  const n = tpDringend();
-  if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
 }
 
 function tpStatusFilter(k) { window._tpStatusFilter = k; renderTagesplan(); }
@@ -2339,20 +2336,6 @@ function tpZeitenSpeichern() {
   renderTagesplan();
 }
 
-// ── Zähler an der Sidebar: überfällige Aufträge + lange laufende Updates ──
-function tpDringend() {
-  const auftraege = window._tpAuftraege || [];
-  const heuteISO = new Date().toISOString().slice(0,10);
-  const ueber = auftraege.filter(a => a.wunschdatum && String(a.wunschdatum).slice(0,10) < heuteISO).length;
-  const starts = window._updStarts || {};
-  const lange = (typeof apps !== 'undefined' ? apps : []).filter(a => {
-    if (!a.imUpdate) return false;
-    const st = starts[String(a.id)] || starts[String(a._dbId)] || (a.datum ? a.datum + 'T00:00' : null);
-    return (tpTage(st) ?? 0) > 14;
-  }).length;
-  return ueber + lange;
-}
-
 function copyTagesplan() {
   const tag = window._tpTag || [];
   const Z = tpZeiten();
@@ -2366,11 +2349,9 @@ function copyTagesplan() {
 }
 
 async function loadTagesplanBadge() {
+  // Aufträge im Hintergrund vorladen, damit der Tagesplan sofort gefüllt ist
   try {
     window._tpAuftraege = await sbFetch('auftraege?select=*&status=neq.erledigt&order=erstellt_am.desc', { prefer: '' }) || [];
-    const b = document.getElementById('tagesplan-badge');
-    const n = tpDringend();
-    if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
   } catch (e) {}
 }
 
@@ -4491,7 +4472,7 @@ function openDetail(id){
         </div>
         <div style="margin-top:16px">
           <div class="kv-col-title">Technisch</div>
-          ${kv('FCS',a.fcs)}
+          ${kv('Freischaltcode',a.fcs)}
           ${kv('Deeplinks',a.deeplinks)}
           ${kv('Push',a.push)}
           ${kv('Produkt IDs',a.produktIDs)}
@@ -4626,14 +4607,13 @@ function formHTML(a,title){
         <option${sel('updateStatus','Offen')}>Offen</option>
         <option${sel('updateStatus','Fertig')}>Fertig</option>
       </select></div>
-    <div class="field"><label>FCS</label>
+    <div class="field"><label>Freischaltcode</label>
       <select id="f-fcs">
         <option value="">—</option>
         <option${sel('fcs','Aktiviert')}>Aktiviert</option>
-        <option${sel('fcs','Aktiv')}>Aktiv</option>
         <option${sel('fcs','Deaktiviert')}>Deaktiviert</option>
-        <option${sel('fcs','Nicht Vorhanden')}>Nicht Vorhanden</option>
-        <option${sel('fcs','Für Prüfung Dea.')}>Für Prüfung Dea.</option>
+        ${(a.fcs && !['Aktiviert','Deaktiviert'].includes(a.fcs))
+          ? `<option selected>${a.fcs}</option>` : ''}
       </select></div>
     <div class="field"><label>Datum</label><input id="f-datum" type="date" value="${s('datum').slice(0,10)}"></div>
     <div class="fsec">Technisch</div>
