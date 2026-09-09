@@ -1270,7 +1270,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 07:13';
+const BUILD_STAMP = '2026-09-09 07:28';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2543,6 +2543,146 @@ function erlVorlagenSpeichern() {
 function erlVorlagenZuruecksetzen() {
   localStorage.removeItem('crm_erl_vorlagen');
   openErlVorlagen();
+  toast('Vorlage zurückgesetzt');
+}
+
+// ── Text beim Start eines Updates (Status: in Prüfung) ──
+const ERL_VORLAGE_START_EINZEL = `Version: {version}
+
+{status-liste}`;
+
+const ERL_VORLAGE_START_SAMMEL = `Version: {version}
+
+{app-status-liste}`;
+
+function erlStartVorlagen() {
+  try {
+    const v = JSON.parse(localStorage.getItem('crm_erl_start') || '{}');
+    return { einzel: v.einzel || ERL_VORLAGE_START_EINZEL, sammel: v.sammel || ERL_VORLAGE_START_SAMMEL };
+  } catch (e) { return { einzel: ERL_VORLAGE_START_EINZEL, sammel: ERL_VORLAGE_START_SAMMEL }; }
+}
+
+// "Apple\n• in der Prüfung\n\nGoogle\n• in der Prüfung" – nur für die betroffenen Stores
+function erlStatusBlock(eintrag, auftrag) {
+  const s = erlStores(eintrag, auftrag);
+  const teile = [];
+  if (s.kurz !== 'nur Google') teile.push('Apple\n• in der Prüfung');
+  if (s.kurz !== 'nur Apple')  teile.push('Google\n• in der Prüfung');
+  return teile.join('\n\n');
+}
+
+function erlStartTextBauen(auftrag) {
+  if (!auftrag) return '';
+  const V = erlStartVorlagen();
+  const liste = Array.isArray(auftrag.apps) && auftrag.apps.length
+    ? auftrag.apps
+    : [{ name: auftrag.app_name, pegasus: auftrag.pegasus }];
+  const version = erlVersion(liste);
+  const ticket = String(auftrag.zendesk_nr || '').replace(/[^0-9]/g, '');
+  const aufgabe = (Array.isArray(auftrag.aufgaben) && auftrag.aufgaben.length
+    ? auftrag.aufgaben.map(k => (typeof AUF_TASK_LABELS !== 'undefined' && AUF_TASK_LABELS[k]) || k)
+    : ['Neue Version']).join(', ');
+
+  if (liste.length > 1) {
+    const bloecke = liste.map(e => (e.name || '—') + '\n' + erlStatusBlock(e, auftrag)).join('\n\n');
+    return V.sammel
+      .replace(/\{app-status-liste\}/g, bloecke)
+      .replace(/\{status-liste\}/g, erlStatusBlock(liste[0], auftrag))
+      .replace(/\{version\}/g, version)
+      .replace(/\{aufgabe\}/g, aufgabe)
+      .replace(/\{ticket\}/g, ticket)
+      .replace(/\{app\}/g, auftrag.app_name || '');
+  }
+  return V.einzel
+    .replace(/\{status-liste\}/g, erlStatusBlock(liste[0], auftrag))
+    .replace(/\{app-status-liste\}/g, (liste[0].name || '') + '\n' + erlStatusBlock(liste[0], auftrag))
+    .replace(/\{app\}/g, liste[0].name || auftrag.app_name || '')
+    .replace(/\{version\}/g, version)
+    .replace(/\{aufgabe\}/g, aufgabe)
+    .replace(/\{ticket\}/g, ticket);
+}
+
+function openStartText(auftrag) {
+  if (!auftrag || !auftrag.zendesk_nr) return;
+  const liste = Array.isArray(auftrag.apps) && auftrag.apps.length ? auftrag.apps : [{ name: auftrag.app_name }];
+  const ticket = String(auftrag.zendesk_nr).replace(/[^0-9]/g, '');
+  const version = erlVersion(liste);
+  const mehrere = liste.length > 1;
+  const storeChips = mehrere
+    ? `<span class="erl-chip c-store"><i class="ti ti-apps"></i> ${liste.length} Apps</span>`
+    : (() => {
+        const s = erlStores(liste[0], auftrag);
+        return (s.kurz !== 'nur Google' ? '<span class="erl-chip c-store"><i class="ti ti-brand-apple"></i> App Store</span>' : '')
+             + (s.kurz !== 'nur Apple'  ? '<span class="erl-chip c-store"><i class="ti ti-brand-android"></i> Google Play</span>' : '');
+      })();
+
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-top">
+        <div class="erl-ok" style="background:var(--teal-soft);color:#0f766e"><i class="ti ti-player-play"></i></div>
+        <div style="min-width:0">
+          <h3>Update gestartet — ${(auftrag.app_name || 'Auftrag').replace(/</g,'&lt;')}</h3>
+          <div class="sub">${mehrere ? liste.length + ' Apps eingereicht' : 'Zur Prüfung eingereicht'}, Text für das Ticket</div>
+        </div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+
+      <div class="erl-meta">
+        <span class="erl-chip c-ticket">#${ticket}</span>
+        ${version && version !== '—' ? `<span class="erl-chip c-ver">${version}</span>` : ''}
+        ${storeChips}
+      </div>
+
+      <div class="erl-box">
+        <div class="erl-box-kopf">Text
+          <div class="rechts">
+            <button class="erl-mini" onclick="openStartVorlagen()"><i class="ti ti-pencil"></i> Vorlage bearbeiten</button>
+          </div>
+        </div>
+        <textarea id="erl-text" rows="${mehrere ? 11 : 7}">${erlStartTextBauen(auftrag).replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div class="erl-fuss">
+        <span class="erl-fuss-links">Text ist bearbeitbar, bevor du ihn kopierst.</span>
+        <a class="btn" style="margin-left:auto" href="${ZENDESK_TICKET_URL}${ticket}" target="_blank"><i class="ti ti-external-link"></i> Ticket öffnen</a>
+        <button class="btn-primary" onclick="erlKopieren()"><i class="ti ti-copy"></i> Kopieren</button>
+      </div>
+    </div></div>`;
+}
+
+function openStartVorlagen() {
+  const V = erlStartVorlagen();
+  document.getElementById('mc').innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeMod()">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-top">
+        <div class="erl-ok" style="background:var(--teal-soft);color:#0f766e"><i class="ti ti-pencil"></i></div>
+        <div><h3>Textvorlage — Start</h3><div class="sub">Gilt für gestartete Updates</div></div>
+        <button class="modal-close" onclick="closeMod()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="erl-box"><div class="erl-box-kopf">Einzelne App</div>
+        <textarea id="st-v-einzel" rows="6">${V.einzel.replace(/</g,'&lt;')}</textarea></div>
+      <div class="erl-box"><div class="erl-box-kopf">Sammelauftrag</div>
+        <textarea id="st-v-sammel" rows="7">${V.sammel.replace(/</g,'&lt;')}</textarea></div>
+      <div class="erl-fuss">
+        <span class="erl-fuss-links">Platzhalter: {status-liste} · {app-status-liste} · {app} · {version} · {aufgabe} · {ticket}</span>
+        <button class="btn" style="margin-left:auto" onclick="startVorlagenZuruecksetzen()">Zurücksetzen</button>
+        <button class="btn-primary" onclick="startVorlagenSpeichern()"><i class="ti ti-device-floppy"></i> Speichern</button>
+      </div>
+    </div></div>`;
+}
+function startVorlagenSpeichern() {
+  const e = document.getElementById('st-v-einzel');
+  const s = document.getElementById('st-v-sammel');
+  localStorage.setItem('crm_erl_start', JSON.stringify({
+    einzel: (e && e.value) || ERL_VORLAGE_START_EINZEL,
+    sammel: (s && s.value) || ERL_VORLAGE_START_SAMMEL
+  }));
+  closeMod();
+  toast('Vorlage gespeichert');
+}
+function startVorlagenZuruecksetzen() {
+  localStorage.removeItem('crm_erl_start');
+  openStartVorlagen();
   toast('Vorlage zurückgesetzt');
 }
 
@@ -3886,6 +4026,8 @@ async function startAuftragAppUpdate(index) {
   }
   renderAuftragAppList(_aufCurrent);
   render();
+  // Text für das Ticket anbieten
+  openStartText({ ..._aufCurrent, apps: [entry] });
 }
 
 // "Erledigt"-Knopf bzw. Häkchen zurücknehmen
@@ -4150,6 +4292,7 @@ async function setAuftragStatus(status) {
     await syncAuftragToApps(_aufCurrent, status);
     render();
     if (status === 'erledigt') openErledigtText(_aufCurrent);
+    else if (status === 'in_arbeit') openStartText(_aufCurrent);
   } catch (e) { console.error(e); if (typeof toast === 'function') toast('Fehler beim Speichern'); }
 }
 
@@ -5673,8 +5816,13 @@ async function toggleImUpdate(id, checked, ausAuftrag) {
   // beim Abschließen die App im passenden Auftrag abhaken.
   // Entfällt, wenn die Aktion ohnehin aus einem Auftrag kommt.
   if (zNr && !ausAuftrag) {
-    if (checked) await auftragAusAppAnlegen(apps[idx], zNr);
-    else await auftragAppErledigen(apps[idx], zNr);
+    if (checked) {
+      await auftragAusAppAnlegen(apps[idx], zNr);
+      openStartText({ app_name: apps[idx].name, zendesk_nr: zNr, aufgaben: ['update'],
+                      apps: [{ name: apps[idx].name, pegasus: apps[idx].pegasus }] });
+    } else {
+      await auftragAppErledigen(apps[idx], zNr);
+    }
   }
 
   sessionStorage.setItem(SESSION_APPS_KEY, JSON.stringify(apps));
