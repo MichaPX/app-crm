@@ -725,7 +725,7 @@
   .tp-suche:focus { border-color: var(--indigo); }
 
   .tp-liste { margin-top: 10px; display: flex; flex-direction: column; gap: 8px;
-    min-height: 320px; max-height: 56vh; overflow-y: auto; padding: 4px; border-radius: 10px; }
+    min-height: 300px; max-height: 48vh; overflow-y: auto; padding: 4px; border-radius: 10px; }
   .tp-drop { border: 2px dashed var(--border); background: var(--card); }
   .tp-drop.aktiv { border-color: var(--teal); background: #f2fbf9; }
 
@@ -755,13 +755,38 @@
   .tp-mini:hover { background: var(--slate-soft); color: var(--text); }
   .tp-karte:hover .tp-karte-zeit { opacity: 0; }
 
-  .tp-kap { border: 1px solid #c8e8e4; background: #f2fbf9; border-radius: 10px; padding: 11px 13px; margin-top: 10px; }
-  .tp-kap-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-  .tp-kap-titel { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #0f766e; }
+  .tp-strahl-box { border: 1px solid var(--border); background: var(--card); border-radius: 12px;
+    padding: 13px 16px 8px; margin-bottom: 18px; }
+  .tp-strahl-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tp-kap-titel { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); }
   .tp-kap-zahl { font-size: 12.5px; color: var(--text2); }
   .tp-kap-zahl b { font-size: 15px; font-weight: 800; color: var(--text); }
-  .tp-bar { height: 10px; background: #e3efed; border-radius: 6px; margin-top: 8px; overflow: hidden; }
-  .tp-bar i { display: block; height: 100%; border-radius: 6px; transition: width .2s; }
+
+  .tp-strahl { position: relative; }
+  .tp-strahl-spur { position: relative; height: 40px; background: var(--slate-soft);
+    border-radius: 8px; overflow: hidden; }
+  .tp-block { position: absolute; top: 0; height: 100%; display: flex; align-items: center;
+    padding: 0 8px; color: #fff; font-size: 11px; font-weight: 650; cursor: pointer;
+    border-right: 2px solid var(--card); overflow: hidden; transition: filter .12s; }
+  .tp-block:hover { filter: brightness(1.08); }
+  .tp-block span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tp-strahl-leer { display: flex; align-items: center; justify-content: center; height: 100%;
+    font-size: 12px; color: var(--muted); }
+  .tp-ticks { position: relative; height: 18px; margin-top: 3px; }
+  .tp-tick { position: absolute; transform: translateX(-50%); font-family: var(--mono);
+    font-size: 9.5px; color: var(--text3); }
+  .tp-tick::before { content: ''; position: absolute; left: 50%; top: -5px; width: 1px; height: 4px; background: var(--border); }
+  .tp-ueber { margin-top: 8px; font-size: 11.5px; color: var(--red); font-weight: 600;
+    display: flex; align-items: center; gap: 6px; }
+
+  .tp-filter { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .tp-fbtn { border: 1px solid var(--border); background: var(--card); color: var(--text2);
+    border-radius: 7px; padding: 4px 10px; font-size: 11.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .tp-fbtn:hover { background: var(--slate-soft); }
+  .tp-fbtn.on { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+  .tp-fbtn span { font-size: 10px; opacity: .75; }
+  .tp-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1.5px 7px; white-space: nowrap; }
 
   .tp-leer { font-size: 12.5px; color: var(--muted); padding: 26px 12px; display: flex;
     align-items: center; justify-content: center; gap: 8px; }
@@ -1206,7 +1231,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 06:14';
+const BUILD_STAMP = '2026-09-09 06:23';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1894,12 +1919,15 @@ const TP_ARTEN = {
   deeplinks: { label: 'Deeplinks nachtragen',   min: 15 },
   pruefen:   { label: 'App prüfen',             min: 15 }
 };
-const TP_KAPAZITAET = 420;   // Minuten pro Tag
+const TP_START = 8 * 60;        // Arbeitsbeginn 08:00
+const TP_ENDE  = 16 * 60 + 30;  // Arbeitsende 16:30
+const TP_KAPAZITAET = TP_ENDE - TP_START;
 
 function tpZeiten() {
   const std = {};
   Object.keys(TP_ARTEN).forEach(k => std[k] = TP_ARTEN[k].min);
-  std.kapazitaet = TP_KAPAZITAET;
+  std.start = TP_START; std.ende = TP_ENDE;
+  std.kapazitaet = TP_ENDE - TP_START;
   try { return { ...std, ...JSON.parse(localStorage.getItem('crm_tp_zeiten') || '{}') }; }
   catch (e) { return std; }
 }
@@ -1907,6 +1935,10 @@ function tpMin(art) { const z = tpZeiten(); return z[art] || 30; }
 function tpDauer(min) {
   const h = Math.floor(min / 60), m = min % 60;
   return h ? (h + ':' + String(m).padStart(2, '0') + ' Std.') : (m + ' Min.');
+}
+function tpUhr(min) {
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
 }
 function tpTage(iso) {
   if (!iso) return null;
@@ -1940,86 +1972,119 @@ function tpVorrat() {
   const auftraege = window._tpAuftraege || [];
   const items = [];
   const esc = v => String(v || '').replace(/</g, '&lt;');
+  const heuteISO = new Date().toISOString().slice(0,10);
 
-  // Aufträge: Dauer = Summe der Aufgabenarten × offene Apps
+  // Läuft im CRM für diese App gerade ein Update?
+  const laeuft = eintrag => {
+    const a = findCrmApp(eintrag);
+    return !!(a && a.imUpdate);
+  };
+
+  // ── Aufträge ──
   auftraege.forEach(a => {
     const arten = Array.isArray(a.aufgaben) && a.aufgaben.length ? a.aufgaben : ['update'];
     const appsListe = Array.isArray(a.apps) ? a.apps : [];
-    const offen = Math.max(1, appsListe.filter(x => !x.done).length || appsListe.length || 1);
+    const offeneApps = appsListe.filter(x => !x.done);
+    const anzahl = Math.max(1, offeneApps.length || appsListe.length || 1);
     const proApp = arten.reduce((sum, k) => sum + tpMin(k), 0);
-    const min = proApp * offen;
+    const min = proApp * anzahl;
+
+    // Status: läuft schon eine der Apps, ist der Auftrag in Arbeit
+    const inArbeit = offeneApps.some(laeuft) || a.status === 'in_arbeit';
+    const ueber = a.wunschdatum && String(a.wunschdatum).slice(0,10) < heuteISO;
     const tage = tpTage(a.wunschdatum ? a.wunschdatum + 'T00:00' : null);
-    const ueber = a.wunschdatum && String(a.wunschdatum).slice(0,10) < new Date().toISOString().slice(0,10);
+
     items.push({
       id: 'auf-' + a.id, typ: 'auftrag', refId: a.id,
       name: esc(a.app_name || 'Auftrag'), min,
+      status: inArbeit ? 'arbeit' : 'offen',
       arten: arten.map(k => (TP_ARTEN[k] || {}).label || k),
       ticket: a.zendesk_nr ? String(a.zendesk_nr).replace(/[^0-9]/g,'') : '',
       prio: a.prioritaet === 'hoch',
       frist: a.wunschdatum ? (ueber ? 'überfällig' : (tage === 0 ? 'heute fällig' : 'bis ' + new Date(a.wunschdatum).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}))) : '',
       dringend: !!ueber || a.prioritaet === 'hoch',
-      apps: offen
+      apps: anzahl
     });
   });
 
-  // Laufende Updates → Kontrolle / Nachfassen
+  // ── Laufende Updates (ohne zugehörigen Auftrag doppelt zu zeigen) ──
   const starts = window._updStarts || {};
   apps.filter(a => a.imUpdate).forEach(a => {
     const st = starts[String(a.id)] || starts[String(a._dbId)] || (a.datum ? a.datum + 'T00:00' : null);
     const t = tpTage(st);
     items.push({
-      id: 'upd-' + a.id, typ: 'app', refId: a.id,
-      name: esc(a.name), min: tpMin('kontrolle'),
+      id: 'upd-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
+      min: tpMin('kontrolle'), status: 'arbeit',
       arten: ['Kontrolle / Nachfassen'],
       frist: t != null ? ('läuft seit ' + t + (t === 1 ? ' Tag' : ' Tagen')) : '',
       dringend: (t ?? 0) > 14
     });
   });
 
-  // Rückstand
+  // ── Beim Store in Prüfung: warten, nichts zu tun ──
+  apps.filter(a => a.inPruefungApple || a.inPruefungGoogle).forEach(a => {
+    const wo = a.inPruefungApple && a.inPruefungGoogle ? 'Apple & Google' : a.inPruefungApple ? 'Apple' : 'Google';
+    items.push({
+      id: 'prf-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
+      min: tpMin('kontrolle'), status: 'pruefung',
+      arten: ['Freigabe prüfen'], frist: 'bei ' + wo
+    });
+  });
+
+  // ── Rückstand (immer offen) ──
   apps.filter(a => a.deeplinks === 'Daten Fehlen').forEach(a => {
     items.push({ id: 'dl-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
-      min: tpMin('deeplinks'), arten: ['Deeplinks nachtragen'], frist: '' });
+      min: tpMin('deeplinks'), status: 'offen', arten: ['Deeplinks nachtragen'], frist: '' });
   });
   apps.filter(a => a.blockiert).forEach(a => {
     items.push({ id: 'blk-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
-      min: tpMin('pruefen'), arten: ['App prüfen'], frist: 'blockiert' });
+      min: tpMin('pruefen'), status: 'offen', arten: ['App prüfen'], frist: 'blockiert' });
   });
   apps.filter(a => String(a.year) === '2023' && !a.gekuendigt && !a.imUpdate).slice(0, 12).forEach(a => {
     items.push({ id: 'jg-' + a.id, typ: 'app', refId: a.id, name: esc(a.name),
-      min: tpMin('update'), arten: ['Neue Version'], frist: 'Jahrgang 2023' });
+      min: tpMin('update'), status: 'offen', arten: ['Neue Version'], frist: 'Jahrgang 2023' });
   });
 
-  // Dringende zuerst
-  items.sort((x, y) => (y.dringend ? 1 : 0) - (x.dringend ? 1 : 0));
+  // Offene zuerst, darin die dringenden nach oben; Prüfungen ans Ende
+  const rang = { offen: 0, arbeit: 1, pruefung: 2 };
+  items.sort((x, y) => (rang[x.status] - rang[y.status]) || ((y.dringend?1:0) - (x.dringend?1:0)));
   return items;
 }
+
+const TP_STATUS = {
+  offen:    { label: 'Offen',           farbe: '#4f46e5', bg: 'var(--indigo-soft)', text: 'var(--indigo)' },
+  arbeit:   { label: 'In Arbeit',       farbe: '#14b8a6', bg: 'var(--teal-soft)',   text: '#0f766e' },
+  pruefung: { label: 'Im Store',        farbe: '#9aa0ae', bg: 'var(--slate-soft)',  text: 'var(--text2)' }
+};
 
 function renderTagesplan() {
   const Z = tpZeiten();
   const tag = window._tpTag || [];
+  const alle = tpVorrat();
+  window._tpVorrat = alle;
   const imTag = new Set(tag.map(x => x.id));
-  const vorrat = tpVorrat().filter(x => !imTag.has(x.id));
-  window._tpVorrat = tpVorrat();
+  let vorrat = alle.filter(x => !imTag.has(x.id));
 
   const suche = (document.getElementById('tp-suche') || {}).value || '';
-  const gefiltert = suche
-    ? vorrat.filter(x => x.name.toLowerCase().includes(suche.toLowerCase()))
-    : vorrat;
+  if (suche) vorrat = vorrat.filter(x => x.name.toLowerCase().includes(suche.toLowerCase()));
+  const statusFilter = window._tpStatusFilter || '';
+  if (statusFilter) vorrat = vorrat.filter(x => x.status === statusFilter);
 
   const gesamt = tag.reduce((s, x) => s + (x.min || 0), 0);
-  const pct = Math.min(100, Math.round(gesamt / Z.kapazitaet * 100));
   const rest = Z.kapazitaet - gesamt;
-  const farbe = gesamt > Z.kapazitaet ? '#dc2626' : pct > 85 ? '#d97706' : '#14b8a6';
 
-  const karte = (x, imTagList) => `
+  const karte = (x, imTagList) => {
+    const st = TP_STATUS[x.status] || TP_STATUS.offen;
+    return `
     <div class="tp-karte${x.dringend ? ' dringend' : ''}" draggable="true"
-         data-id="${x.id}" ondragstart="tpDragStart(event,'${x.id}')" ondragend="tpDragEnd(event)">
+         data-id="${x.id}" ondragstart="tpDragStart(event,'${x.id}')" ondragend="tpDragEnd(event)"
+         style="border-left:3px solid ${st.farbe}">
       <div class="tp-karte-kopf">
         <span class="tp-karte-name" title="${x.name}">${x.name}</span>
-        <span class="tp-karte-zeit" onclick="event.stopPropagation();tpZeitAendern('${x.id}')" title="Zeit anpassen">${tpDauer(x.min)}</span>
+        <span class="tp-karte-zeit" onclick="event.stopPropagation();tpZeitAendern('${x.id}')" title="Dauer anpassen">${tpDauer(x.min)}</span>
       </div>
       <div class="tp-karte-sub">
+        <span class="tp-status" style="background:${st.bg};color:${st.text}">${st.label}</span>
         ${x.ticket ? `<span class="tp-ticket">#${x.ticket}</span>` : ''}
         ${x.arten.map(a => `<span class="tp-art">${a}</span>`).join('')}
         ${x.apps > 1 ? `<span class="tp-art">${x.apps} Apps</span>` : ''}
@@ -2033,18 +2098,40 @@ function renderTagesplan() {
         <button class="tp-mini" onclick="tpOeffnen('${x.typ}','${x.refId}')" title="Öffnen"><i class="ti ti-external-link"></i></button>
       </div>
     </div>`;
+  };
+
+  // Filter-Knöpfe nach Status
+  const zaehler = { offen: 0, arbeit: 0, pruefung: 0 };
+  alle.filter(x => !imTag.has(x.id)).forEach(x => zaehler[x.status]++);
+  const filterBtn = (k, label) => `<button class="tp-fbtn${statusFilter===k?' on':''}"
+      onclick="tpStatusFilter('${k}')">${label}<span>${k ? zaehler[k] : (zaehler.offen+zaehler.arbeit+zaehler.pruefung)}</span></button>`;
 
   document.getElementById('tp-body').innerHTML = `
+    <div class="tp-strahl-box">
+      <div class="tp-strahl-kopf">
+        <span class="tp-kap-titel">Arbeitstag ${tpUhr(Z.start)} – ${tpUhr(Z.ende)}</span>
+        <span class="tp-kap-zahl"><b>${tpDauer(gesamt)}</b> verplant ·
+          ${rest >= 0 ? tpDauer(rest) + ' frei' : '<span style="color:var(--red);font-weight:700">' + tpDauer(-rest) + ' über die Zeit</span>'}</span>
+      </div>
+      ${tpStrahlHtml(tag, Z)}
+    </div>
+
     <div class="tp-split">
       <div class="tp-spalte">
         <div class="tp-spalte-kopf">
-          <h3>Aufgaben</h3><span class="tp-anz">${gefiltert.length}</span>
+          <h3>Aufgaben</h3>
           <input class="tp-suche" id="tp-suche" placeholder="suchen…" value="${suche.replace(/"/g,'&quot;')}"
                  oninput="renderTagesplan();document.getElementById('tp-suche').focus()">
         </div>
+        <div class="tp-filter">
+          ${filterBtn('', 'Alle')}
+          ${filterBtn('offen', 'Offen')}
+          ${filterBtn('arbeit', 'In Arbeit')}
+          ${filterBtn('pruefung', 'Im Store')}
+        </div>
         <div class="tp-liste" ondragover="tpDragOver(event)" ondrop="tpDropVorrat(event)">
-          ${gefiltert.length ? gefiltert.map(x => karte(x, false)).join('')
-            : '<div class="tp-leer"><i class="ti ti-check"></i> Nichts offen</div>'}
+          ${vorrat.length ? vorrat.map(x => karte(x, false)).join('')
+            : '<div class="tp-leer"><i class="ti ti-check"></i> Nichts in dieser Auswahl</div>'}
         </div>
       </div>
 
@@ -2053,17 +2140,6 @@ function renderTagesplan() {
           <h3>Mein Tag</h3><span class="tp-anz">${tag.length}</span>
           ${tag.length ? `<button class="tp-mini" style="margin-left:auto" onclick="tpTagLeeren()" title="Tag leeren"><i class="ti ti-trash"></i></button>` : ''}
         </div>
-
-        <div class="tp-kap">
-          <div class="tp-kap-top">
-            <span class="tp-kap-titel">Auslastung</span>
-            <span class="tp-kap-zahl"><b>${tpDauer(gesamt)}</b> von ${tpDauer(Z.kapazitaet)}
-              &nbsp;·&nbsp; ${rest >= 0 ? tpDauer(rest) + ' frei'
-                : '<span style="color:var(--red);font-weight:700">' + tpDauer(-rest) + ' zu viel</span>'}</span>
-          </div>
-          <div class="tp-bar"><i style="width:${pct}%;background:${farbe}"></i></div>
-        </div>
-
         <div class="tp-liste tp-drop" id="tp-tagliste"
              ondragover="tpDragOver(event)" ondragleave="tpDragLeave(event)" ondrop="tpDropTag(event)">
           ${tag.length ? tag.map(x => karte(x, true)).join('')
@@ -2075,6 +2151,39 @@ function renderTagesplan() {
   const b = document.getElementById('tagesplan-badge');
   const n = tpDringend();
   if (b) { if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
+}
+
+function tpStatusFilter(k) { window._tpStatusFilter = k; renderTagesplan(); }
+
+// Zeitstrahl über den Arbeitstag: Aufgaben nacheinander ab Arbeitsbeginn
+function tpStrahlHtml(tag, Z) {
+  const spanne = Z.ende - Z.start;
+  const stunden = [];
+  for (let m = Math.ceil(Z.start / 60) * 60; m <= Z.ende; m += 60) {
+    stunden.push(`<span class="tp-tick" style="left:${((m - Z.start) / spanne * 100).toFixed(2)}%">${tpUhr(m)}</span>`);
+  }
+  let cursor = Z.start;
+  const bloecke = tag.map((x, i) => {
+    const von = cursor, bis = cursor + (x.min || 0);
+    cursor = bis;
+    const startPct = Math.max(0, (von - Z.start) / spanne * 100);
+    const breite = Math.max(0.5, ((Math.min(bis, Z.ende) - Math.max(von, Z.start)) / spanne) * 100);
+    if (von >= Z.ende) return '';        // liegt komplett nach Feierabend
+    const st = TP_STATUS[x.status] || TP_STATUS.offen;
+    const zuLang = bis > Z.ende;
+    return `<div class="tp-block" style="left:${startPct.toFixed(2)}%;width:${breite.toFixed(2)}%;
+              background:${st.farbe};${zuLang ? 'background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 6px,transparent 6px 12px);' : ''}"
+            title="${x.name} · ${tpUhr(von)}–${tpUhr(bis)} · ${tpDauer(x.min)}"
+            onclick="tpOeffnen('${x.typ}','${x.refId}')">
+            <span>${x.name}</span>
+          </div>`;
+  }).join('');
+  const ueber = cursor > Z.ende;
+  return `<div class="tp-strahl">
+      <div class="tp-strahl-spur">${bloecke || '<div class="tp-strahl-leer">Noch nichts eingeplant</div>'}</div>
+      <div class="tp-ticks">${stunden.join('')}</div>
+    </div>
+    ${ueber ? `<div class="tp-ueber"><i class="ti ti-alert-triangle"></i> Der Tag endet rechnerisch um ${tpUhr(cursor)} — ${tpDauer(cursor - Z.ende)} nach Feierabend</div>` : ''}`;
 }
 
 // ── Ziehen ──
@@ -2149,8 +2258,12 @@ function openTagesplanZeiten() {
       </div>
       <div style="margin-top:16px">${zeilen}
         <div class="tp-zeit-zeile" style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px">
-          <label><b>Tageskapazität</b></label>
-          <input type="number" min="1" step="0.5" id="tpz-kap" value="${(Z.kapazitaet/60).toString().replace('.',',')}"> <span>Std.</span>
+          <label><b>Arbeitsbeginn</b></label>
+          <input type="time" id="tpz-start" value="${tpUhr(Z.start)}" style="width:auto"> <span></span>
+        </div>
+        <div class="tp-zeit-zeile">
+          <label><b>Arbeitsende</b></label>
+          <input type="time" id="tpz-ende" value="${tpUhr(Z.ende)}" style="width:auto"> <span></span>
         </div>
       </div>
       <div class="modal-foot"><div class="modal-foot-right">
@@ -2165,8 +2278,12 @@ function tpZeitenSpeichern() {
     const el = document.getElementById('tpz-' + k);
     neu[k] = Math.max(5, parseInt(el && el.value) || TP_ARTEN[k].min);
   });
-  const kap = document.getElementById('tpz-kap');
-  neu.kapazitaet = Math.max(30, Math.round((parseFloat(String(kap && kap.value).replace(',', '.')) || 7) * 60));
+  const toMin = v => { const m = String(v||'').match(/^(\d{1,2}):(\d{2})$/); return m ? (+m[1]*60 + +m[2]) : null; };
+  const sv = toMin((document.getElementById('tpz-start')||{}).value);
+  const ev = toMin((document.getElementById('tpz-ende')||{}).value);
+  neu.start = sv != null ? sv : TP_START;
+  neu.ende  = (ev != null && ev > neu.start) ? ev : TP_ENDE;
+  neu.kapazitaet = neu.ende - neu.start;
   localStorage.setItem('crm_tp_zeiten', JSON.stringify(neu));
   closeMod();
   renderTagesplan();
