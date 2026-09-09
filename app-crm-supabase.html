@@ -13,7 +13,7 @@
 <style>
   :root {
     /* Neues Design (Mockup) */
-    --page: #f4f5f7;
+    --page: #f2efe9;
     --card: #ffffff;
     --border: #e5e7eb;
     --text: #1f2430;
@@ -32,6 +32,17 @@
     --red-soft: #fdecec;
     --slate-soft: #f1f2f5;
     --radius: 12px;
+    /* Papier- und Pastelltöne für Karten und Dashboard */
+    --papier: #f2efe9;
+    --karte-papier: #fbfaf7;
+    --tinte: #1c1b19;
+    --tinte-blass: #8a8880;
+    --butter: #f5d98b;
+    --salbei: #cfe3c4;
+    --himmel: #c8dcf0;
+    --flieder: #d9d2f0;
+    --rost: #e8a87c;
+    --mono2: ui-monospace, "SF Mono", "JetBrains Mono", "Roboto Mono", monospace;
     --mono: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
     /* Kompatibilität für bestehende Logik (Inline-Styles im JS) */
     --bg: #ffffff;
@@ -983,6 +994,78 @@
     .f-input.search { width: 100%; }
     .filterbar { gap: 8px; }
   }
+  /* ═══════════ Papierstil für Karten und Dashboard ═══════════ */
+  .app-card, .dash-primary, .dash-group { font-family: var(--mono2); }
+
+  .app-card {
+    background: var(--karte-papier);
+    border: 1px solid rgba(28,27,25,.08);
+    border-radius: 22px;
+    box-shadow: none;
+  }
+  .app-card:hover { box-shadow: 0 6px 18px rgba(28,27,25,.08); transform: translateY(-1px); }
+  .statusbar { height: 0; }
+  .app-card-body { padding: 17px 18px 15px; gap: 0; }
+  .app-icon { width: 40px; height: 40px; border-radius: 13px; font-size: 16px; font-weight: 800; }
+  .zugang-let { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+  .app-title { font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
+  .app-pub { font-size: 11.5px; color: var(--tinte-blass); }
+
+  /* Plattform-Kacheln in Pastell */
+  .platforms { gap: 10px; margin-top: 13px; }
+  .plat-col { border: none; border-radius: 16px; padding: 12px 13px 11px; gap: 3px; }
+  .plat-col.pc-ios { background: var(--himmel); }
+  .plat-col.pc-android { background: var(--salbei); }
+  .plat-col.inactive, .plat-col.pc-ios.inactive, .plat-col.pc-android.inactive { background: #e8e5de; opacity: 1; }
+  .plat-head { font-size: 10.5px; font-weight: 700; color: inherit; opacity: .72; }
+  .plat-icon { background: transparent !important; width: auto; height: auto; font-size: 12px; }
+  .plat-version { font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; margin-top: 2px; }
+  .plat-note { font-size: 10px; font-weight: 700; background: rgba(255,255,255,.62); color: inherit;
+    border-radius: 999px; padding: 2px 9px; margin-top: 4px; }
+  .plat-note.pruefung { background: rgba(255,255,255,.75); color: #7a4b12; }
+  .store-btn { font-size: 10.5px; font-weight: 700; color: inherit; opacity: .66; padding-top: 8px; }
+  .store-btn:hover { opacity: 1; color: inherit; }
+
+  /* Marker als Pillen */
+  .badges-row { gap: 5px; margin-top: 12px; }
+  .app-card .pill, .app-card .badge {
+    border-radius: 999px; padding: 3px 10px; font-size: 10.5px; font-weight: 700;
+    background: #eeebe4; color: #5f5d57;
+  }
+  .app-card .pill.prop { background: transparent; border: 1px solid rgba(28,27,25,.14); color: #7c7a73; font-weight: 700; }
+  .app-card .pill.status-running { background: var(--salbei); color: #2f5b32; }
+  .app-card .pill.status-done { background: #e8e5de; color: #5f5d57; }
+  .app-foot { border-top: 1px dashed rgba(28,27,25,.14); padding-top: 11px; font-size: 11px; color: var(--tinte-blass); }
+  .app-foot .date { font-family: var(--mono2); }
+  .section-sep { color: var(--tinte-blass); font-family: var(--mono2); }
+
+  /* Dashboard im gleichen Ton */
+  .dash-primary {
+    background: var(--himmel);
+    color: var(--tinte);
+    border-radius: 22px;
+    box-shadow: none;
+  }
+  .dash-primary .num { font-size: 40px; letter-spacing: -.04em; }
+  .dash-primary .lbl { opacity: .62; font-weight: 700; }
+  .dash-primary .trend { background: rgba(255,255,255,.6); color: var(--tinte); font-weight: 700; }
+  .dash-group {
+    background: var(--karte-papier);
+    border: 1px solid rgba(28,27,25,.08);
+    border-radius: 22px;
+  }
+  .dash-group-title { color: var(--tinte-blass); }
+  .dash-cell { border-radius: 14px; }
+  .dash-cell:hover { background: #efece5; }
+  .dash-cell.active { background: var(--butter); border-color: transparent; }
+  .dash-cell.active .lbl { color: #6b5518; }
+  .dash-cell .num { font-size: 22px; font-weight: 800; letter-spacing: -.03em; }
+  .dash-cell .lbl { color: var(--tinte-blass); font-weight: 700; }
+  .cell-delta { font-family: var(--mono2); }
+
+  /* Chart-Karten mitziehen, damit die Reihe zusammenpasst */
+  .chart-card { background: var(--karte-papier); border: 1px solid rgba(28,27,25,.08); border-radius: 22px; }
+
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
   }
@@ -1270,7 +1353,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 07:53';
+const BUILD_STAMP = '2026-09-09 08:45';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2921,11 +3004,14 @@ function appleZugangTitel(a) {
 }
 
 function iconStyle(a) {
-  if(a.blockiert||a.gekuendigt) return 'background:var(--red-soft);color:#991b1b';
-  if(a.updateStatus==='Fertig') return 'background:var(--green-soft);color:var(--green)';
-  if(a.imUpdate) return 'background:var(--teal-soft);color:#0f766e';
-  if(a.store==='aus dem Store'||a.store==='Aus dem Store') return 'background:var(--red-soft);color:#991b1b';
-  return 'background:var(--indigo-soft);color:var(--indigo)';
+  // Farbe nach Apple-Zugang, damit die Zuordnung schon am Farbton erkennbar ist
+  const k = appleZugangKuerzel(a);
+  if (k === 'A') return 'background:var(--butter);color:#6b5518';
+  if (k === 'B') return 'background:var(--salbei);color:#2f5b32';
+  if (k === 'C') return 'background:var(--flieder);color:#463a7a';
+  if (k === 'K') return 'background:var(--himmel);color:#204a72';
+  if (a.blockiert || a.gekuendigt) return 'background:#f4cdc4;color:#8c3122';
+  return 'background:#e8e5de;color:#8a8880';
 }
 
 function iconName(a) {
@@ -3133,7 +3219,7 @@ function render() {
       const storeBtn = link
         ? `<a class="store-btn" href="${link}" target="_blank" onclick="event.stopPropagation()">${isApple?'App Store':'Google Play'} ↗</a>`
         : '';
-      return `<div class="plat-col${inactive?' inactive':''}">
+      return `<div class="plat-col ${isApple?'pc-ios':'pc-android'}${inactive?' inactive':''}">
         ${head}
         <div class="plat-version" style="${oldWarn?'color:#dc2626':''}">${v||'—'}${oldWarn?' ⚠':''}</div>
         ${note}
