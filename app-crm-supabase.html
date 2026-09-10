@@ -1107,15 +1107,15 @@
     box-shadow: 0 2px 6px rgba(34,32,29,.12); pointer-events: none; z-index: 3; }
   .kk-blatt-a { top: -13px; right: 16px; width: 92px; height: 54px; background: var(--blatt2); transform: rotate(-4deg); }
   .kk-blatt-b { top: -8px; right: 26px; width: 92px; height: 48px; background: var(--blatt); transform: rotate(2.5deg); }
-  .kk-klammer { position: absolute; top: -24px; right: 32px; width: 30px; height: 66px; cursor: pointer;
-    filter: drop-shadow(0 2px 3px rgba(34,32,29,.3)); transition: transform .18s ease; z-index: 1; }
-  .kk-klammer:hover { transform: translateY(-2px) rotate(-3deg); }
+  .kk-klammer { position: absolute; top: -26px; right: 30px; width: 34px; height: 70px; cursor: pointer;
+    transform: rotate(8deg); filter: drop-shadow(0 2px 3px rgba(34,32,29,.3)); transition: transform .18s ease; z-index: 1; }
+  .kk-klammer:hover { transform: rotate(8deg) translateY(-2px); }
   /* Der mittlere Bügel liegt VOR dem Papier, der Rest dahinter – dadurch wirkt die Klammer aufgesteckt */
-  .kk-vorne { position: absolute; top: -24px; right: 32px; width: 30px; height: 66px;
-    z-index: 4; pointer-events: none;
-    filter: drop-shadow(1px 1px 1.5px rgba(34,32,29,.35));
+  .kk-vorne { position: absolute; top: -26px; right: 30px; width: 34px; height: 70px;
+    z-index: 4; pointer-events: none; transform: rotate(8deg);
+    filter: drop-shadow(1px 1.5px 1.5px rgba(34,32,29,.32));
     transition: transform .18s ease; }
-  .app-card.hat-auftrag:hover .kk-vorne { transform: translateY(-2px) rotate(-3deg); }
+  .app-card.hat-auftrag:hover .kk-vorne { transform: rotate(8deg) translateY(-2px); }
   .kk-tip { position: absolute; top: -4px; right: 72px; font-family: var(--hand); font-size: 13px;
     color: var(--tinte-blass); white-space: nowrap; opacity: 0; transition: opacity .18s;
     pointer-events: none; z-index: 3; }
@@ -1167,22 +1167,32 @@
   .toast.warn::before { background: var(--marker-gelb); }
 
   /* ═══════════ Stempel ═══════════ */
-  .stempel {
-    position: absolute; top: -12px; left: -10px; z-index: 5;
-    font-family: var(--mono2); font-weight: 800; font-size: 14px; letter-spacing: .16em;
-    padding: 6px 13px 5px; border: 3px double currentColor; border-radius: 7px;
-    transform: rotate(-13deg); pointer-events: none; white-space: nowrap;
-    mix-blend-mode: multiply; opacity: .62;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22220%22%20height%3D%2290%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.55%22%20numOctaves%3D%224%22%20seed%3D%227%22%2F%3E%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.7%200.7%200.7%200%20-0.12%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22220%22%20height%3D%2290%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20width%3D%22220%22%20height%3D%2290%22%20filter%3D%22url%28%23n%29%22%20opacity%3D%220.85%22%2F%3E%3C%2Fsvg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22220%22%20height%3D%2290%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.55%22%20numOctaves%3D%224%22%20seed%3D%227%22%2F%3E%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.7%200.7%200.7%200%20-0.12%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22220%22%20height%3D%2290%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20width%3D%22220%22%20height%3D%2290%22%20filter%3D%22url%28%23n%29%22%20opacity%3D%220.85%22%2F%3E%3C%2Fsvg%3E");
-    -webkit-mask-size: cover; mask-size: cover;
+  /* Clip-Ebene liegt deckungsgleich auf der Karte und schneidet alles am Rand ab,
+     sodass nichts vom Stempel außerhalb der Karteikarte sichtbar ist */
+  .stempel-clip {
+    position: absolute; inset: 0; border-radius: 22px; overflow: hidden;
+    pointer-events: none; z-index: 5;
   }
-  .stempel.st-rot { color: #c0392b; }
-  .stempel.st-gruen { color: #2f7a3d; }
-  /* angedeuteter Abdruckring hinter dem Schriftzug */
+  .stempel {
+    position: absolute; top: -10px; left: -10px;
+    width: 118px; height: 118px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-family: var(--mono2); font-weight: 800; font-size: 13px; letter-spacing: .12em;
+    color: #b23b30; transform: rotate(-16deg);
+    mix-blend-mode: multiply; opacity: .4;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.9%22%20numOctaves%3D%225%22%20seed%3D%2211%22%2F%3E%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.9%200.9%200.9%200%20-0.35%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%22200%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.9%22%20numOctaves%3D%225%22%20seed%3D%2211%22%2F%3E%3CfeColorMatrix%20type%3D%22matrix%22%20values%3D%220%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.9%200.9%200.9%200%20-0.35%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23fff%22%2F%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-size: 130% 130%; mask-size: 130% 130%;
+    -webkit-mask-position: center; mask-position: center;
+  }
   .stempel::before {
-    content: ""; position: absolute; inset: -7px -9px -8px -10px;
-    border: 2px solid currentColor; border-radius: 50% / 42%;
-    opacity: .32; transform: rotate(2.5deg);
+    content: ""; position: absolute; inset: 5px; border-radius: 50%;
+    border: 3px solid currentColor;
+    -webkit-mask-image: conic-gradient(from 20deg, #000 0 250deg, transparent 250deg 300deg, #000 300deg);
+    mask-image: conic-gradient(from 20deg, #000 0 250deg, transparent 250deg 300deg, #000 300deg);
+  }
+  .stempel::after {
+    content: ""; position: absolute; inset: 13px; border-radius: 50%;
+    border: 1.5px solid currentColor; opacity: .6;
   }
 
   /* ═══════════ Warn-Ticker (8-Bit-Pixel) ═══════════ */
@@ -1510,7 +1520,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-10 09:53';
+const BUILD_STAMP = '2026-09-10 10:03';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3631,20 +3641,19 @@ function render() {
     const _stempel = a.gekuendigt ? 'GEKÜNDIGT'
       : a.blockiert ? 'BLOCKIERT'
       : (a.updateStatus === 'Fertig' && !a.imUpdate) ? 'AKTUELL' : '';
-    const stempelHtml = _stempel
-      ? `<span class="stempel st-${_stempel === 'AKTUELL' ? 'gruen' : 'rot'}">${_stempel}</span>` : '';
+    const stempelHtml = _stempel ? `<span class="stempel-clip"><span class="stempel">${_stempel}</span></span>` : '';
 
     const _auf = auftragZuApp(a);
     const klammer = _auf ? `
       <div class="kk-blatt-a"></div><div class="kk-blatt-b"></div>
       <span class="kk-tip">Auftrag anzeigen</span>
-      <svg class="kk-klammer" viewBox="0 0 34 74" onclick="event.stopPropagation();openAuftragsblatt('${_auf.id}')">
-        <path d="M11 64 V16 a6.5 6.5 0 0 1 13 0 V60 a10 10 0 0 1-20 0 V20" fill="none" stroke="#8e8b85" stroke-width="4.2" stroke-linecap="round"/>
-        <path d="M11 64 V16 a6.5 6.5 0 0 1 13 0 V60 a10 10 0 0 1-20 0 V20" fill="none" stroke="#c9c6c0" stroke-width="1.6" stroke-linecap="round"/>
+      <svg class="kk-klammer" viewBox="0 0 40 80" onclick="event.stopPropagation();openAuftragsblatt('${_auf.id}')">
+        <path d="M13 68 V18 a7 7 0 0 1 14 0 V64 a11 11 0 0 1-22 0 V22" fill="none" stroke="#8a8781" stroke-width="5" stroke-linecap="round"/>
+        <path d="M13 68 V18 a7 7 0 0 1 14 0 V64 a11 11 0 0 1-22 0 V22" fill="none" stroke="#cbc8c2" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
-      <svg class="kk-vorne" viewBox="0 0 34 74">
-        <path d="M11 63 V16" stroke="#8e8b85" stroke-width="4.2" stroke-linecap="round" fill="none"/>
-        <path d="M11 61 V18" stroke="#c9c6c0" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      <svg class="kk-vorne" viewBox="0 0 40 80">
+        <path d="M5 66 V22 a15 15 0 0 1 30 0 V62" fill="none" stroke="#8a8781" stroke-width="5" stroke-linecap="round"/>
+        <path d="M5 64 V22 a15 15 0 0 1 30 0 V60" fill="none" stroke="#cbc8c2" stroke-width="1.7" stroke-linecap="round"/>
       </svg>` : '';
     html+=`<div class="app-card${a.blockiert?' blocked':''}${_auf?' hat-auftrag':''}" onclick="event.preventDefault();event.stopPropagation();openDetail('${a.id}')">${stempelHtml}${klammer}
       <div class="statusbar ${bar}"></div>
