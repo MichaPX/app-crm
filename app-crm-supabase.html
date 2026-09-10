@@ -1447,7 +1447,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-09 18:34';
+const BUILD_STAMP = '2026-09-10 05:19';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3336,6 +3336,10 @@ function render() {
   });
   renderAttnBar();
   renderOrgBar();
+  // Auftrags-Zuordnung hier aufbauen: beim Laden können die Aufträge vor den Apps
+  // fertig sein, dann wäre der Index sonst leer (typisch bei frischem Start ohne Cache)
+  if (window._tpAuftraege && apps.length) aufIndexAufbauen();
+
   const total=apps.length;
   document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
   updateDashboard();
