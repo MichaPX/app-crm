@@ -1160,8 +1160,45 @@
     background: var(--marker-gruen); flex-shrink: 0; }
   .toast.warn::before { background: var(--marker-gelb); }
 
+  /* ═══════════ Warn-Ticker (Neon) ═══════════ */
+  #warn-ticker { margin-bottom: 16px; }
+  .tk-leiste { position: relative; display: flex; align-items: center; height: 44px; overflow: hidden;
+    background: #0d0a17; border: 1px solid #2a1f4a; border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(255,0,200,.14), 0 8px 26px rgba(13,10,23,.3); }
+  .tk-leiste::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px); }
+  .tk-label { flex-shrink: 0; height: 100%; display: flex; align-items: center; gap: 7px; padding: 0 14px;
+    background: linear-gradient(90deg, #ff2d95, #c026d3); color: #fff; z-index: 2;
+    font-family: "Courier New", var(--mono2); font-weight: 700; font-size: 12px; letter-spacing: .12em;
+    text-shadow: 0 0 8px rgba(255,255,255,.55); }
+  .tk-anz { background: rgba(0,0,0,.28); border-radius: 999px; padding: 1px 7px; font-size: 11px; letter-spacing: 0; }
+  .tk-band { flex: 1; overflow: hidden; position: relative; height: 100%; }
+  .tk-lauf { position: absolute; white-space: nowrap; display: flex; align-items: center; height: 100%;
+    font-family: "Courier New", var(--mono2); font-size: 13px; font-weight: 700; letter-spacing: .08em;
+    animation-name: tk-laufen; animation-timing-function: linear; animation-iteration-count: infinite;
+    will-change: transform; }
+  @keyframes tk-laufen { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+  .tk-leiste:hover .tk-lauf { animation-play-state: paused; }
+  .tk-eintrag { cursor: pointer; }
+  .tk-eintrag:hover { text-decoration: underline; }
+  .tk-cyan { color: #7df9ff; text-shadow: 0 0 6px rgba(125,249,255,.65); }
+  .tk-rot  { color: #ff5d8f; text-shadow: 0 0 6px rgba(255,93,143,.7); }
+  .tk-gelb { color: #ffe66d; text-shadow: 0 0 6px rgba(255,230,109,.65); }
+  .tk-sep { color: #6d5aa8; opacity: .6; margin: 0 18px; }
+  .tk-blink { animation: tk-blinken 1.1s steps(2,end) infinite; }
+  @keyframes tk-blinken { 50% { opacity: .25 } }
+  .tk-zu { position: relative; z-index: 4; flex-shrink: 0; border: none; background: transparent;
+    color: #6d5aa8; font-size: 14px; padding: 0 12px; height: 100%; cursor: pointer; }
+  .tk-zu:hover { color: #ff5d8f; }
+  .tk-an { border: 1px solid rgba(28,27,25,.15); background: var(--karte-papier); color: var(--tinte-blass);
+    border-radius: 10px; padding: 6px 12px; font-family: var(--mono2); font-size: 11.5px; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .tk-an:hover { color: var(--tinte); border-color: rgba(28,27,25,.3); }
+
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
+    /* Ticker steht dann still und wird stattdessen umgebrochen lesbar */
+    .tk-lauf { position: static; white-space: normal; padding: 0 12px; }
   }
 </style>
 </head>
@@ -1300,6 +1337,8 @@
     <h1>Micha Notebook <small>Produktion</small></h1>
     <div id="hdate" class="date"></div>
   </div>
+
+  <div id="warn-ticker" style="display:none"></div>
 
   <!-- Dashboard -->
   <div class="dash">
@@ -1447,7 +1486,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-10 05:19';
+const BUILD_STAMP = '2026-09-10 05:25';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -2952,6 +2991,115 @@ function openAuftragsblatt(auftragId) {
   </div>`;
 }
 
+// ════════════════════════════════════════
+// WARN-TICKER — laufende Meldungen im Neon-Stil
+// ════════════════════════════════════════
+function tickerAus() { return localStorage.getItem('crm_ticker_aus') === '1'; }
+function tickerUmschalten() {
+  localStorage.setItem('crm_ticker_aus', tickerAus() ? '0' : '1');
+  renderWarnTicker();
+  toast(tickerAus() ? 'Ticker ausgeblendet' : 'Ticker eingeblendet');
+}
+
+// Sammelt alle Warnungen aus dem aktuellen Datenstand
+function tickerMeldungen() {
+  const m = [];
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const in7 = new Date(heute); in7.setDate(in7.getDate() + 7);
+
+  // Kündigungen, die anstehen
+  (apps || []).forEach(a => {
+    if (!a.gekuendigt || !a.gekuendigtDatum || a.blockiert) return;
+    const d = new Date(a.gekuendigtDatum); d.setHours(0,0,0,0);
+    if (d < heute || d > in7) return;
+    const tage = Math.round((d - heute) / 864e5);
+    m.push({ stufe: 'rot', blink: tage === 0,
+      text: 'KÜNDIGUNG ' + (tage === 0 ? 'HEUTE' : tage === 1 ? 'MORGEN' : 'IN ' + tage + ' TAGEN')
+            + ' · ' + a.name + ' · ' + d.toLocaleDateString('de-DE'),
+      klick: `openDetail('${a.id}')` });
+  });
+
+  // Überfällige Aufträge
+  const heuteISO = heute.toISOString().slice(0,10);
+  (window._tpAuftraege || []).forEach(auf => {
+    if (!auf.wunschdatum || String(auf.wunschdatum).slice(0,10) >= heuteISO) return;
+    const d = new Date(auf.wunschdatum); d.setHours(0,0,0,0);
+    const tage = Math.round((heute - d) / 864e5);
+    m.push({ stufe: 'rot',
+      text: 'AUFTRAG ÜBERFÄLLIG · ' + (auf.app_name || 'Auftrag')
+            + (auf.zendesk_nr ? ' · #' + String(auf.zendesk_nr).replace(/[^0-9]/g,'') : '')
+            + ' · ' + tage + ' TAG' + (tage !== 1 ? 'E' : ''),
+      klick: `openAuftragsblatt('${auf.id}')` });
+  });
+
+  // Updates, die zu lange laufen
+  const starts = window._updStarts || {};
+  (apps || []).forEach(a => {
+    if (!a.imUpdate) return;
+    const st = starts[String(a.id)] || starts[String(a._dbId)] || (a.datum ? a.datum + 'T00:00' : null);
+    if (!st) return;
+    const d = new Date(st); d.setHours(0,0,0,0);
+    const tage = Math.round((heute - d) / 864e5);
+    if (tage <= 14) return;
+    m.push({ stufe: 'gelb', text: 'UPDATE LÄUFT SEIT ' + tage + ' TAGEN · ' + a.name,
+      klick: `openDetail('${a.id}')` });
+  });
+
+  // Fehlende Produkt-IDs (aus dem vorhandenen Banner-Ergebnis)
+  const pid = window._prodIdsFehlend || [];
+  if (pid.length) {
+    m.push({ stufe: 'gelb',
+      text: 'PRODUKT IDS FEHLEN · ' + pid.length + ' APP' + (pid.length !== 1 ? 'S' : '')
+            + ' · ' + new Date().getFullYear(),
+      klick: `setFeatFilter('prodIds')` });
+  }
+
+  // Fehlende Deeplinks
+  const dl = (apps || []).filter(a => a.deeplinks === 'Daten Fehlen');
+  if (dl.length) {
+    m.push({ stufe: 'cyan', text: 'DEEPLINKS FEHLEN · ' + dl.length + ' APP' + (dl.length !== 1 ? 'S' : ''),
+      klick: `window._attnFilter=true;window._attnCat='dl';render()` });
+  }
+
+  // Fortschritt zur Zielversion
+  if (ZIEL_VERSION) {
+    const live = a => a.store === 'verfügbar' || a.store === 'nur Apple' || a.store === 'nur Google';
+    const offen = (apps || []).filter(a => live(a) && [a.vApple, a.vGoogle]
+      .some(v => v && /^\d/.test(v) && cmpV(ZIEL_VERSION, v, 1) > 0)).length;
+    if (offen) m.push({ stufe: 'cyan', text: 'ZIELVERSION ' + ZIEL_VERSION + ' · ' + offen + ' APPS OFFEN',
+      klick: `document.getElementById('f-maxver').value='old';render()` });
+  }
+
+  return m;
+}
+
+function renderWarnTicker() {
+  const el = document.getElementById('warn-ticker');
+  if (!el) return;
+  if (tickerAus()) {
+    el.innerHTML = `<button class="tk-an" onclick="tickerUmschalten()"><i class="ti ti-bolt"></i> Ticker einblenden</button>`;
+    el.style.display = 'block';
+    return;
+  }
+  const m = tickerMeldungen();
+  if (!m.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  const eintrag = x => `<span class="tk-eintrag tk-${x.stufe}" onclick="${x.klick}">`
+    + (x.blink ? '<span class="tk-blink">▮</span> ' : '') + x.text + '</span><span class="tk-sep">///</span>';
+  // Inhalt doppelt, damit das Band nahtlos umläuft
+  const bahn = m.map(eintrag).join('') + m.map(eintrag).join('');
+  // Tempo an die Textmenge koppeln, damit es immer gleich schnell wirkt
+  const dauer = Math.min(42, Math.max(16, Math.round(m.reduce((s, x) => s + x.text.length, 0) * 0.14)));
+
+  el.innerHTML = `
+    <div class="tk-leiste">
+      <div class="tk-label"><i class="ti ti-alert-triangle"></i> ALERT<span class="tk-anz">${m.length}</span></div>
+      <div class="tk-band"><div class="tk-lauf" style="animation-duration:${dauer}s">${bahn}</div></div>
+      <button class="tk-zu" onclick="tickerUmschalten()" title="Ticker ausblenden"><i class="ti ti-x"></i></button>
+    </div>`;
+  el.style.display = 'block';
+}
+
 // ── Changelog ──
 async function openChangelog() {
   showLoader('Changelog laden…');
@@ -3339,6 +3487,7 @@ function render() {
   // Auftrags-Zuordnung hier aufbauen: beim Laden können die Aufträge vor den Apps
   // fertig sein, dann wäre der Index sonst leer (typisch bei frischem Start ohne Cache)
   if (window._tpAuftraege && apps.length) aufIndexAufbauen();
+  renderWarnTicker();
 
   const total=apps.length;
   document.getElementById('count').textContent=list.length!==total?`${list.length} von ${total} gefiltert`:'';
@@ -5284,6 +5433,7 @@ async function updateDashboard() {
           const googleOk = nurApple || doneGoogleIds.has(String(a.id));
           return !appleOk || !googleOk;
         });
+        window._prodIdsFehlend = fehlend;
         if (fehlend.length > 0) {
           let html = `<div style="background:#FEF9EE;border:1px solid #FAC775;border-radius:10px;padding:12px 16px">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
