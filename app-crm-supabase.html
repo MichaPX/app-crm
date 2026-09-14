@@ -1353,7 +1353,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-12 16:23';
+const BUILD_STAMP = '2026-09-14 05:00';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3760,8 +3760,8 @@ async function onUpdCheck(el, appId) {
   }
 
   try {
-    // Aktuellen Stand holen
-    const rows = await sbFetch('update_notizen?app_id=eq.' + appId);
+    // Aktuellen Stand holen (aufsteigend, damit bei Duplikaten immer derselbe gewinnt)
+    const rows = await sbFetch('update_notizen?app_id=eq.' + appId + '&order=id.asc');
     const existing = rows && rows[0];
 
     // Nur dieses eine Feld updaten
@@ -3769,6 +3769,10 @@ async function onUpdCheck(el, appId) {
 
     if (existing) {
       await sbFetch('update_notizen?id=eq.' + existing.id, {method:'PATCH', body:JSON.stringify(patch), prefer:''});
+      // etwaige Duplikate aufräumen, damit beim nächsten Laden nicht der falsche gezogen wird
+      for (let i = 1; i < rows.length; i++) {
+        try { await sbFetch('update_notizen?id=eq.' + rows[i].id, {method:'DELETE', prefer:''}); } catch(e){}
+      }
     } else {
       const newData = {app_id:String(appId), banner:false, login:false, freischaltcode:false, links:false, links_notiz:'', einzelkaeufe:false, abos:false, update_email:'', update_pw:'', notiz:''};
       newData[field] = checked;
@@ -4625,8 +4629,16 @@ async function saveUpdateNotizen(appId, existingId) {
     updated_at: new Date().toISOString()
   };
   try {
-    if (existingId) {
-      await sbFetch('update_notizen?id=eq.' + existingId, {method:'PATCH', body:JSON.stringify(data), prefer:''});
+    // Immer den echten aktuellen Stand aus der DB holen (nicht auf den Wert von beim Öffnen verlassen).
+    // Falls versehentlich mehrere Datensätze existieren: den ersten behalten, die übrigen entfernen.
+    const rows = await sbFetch('update_notizen?app_id=eq.' + appId + '&order=id.asc');
+    if (rows && rows.length > 0) {
+      const keep = rows[0].id;
+      await sbFetch('update_notizen?id=eq.' + keep, {method:'PATCH', body:JSON.stringify(data), prefer:''});
+      // Duplikate aufräumen
+      for (let i = 1; i < rows.length; i++) {
+        try { await sbFetch('update_notizen?id=eq.' + rows[i].id, {method:'DELETE', prefer:''}); } catch(e){}
+      }
     } else {
       await sbFetch('update_notizen', {method:'POST', body:JSON.stringify(data), prefer:''});
     }
