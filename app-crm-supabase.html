@@ -1065,6 +1065,21 @@
     /* Ticker steht dann still und wird stattdessen umgebrochen lesbar */
     .tk-lauf { position: static; white-space: normal; padding: 0 12px; }
   }
+
+  /* ═══════════ Präsentationsmodus (sensible Daten spurlos verbergen) ═══════════ */
+  /* Ganze Detail-Zeilen mit Zugangsdaten komplett ausblenden – kein Label, kein Hinweis */
+  body.praesentation .zeile-sensibel { display: none !important; }
+  /* Zugangsdaten-/Tresor-Knopf in der Sidebar verstecken */
+  body.praesentation button[onclick="openStorePWGeschuetzt()"] { display: none !important; }
+  /* Update-Tab: E-Mail/PW-Felder samt Umfeld ausblenden */
+  body.praesentation #upd-email,
+  body.praesentation #upd-pw { display: none !important; }
+  /* Apple-Zugang-Kürzel im Karten-Icon: neutrales Aussehen, kein Buchstabe */
+  body.praesentation .zugang-let { visibility: hidden !important; }
+  /* Freischaltcode-Anzeige (falls als eigenes Element) */
+  body.praesentation [data-sensibel] { display: none !important; }
+
+
 </style>
 </head>
 <body>
@@ -1090,7 +1105,7 @@
   <div class="vnav-sep"></div>
   <button title="Changelog" class="vnav-btn" onclick="openChangelog()"><i class="ti ti-history"></i><span class="tip">Changelog</span></button>
   <button title="Store Notizen" class="vnav-btn admin-only" onclick="openStoreNotizen()"><i class="ti ti-notes"></i><span class="tip">Store Notizen</span></button>
-  <button title="Zugangsdaten (PW)" class="vnav-btn admin-only" onclick="openStorePW()"><i class="ti ti-key"></i><span class="tip">Zugangsdaten (PW)</span></button>
+  <button title="Statistik-Export" class="vnav-btn admin-only" onclick="openStorePWGeschuetzt()"><i class="ti ti-chart-bar"></i><span class="tip">Statistik-Export</span></button>
   <button title="Zielversion setzen" class="vnav-btn admin-only" onclick="setZielVersion()"><i class="ti ti-tag"></i><span class="tip">Zielversion: <b id="ziel-version-badge">—</b></span></button>
   <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
   <button title="Tagesplan" class="vnav-btn" onclick="openTagesplan()"><i class="ti ti-sun"></i><span class="tip">Tagesplan</span></button>
@@ -1105,6 +1120,8 @@
   <button title="Export CSV" class="vnav-btn admin-only" onclick="exportCSV()"><i class="ti ti-download"></i><span class="tip">Export CSV</span></button>
   <div class="vnav-spacer"></div>
   <button title="Papier-Ansicht" class="vnav-btn" onclick="location.href='app-crm-supabase-papier.html'"><i class="ti ti-books"></i><span class="tip">Papier-Ansicht (Special)</span></button>
+  <div class="vnav-sep"></div>
+  <button title="Präsentationsmodus" class="vnav-btn" id="praes-btn" onclick="togglePraesentation()"><i class="ti ti-eye-off"></i><span class="tip">Präsentationsmodus (sensible Daten verbergen)</span></button>
   <div class="vnav-sep"></div>
   <button title="Abmelden" class="vnav-btn accent-red" onclick="doLogout()"><i class="ti ti-logout"></i><span class="tip">Abmelden</span></button>
   <div class="vnav-avatar" id="vnav-avatar">?</div>
@@ -1353,7 +1370,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-09-14 05:00';
+const BUILD_STAMP = '2026-10-15 14:17';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -1932,6 +1949,16 @@ async function deleteGlobalSetting(key) {
 }
 
 // ── Store PW ──
+// PIN-Schutz für Zugangsdaten (einmal pro Sitzung)
+let _pwFrei = false;
+function openStorePWGeschuetzt() {
+  if (_pwFrei) { openStorePW(); return; }
+  const eingabe = prompt('Code eingeben:');
+  if (eingabe === null) return;            // Abbruch
+  if (eingabe === '2470') { _pwFrei = true; openStorePW(); }
+  else { toast('Falscher Code'); }
+}
+
 async function openStorePW() {
   let eintraege = [];
   try {
@@ -2967,6 +2994,20 @@ function renderWarnTicker() {
   el.style.display = 'block';
 }
 
+// ═══ Präsentationsmodus: sensible Daten optisch verbergen ═══
+function applyPraesentation() {
+  const an = localStorage.getItem('crm_praes') === '1';
+  document.body.classList.toggle('praesentation', an);
+  const btn = document.getElementById('praes-btn');
+  if (btn) { const i=btn.querySelector('i'); if(i) i.className = an ? 'ti ti-eye' : 'ti ti-eye-off'; }
+}
+function togglePraesentation() {
+  const an = localStorage.getItem('crm_praes') === '1';
+  localStorage.setItem('crm_praes', an ? '0' : '1');
+  applyPraesentation();
+  toast(an ? 'Sensible Daten wieder sichtbar' : 'Präsentationsmodus: sensible Daten verborgen ✓');
+}
+
 // ── Changelog ──
 async function openChangelog() {
   showLoader('Changelog laden…');
@@ -3691,7 +3732,7 @@ async function loadUpdateNotizen(appId) {
       </div>
     </div>
 
-    <div style="border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px">
+    <div class="zeile-sensibel" style="border-top:0.5px solid var(--border);padding-top:14px;margin-bottom:14px">
       <div style="font-size:10px;font-weight:500;color:var(--text2);letter-spacing:0.05em;margin-bottom:10px">LOGINDATEN FÜR UPDATE</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -4722,14 +4763,16 @@ function openDetail(id){
   if(!a) return;
   function kv(label,val){
     if(!val) return'';
-    return`<div class="kv-row"><span class="k">${label}</span><span class="v">${val}</span></div>`;
+    const sens=/login|passwort|password|e-?mail|freischalt|zugang|code/i.test(label) ? ' zeile-sensibel' : '';
+    return`<div class="kv-row${sens}"><span class="k">${label}</span><span class="v">${val}</span></div>`;
   }
   function kvCopy(label,val){
     if(!val) return'';
     const escaped=val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return`<div class="kv-row"><span class="k">${label}</span>
+    const sens=/login|passwort|password|e-?mail|freischalt|zugang|code/i.test(label) ? ' zeile-sensibel' : '';
+    return`<div class="kv-row${sens}"><span class="k">${label}</span>
       <span style="display:flex;align-items:center;gap:6px;min-width:0">
-        <span class="v" style="flex:1">${val}</span>
+        <span class="v${sens}" style="flex:1">${val}</span>
         <button class="copy-btn" title="${label} kopieren" onclick="navigator.clipboard.writeText('${escaped}').then(()=>toast('${label} kopiert ✓'))"><i class="ti ti-copy"></i></button>
       </span>
     </div>`;
