@@ -1374,7 +1374,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-16 10:52 · 2FA';
+const BUILD_STAMP = '2026-10-16 14:05 · 2FA';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3425,6 +3425,55 @@ function iconName(a) {
   return 'ti-device-mobile';
 }
 
+// ── Login-Anzeige maskiert (keine E-Mail sichtbar) ──
+function loginChipRow(label, text, bg, fg, icon) {
+  if (!text) return '';
+  return '<div class="kv-row"><span class="k">' + label + '</span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;background:' + bg + ';color:' + fg + '">'
+    + (icon ? '<i class="ti ' + icon + '" style="font-size:12px"></i>' : '') + text + '</span></div>';
+}
+function appleLoginRow(a) {
+  const v = String((a && a.loginApple) || '').trim();
+  if (!v) return '';
+  const k = appleZugangKuerzel(a);
+  if (k === 'A') return loginChipRow('Login Apple', 'Apple A', '#faeecb', '#7a6320', 'ti-brand-apple');
+  if (k === 'B') return loginChipRow('Login Apple', 'Apple B', '#edf4e9', '#48704b', 'ti-brand-apple');
+  if (k === 'C') return loginChipRow('Login Apple', 'Apple C', '#eeeaf9', '#544a86', 'ti-brand-apple');
+  if (k === 'K') return loginChipRow('Login Apple', 'Kunde', '#e9f1f9', '#2c5a86', 'ti-user');
+  if (/kein\s*zugang/i.test(v)) return loginChipRow('Login Apple', 'Kein Zugang', '#eef0f3', '#5b5750', '');
+  return loginChipRow('Login Apple', 'hinterlegt', '#eef0f3', '#5b5750', '');
+}
+function googleLoginRow(a) {
+  const v = String((a && a.loginGoogle) || '').trim();
+  if (!v) return '';
+  if (/^service$/i.test(v))  return loginChipRow('Login Google', 'Service', '#eef2ff', '#4338ca', 'ti-brand-google-play');
+  if (/^customer$/i.test(v)) return loginChipRow('Login Google', 'Customer', '#eef2ff', '#4338ca', 'ti-brand-google-play');
+  if (/kein\s*zugang/i.test(v)) return loginChipRow('Login Google', 'Kein Zugang', '#eef0f3', '#5b5750', '');
+  return loginChipRow('Login Google', 'hinterlegt', '#eef0f3', '#5b5750', '');
+}
+
+// ── Login-Auswahl im Bearbeiten-Formular (Dropdown; interne Codes bleiben erhalten) ──
+function loginOptions(kind, current) {
+  current = String(current == null ? '' : current);
+  const opts = kind === 'apple'
+    ? [['', '— keiner —'], ['Apple60a', 'Apple A'], ['Apple60b', 'Apple B'], ['Apple60c', 'Apple C'], ['Customer', 'Kunde'], ['Kein Zugang', 'Kein Zugang']]
+    : [['', '— keiner —'], ['Service', 'Service'], ['Customer', 'Customer'], ['Kein Zugang', 'Kein Zugang']];
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const known = opts.some(o => o[0] === current);
+  let html = opts.map(o => '<option value="' + esc(o[0]) + '"' + (o[0] === current ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+  if (current && !known) html = '<option value="' + esc(current) + '" selected>Aktuell hinterlegt</option>' + html;
+  return html;
+}
+
+// ── PIN vor dem Bearbeiten (gleiche PIN wie Tresor, einmal pro Sitzung) ──
+function openEditGeschuetzt(id) {
+  if (_pwFrei) { closeMod(); openEdit(id); return; }
+  const eingabe = prompt('Code eingeben:');
+  if (eingabe === null) return;
+  if (eingabe === '2470') { _pwFrei = true; closeMod(); openEdit(id); }
+  else { toast('Falscher Code'); }
+}
+
 function render() {
   const q=document.getElementById('search').value.toLowerCase();
   const fs=document.getElementById('f-store').value;
@@ -4945,8 +4994,8 @@ function openDetail(id){
   ].filter(Boolean).join('');
 
   const extLinks=[
-    a.pegasus?`<a href="${a.pegasus}" target="_blank" class="tool-btn"><span class="dot" style="background:#eab308"></span>Pegasus</a>`:'',
-    a.appManager?`<a href="${a.appManager}" target="_blank" class="tool-btn"><span class="dot" style="background:var(--indigo)"></span>AppManager</a>`:'',
+    a.pegasus?`<a href="${a.pegasus}" target="_blank" title="Pegasus" aria-label="Pegasus" style="width:18px;height:18px;border-radius:50%;background:#eab308;display:inline-block;align-self:center;border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 2px rgba(0,0,0,.12)"></a>`:'',
+    a.appManager?`<a href="${a.appManager}" target="_blank" title="AppManager" aria-label="AppManager" style="width:18px;height:18px;border-radius:50%;background:var(--indigo);display:inline-block;align-self:center;border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 2px rgba(0,0,0,.12)"></a>`:'',
     a.appleStore?`<a href="${a.appleStore}" target="_blank" class="tool-btn"><span class="dot" style="background:#111827"></span>Apple Store</a>`:'',
     a.googleStore?`<a href="${a.googleStore}" target="_blank" class="tool-btn"><span class="dot" style="background:var(--green)"></span>Google Play</a>`:''
   ].filter(Boolean).join('');
@@ -4986,8 +5035,8 @@ function openDetail(id){
           ${kv('Store Zugang',a.storeZugang)}
           ${kv('Datum',a.datum?new Date(a.datum).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'}):'')}
           ${a.gekuendigt?kv('Gekündigt',a.gekuendigtDatum?new Date(a.gekuendigtDatum).toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'}):'Ja'):''}
-          ${kvCopy('Login Apple',a.loginApple)}
-          ${kvCopy('Login Google',a.loginGoogle)}
+          ${appleLoginRow(a)}
+          ${googleLoginRow(a)}
         </div>
         <div style="margin-top:16px">
           <div class="kv-col-title">Technisch</div>
@@ -5062,7 +5111,7 @@ function openDetail(id){
         <button class="btn-danger" onclick="closeMod();confirmDelete('${a.id}')"><i class="ti ti-trash"></i> Löschen</button>
         <div class="modal-foot-right">
           <button class="btn-secondary" onclick="closeMod()">Schließen</button>
-          <button class="btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
+          <button class="btn-primary" onclick="openEditGeschuetzt('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
         </div>
       </div>
     </div>
@@ -5072,7 +5121,7 @@ function openDetail(id){
       <div class="modal-foot">
         <div class="modal-foot-right">
           <button class="btn-secondary" onclick="closeMod()">Schließen</button>
-          <button class="btn-primary" onclick="closeMod();openEdit('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
+          <button class="btn-primary" onclick="openEditGeschuetzt('${a.id}')"><i class="ti ti-edit"></i> Bearbeiten</button>
         </div>
       </div>
     </div>
@@ -5157,8 +5206,8 @@ function formHTML(a,title){
       </div>
     </div>
     <div class="field"><label>Produkt IDs</label><input id="f-produktIDs" value="${s('produktIDs')}"></div>
-    <div class="field"><label>Login Apple</label><input id="f-loginApple" value="${s('loginApple')}"></div>
-    <div class="field full"><label>Login Google</label><input id="f-loginGoogle" value="${s('loginGoogle')}"></div>
+    <div class="field"><label>Login Apple</label><select id="f-loginApple">${loginOptions('apple', a.loginApple)}</select></div>
+    <div class="field full"><label>Login Google</label><select id="f-loginGoogle">${loginOptions('google', a.loginGoogle)}</select></div>
     <div class="field full"><label>Ansprechpartner E-Mail</label><input type="email" id="f-contactEmail" value="${s('contactEmail')}" placeholder="ansprechpartner@firma.de"></div>
     <div class="field full"><label>AppManager Link</label><input id="f-appManager" value="${s('appManager')}"></div>
     <div class="fsec">App-Funktionen</div>
