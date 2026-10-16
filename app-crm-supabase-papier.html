@@ -1871,7 +1871,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-16 14:05 · 2FA';
+const BUILD_STAMP = '2026-10-16 14:18 · 2FA';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3943,15 +3943,17 @@ function appleLoginRow(a) {
   if (k === 'C') return loginChipRow('Login Apple', 'Apple C', '#eeeaf9', '#544a86', 'ti-brand-apple');
   if (k === 'K') return loginChipRow('Login Apple', 'Kunde', '#e9f1f9', '#2c5a86', 'ti-user');
   if (/kein\s*zugang/i.test(v)) return loginChipRow('Login Apple', 'Kein Zugang', '#eef0f3', '#5b5750', '');
-  return loginChipRow('Login Apple', 'hinterlegt', '#eef0f3', '#5b5750', '');
+  if (v.includes('@')) return loginChipRow('Login Apple', 'hinterlegt', '#eef0f3', '#5b5750', '');
+  return loginChipRow('Login Apple', v, '#eef0f3', '#5b5750', '');
 }
 function googleLoginRow(a) {
   const v = String((a && a.loginGoogle) || '').trim();
   if (!v) return '';
-  if (/^service$/i.test(v))  return loginChipRow('Login Google', 'Service', '#eef2ff', '#4338ca', 'ti-brand-google-play');
-  if (/^customer$/i.test(v)) return loginChipRow('Login Google', 'Customer', '#eef2ff', '#4338ca', 'ti-brand-google-play');
+  if (/service/i.test(v))  return loginChipRow('Login Google', 'Service', '#eef2ff', '#4338ca', 'ti-brand-google-play');
+  if (/customer|kunde/i.test(v)) return loginChipRow('Login Google', 'Customer', '#eef2ff', '#4338ca', 'ti-brand-google-play');
   if (/kein\s*zugang/i.test(v)) return loginChipRow('Login Google', 'Kein Zugang', '#eef0f3', '#5b5750', '');
-  return loginChipRow('Login Google', 'hinterlegt', '#eef0f3', '#5b5750', '');
+  if (v.includes('@')) return loginChipRow('Login Google', 'hinterlegt', '#eef0f3', '#5b5750', '');
+  return loginChipRow('Login Google', v, '#eef2ff', '#4338ca', 'ti-brand-google-play');
 }
 
 // ── Login-Auswahl im Bearbeiten-Formular (Dropdown; interne Codes bleiben erhalten) ──
