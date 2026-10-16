@@ -1591,6 +1591,8 @@
     <input class="login-field" type="email" id="login-email" placeholder="E-Mail" autocomplete="email">
     <input class="login-field" type="password" id="login-password" placeholder="Passwort" autocomplete="current-password">
     <button class="login-btn" id="login-btn" onclick="doLogin()">Einloggen</button>
+    <input class="login-field" type="text" inputmode="numeric" autocomplete="one-time-code" id="login-2fa-code" placeholder="6-stelliger Code" maxlength="6" style="display:none;text-align:center;letter-spacing:.35em;font-size:18px">
+    <button class="login-btn" id="login-2fa-btn" onclick="verifyLoginMfa()" style="display:none">Code bestätigen</button>
     <div class="login-hint">Kein Zugang? Wende dich an den Administrator.<br><span id="build-stamp" style="opacity:.55;font-size:10px"></span></div>
   </div>
 </div>
@@ -1620,6 +1622,8 @@
   <div class="vnav-sep"></div>
   <button title="Präsentationsmodus" class="vnav-btn" id="praes-btn" onclick="togglePraesentation()"><i class="ti ti-eye-off"></i><span class="tip">Präsentationsmodus (sensible Daten verbergen)</span></button>
   <div class="vnav-sep"></div>
+  <button title="Zwei-Faktor (2FA)" class="vnav-btn admin-only" onclick="open2FASetup()"><i class="ti ti-shield-lock"></i><span class="tip">Zwei-Faktor einrichten</span></button>
+  <div class="vnav-sep admin-only"></div>
   <button title="Abmelden" class="vnav-btn accent-red" onclick="doLogout()"><i class="ti ti-logout"></i><span class="tip">Abmelden</span></button>
   <div class="vnav-avatar" id="vnav-avatar">?</div>
 </nav>
@@ -1867,7 +1871,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-15 14:17';
+const BUILD_STAMP = '2026-10-16 10:35 · 2FA';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3656,6 +3660,18 @@ async function doLogin() {
     localStorage.setItem('crm_access_token', data.access_token);
     localStorage.setItem('crm_refresh_token', data.refresh_token);
     localStorage.setItem('crm_user_email', data.user?.email || email);
+    const _vf = await getVerifiedTotpFactor(data.access_token);
+    if (_vf) {
+      const _ch = await fetch(SB_URL + '/auth/v1/factors/' + _vf.id + '/challenge', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + data.access_token, 'Content-Type': 'application/json' }
+      });
+      const _chd = await _ch.json();
+      if (!_ch.ok) throw new Error(_chd.error_description || _chd.msg || '2FA-Anfrage fehlgeschlagen');
+      _mfaFactorId = _vf.id; _mfaChallengeId = _chd.id;
+      showLoginStep('2fa');
+      return;
+    }
     showApp(data.user?.email || email);
   } catch(e) {
     showLoginError(e.message);
@@ -3684,6 +3700,7 @@ async function doLogout() {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-password').value = '';
   document.getElementById('login-error').style.display = 'none';
+  showLoginStep('password');
 }
 
 function showLoginError(msg) {
@@ -3699,6 +3716,132 @@ function showApp(email) {
   if (av && email) { av.textContent = email[0].toUpperCase(); av.title = email; }
   applyRole(email);
   initApp();
+}
+
+// ── 2FA / MFA ──
+let _mfaFactorId = null;
+let _mfaChallengeId = null;
+let _enrollFactorId = null;
+
+function showLoginStep(step) {
+  const is2 = step === '2fa';
+  const set = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
+  set('login-email', !is2);
+  set('login-password', !is2);
+  set('login-btn', !is2);
+  set('login-2fa-code', is2);
+  set('login-2fa-btn', is2);
+  const sub = document.querySelector('#login-screen .login-sub');
+  if (sub) sub.textContent = is2 ? 'Zwei-Faktor — Code aus der App' : 'Produktion — Bitte einloggen';
+  if (is2) { const c = document.getElementById('login-2fa-code'); if (c) { c.value = ''; setTimeout(() => c.focus(), 50); } }
+}
+
+async function getVerifiedTotpFactor(token) {
+  try {
+    const res = await fetch(SB_URL + '/auth/v1/user', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) return null;
+    const u = await res.json();
+    const f = (u.factors || []).filter(x => x.factor_type === 'totp' && x.status === 'verified');
+    return f.length ? f[0] : null;
+  } catch (e) { return null; }
+}
+
+async function verifyLoginMfa() {
+  const code = (document.getElementById('login-2fa-code').value || '').trim();
+  const btn = document.getElementById('login-2fa-btn');
+  if (!/^\d{6}$/.test(code)) { showLoginError('Bitte den 6-stelligen Code eingeben.'); return; }
+  btn.textContent = 'Prüfe…'; btn.disabled = true;
+  document.getElementById('login-error').style.display = 'none';
+  try {
+    const token = localStorage.getItem('crm_access_token');
+    const res = await fetch(SB_URL + '/auth/v1/factors/' + _mfaFactorId + '/verify', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge_id: _mfaChallengeId, code })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Code ungültig. Neuen Code aus der App nehmen?');
+    localStorage.setItem('crm_access_token', data.access_token);
+    localStorage.setItem('crm_refresh_token', data.refresh_token);
+    showApp(localStorage.getItem('crm_user_email') || '');
+  } catch (e) {
+    showLoginError(e.message);
+  } finally {
+    btn.textContent = 'Code bestätigen'; btn.disabled = false;
+  }
+}
+
+async function open2FASetup() {
+  const token = localStorage.getItem('crm_access_token');
+  if (!token) { toast('Bitte zuerst einloggen.'); return; }
+  let ov = document.getElementById('mfa-setup-overlay');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'mfa-setup-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML = '<div style="background:#fff;color:#1a1a1a;max-width:380px;width:100%;border-radius:14px;padding:24px;font-family:system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4)">'
+    + '<div style="font-size:18px;font-weight:700;margin-bottom:6px">Zwei-Faktor einrichten</div>'
+    + '<div id="mfa-body" style="font-size:14px;line-height:1.5">Einen Moment…</div>'
+    + '<div style="text-align:right;margin-top:16px"><button onclick="document.getElementById(\'mfa-setup-overlay\').remove()" style="background:#eee;border:0;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:14px">Schließen</button></div>'
+    + '</div>';
+  document.body.appendChild(ov);
+  const body = ov.querySelector('#mfa-body');
+  try {
+    const existing = await getVerifiedTotpFactor(token);
+    if (existing) {
+      body.innerHTML = '<div style="color:#1a7f37">Zwei-Faktor ist für dein Konto bereits <b>aktiv</b>.</div>'
+        + '<div style="margin-top:10px;color:#555">Neues Gerät? Entferne den alten Faktor zuerst in Supabase unter <b>Authentication → Users → dein Konto</b> und richte ihn dann hier neu ein.</div>';
+      return;
+    }
+    const res = await fetch(SB_URL + '/auth/v1/factors', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ factor_type: 'totp', friendly_name: 'CRM ' + new Date().toISOString().slice(0, 16) })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error_description || d.msg || 'Einrichtung nicht möglich');
+    _enrollFactorId = d.id;
+    const qr = d.totp && d.totp.qr_code ? d.totp.qr_code : '';
+    const secret = d.totp && d.totp.secret ? d.totp.secret : '';
+    body.innerHTML = '<div style="color:#555;margin-bottom:10px">1. Scanne den Code mit einer Authenticator-App (z. B. Google Authenticator, Authy).</div>'
+      + '<div style="text-align:center;background:#fff;padding:8px"><img id="mfa-qr-img" alt="QR" style="width:200px;height:200px"></div>'
+      + '<div style="font-size:12px;color:#777;margin:8px 0;text-align:center">Oder Schlüssel manuell eingeben:<br><code style="font-size:13px;word-break:break-all">' + secret + '</code></div>'
+      + '<div style="color:#555;margin:12px 0 6px">2. Code aus der App eingeben:</div>'
+      + '<input id="mfa-enroll-code" inputmode="numeric" maxlength="6" placeholder="000000" style="width:100%;padding:10px;font-size:18px;text-align:center;letter-spacing:.35em;border:1px solid #ccc;border-radius:8px;box-sizing:border-box">'
+      + '<div id="mfa-enroll-msg" style="color:#c00;font-size:13px;margin-top:8px;min-height:16px"></div>'
+      + '<button onclick="confirm2FASetup()" style="width:100%;margin-top:10px;background:#4f46e5;color:#fff;border:0;padding:11px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600">Aktivieren</button>';
+    const qimg = document.getElementById('mfa-qr-img'); if (qimg && qr) qimg.src = qr;
+  } catch (e) {
+    body.innerHTML = '<div style="color:#c00">' + (e.message || 'Fehler') + '</div>'
+      + '<div style="margin-top:8px;color:#555;font-size:13px">Falls „MFA“ / „not enabled“ erscheint: In Supabase unter <b>Authentication → Sign In / Providers</b> muss TOTP-MFA erlaubt sein.</div>';
+  }
+}
+
+async function confirm2FASetup() {
+  const code = (document.getElementById('mfa-enroll-code').value || '').trim();
+  const msg = document.getElementById('mfa-enroll-msg');
+  if (!/^\d{6}$/.test(code)) { msg.textContent = 'Bitte 6 Ziffern eingeben.'; return; }
+  msg.style.color = '#c00'; msg.textContent = 'Prüfe…';
+  try {
+    const token = localStorage.getItem('crm_access_token');
+    const ch = await fetch(SB_URL + '/auth/v1/factors/' + _enrollFactorId + '/challenge', {
+      method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    const chd = await ch.json();
+    if (!ch.ok) throw new Error(chd.error_description || chd.msg || 'Fehler');
+    const v = await fetch(SB_URL + '/auth/v1/factors/' + _enrollFactorId + '/verify', {
+      method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challenge_id: chd.id, code })
+    });
+    const vd = await v.json();
+    if (!v.ok) throw new Error(vd.error_description || vd.msg || 'Code ungültig');
+    localStorage.setItem('crm_access_token', vd.access_token);
+    localStorage.setItem('crm_refresh_token', vd.refresh_token);
+    document.getElementById('mfa-body').innerHTML = '<div style="color:#1a7f37;font-weight:600">✓ Zwei-Faktor ist jetzt aktiv.</div>'
+      + '<div style="margin-top:8px;color:#555">Ab dem nächsten Login brauchst du Passwort <b>und</b> den Code aus der App.</div>';
+  } catch (e) {
+    msg.style.color = '#c00'; msg.textContent = e.message || 'Fehler';
+  }
 }
 
 // ── Init ──
@@ -6714,6 +6857,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   ['login-email','login-password'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
   });
+  const _c2fa = document.getElementById('login-2fa-code');
+  if (_c2fa) _c2fa.addEventListener('keydown', e => { if(e.key==='Enter') verifyLoginMfa(); });
   const bs = document.getElementById('build-stamp');
   if (bs) bs.textContent = 'Build ' + BUILD_STAMP;
   const token = localStorage.getItem('crm_access_token');
