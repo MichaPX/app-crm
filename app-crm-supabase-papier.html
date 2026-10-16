@@ -1871,7 +1871,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-16 10:35 · 2FA';
+const BUILD_STAMP = '2026-10-16 10:52 · 2FA';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3801,7 +3801,11 @@ async function open2FASetup() {
     const d = await res.json();
     if (!res.ok) throw new Error(d.error_description || d.msg || 'Einrichtung nicht möglich');
     _enrollFactorId = d.id;
-    const qr = d.totp && d.totp.qr_code ? d.totp.qr_code : '';
+    let qr = d.totp && d.totp.qr_code ? d.totp.qr_code : '';
+    if (qr.indexOf('data:image/svg+xml') === 0 && qr.indexOf('<svg') !== -1) {
+      const _ci = qr.indexOf(',');
+      qr = 'data:image/svg+xml,' + encodeURIComponent(qr.slice(_ci + 1));
+    }
     const secret = d.totp && d.totp.secret ? d.totp.secret : '';
     body.innerHTML = '<div style="color:#555;margin-bottom:10px">1. Scanne den Code mit einer Authenticator-App (z. B. Google Authenticator, Authy).</div>'
       + '<div style="text-align:center;background:#fff;padding:8px"><img id="mfa-qr-img" alt="QR" style="width:200px;height:200px"></div>'
