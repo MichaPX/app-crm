@@ -1112,6 +1112,7 @@
   <button title="Screenshot Studio" class="vnav-btn accent-yellow" onclick="openScreenshotStudio('')"><i class="ti ti-photo"></i><span class="tip">Screenshot Studio</span></button>
   <button title="Tagesplan" class="vnav-btn" onclick="openTagesplan()"><i class="ti ti-sun"></i><span class="tip">Tagesplan</span></button>
   <button title="Aufträge" class="vnav-btn accent-green" onclick="openAuftraege()"><i class="ti ti-clipboard-list"></i><span class="tip">Aufträge</span><span class="nbadge" id="auftrag-badge" style="display:none"></span></button>
+  <button title="Auftrags-Code" class="vnav-btn admin-only" onclick="zeigeAuftragCode()"><i class="ti ti-hash"></i><span class="tip">Auftrags-Code für Kollegen</span></button>
   <div class="vnav-sep admin-only"></div>
   <button title="Zuletzt aktualisiert" class="vnav-btn" onclick="openRecentUpdatesModal()"><i class="ti ti-history-toggle"></i><span class="tip">Zuletzt aktualisiert</span></button>
   <button title="Neu dazugekommen" class="vnav-btn" onclick="openNewAppsModal()"><i class="ti ti-sparkles"></i><span class="tip">Neu dazugekommen</span></button>
@@ -1374,7 +1375,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-20 08:40 · 2FA';
+const BUILD_STAMP = '2026-10-20 10:20 · 2FA';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -3478,15 +3479,40 @@ function openEditGeschuetzt(id) {
   else { toast('Falscher Code'); }
 }
 
-// ── Auftrags-Schalter: offen, solange du eingeloggt bist ──
+// ── Auftrags-Schalter + rotierender Code: offen, solange du eingeloggt bist ──
+let _auftragCode = null;
 async function setAuftragGate(open) {
   try {
-    await sbFetch('auftrag_gate?id=eq.1', {
-      method: 'PATCH',
-      prefer: 'return=minimal',
-      body: JSON.stringify({ open: !!open, updated_at: new Date().toISOString() })
-    });
+    if (open) {
+      let cur = null;
+      try { cur = await sbFetch('auftrag_gate?id=eq.1&select=open,code'); } catch (e) {}
+      const row = cur && cur[0];
+      if (row && row.open && row.code) {
+        _auftragCode = row.code;            // bestehenden Code behalten (z. B. nach Reload)
+      } else {
+        _auftragCode = String(Math.floor(1000 + Math.random() * 9000));  // neuer 4-stelliger Code
+        await sbFetch('auftrag_gate?id=eq.1', {
+          method: 'PATCH', prefer: 'return=minimal',
+          body: JSON.stringify({ open: true, code: _auftragCode, updated_at: new Date().toISOString() })
+        });
+        try { toast('Auftrags-Code für Kollegen: ' + _auftragCode); } catch (e) {}
+      }
+    } else {
+      _auftragCode = null;
+      await sbFetch('auftrag_gate?id=eq.1', {
+        method: 'PATCH', prefer: 'return=minimal',
+        body: JSON.stringify({ open: false, code: null, updated_at: new Date().toISOString() })
+      });
+    }
   } catch (e) {}
+}
+function zeigeAuftragCode() {
+  if (_auftragCode) {
+    try { window.prompt('Auftrags-Code für Kollegen (zum Kopieren):', _auftragCode); }
+    catch (e) { alert('Auftrags-Code für Kollegen: ' + _auftragCode); }
+  } else {
+    toast('Kein Code aktiv – bitte einmal neu einloggen.');
+  }
 }
 
 function render() {
