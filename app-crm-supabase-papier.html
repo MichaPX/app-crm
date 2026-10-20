@@ -1873,7 +1873,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = 'Version 5 · 2026-10-20 11:25';
+const BUILD_STAMP = 'Version 6 · 2026-10-20 11:35';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -4009,13 +4009,91 @@ async function setAuftragGate(open) {
     }
   } catch (e) {}
 }
-function zeigeAuftragCode() {
-  if (_auftragCode) {
-    try { window.prompt('Auftrags-Code für Kollegen (zum Kopieren):', _auftragCode); }
-    catch (e) { alert('Auftrags-Code für Kollegen: ' + _auftragCode); }
-  } else {
-    toast('Kein Code aktiv – bitte einmal neu einloggen.');
+async function zeigeAuftragCode() {
+  let ov = document.getElementById('auftrag-code-overlay');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'auftrag-code-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.innerHTML = '<div style="background:#fff;color:#1a1a1a;max-width:340px;width:100%;border-radius:14px;padding:24px;text-align:center;font-family:system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4)">'
+    + '<div style="font-size:13px;color:#777;margin-bottom:8px">Auftrags-Code für Kollegen</div>'
+    + '<div id="ac-code" style="font-size:40px;font-weight:800;letter-spacing:.15em;color:#1f2430;margin-bottom:4px">…</div>'
+    + '<div id="ac-status" style="font-size:12px;margin-bottom:16px;color:#777">lädt…</div>'
+    + '<button id="ac-copy" style="width:100%;background:#4f46e5;color:#fff;border:0;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px"><i class="ti ti-copy" style="margin-right:6px"></i>Kopieren</button>'
+    + '<button id="ac-new" style="width:100%;background:#0ea5e9;color:#fff;border:0;padding:11px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px"><i class="ti ti-refresh" style="margin-right:6px"></i>Neuen Code erzeugen</button>'
+    + '<button id="ac-lock" style="width:100%;background:#f3f4f6;color:#b91c1c;border:0;padding:9px;border-radius:9px;font-size:13px;cursor:pointer;margin-bottom:8px"><i class="ti ti-lock" style="margin-right:6px"></i>Sperren (Code aus)</button>'
+    + '<button onclick="document.getElementById(\'auftrag-code-overlay\').remove()" style="width:100%;background:#eee;color:#333;border:0;padding:9px;border-radius:9px;font-size:13px;cursor:pointer">Schließen</button>'
+    + '<div id="ac-msg" style="font-size:12px;margin-top:10px;min-height:15px"></div>'
+    + '</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e){ if (e.target === ov) ov.remove(); });
+
+  const codeEl = ov.querySelector('#ac-code');
+  const statusEl = ov.querySelector('#ac-status');
+  const msgEl = ov.querySelector('#ac-msg');
+
+  async function refresh() {
+    try {
+      const r = await sbFetch('auftrag_gate?id=eq.1&select=open,code');
+      const row = r && r[0];
+      if (row && row.open && row.code) {
+        _auftragCode = row.code;
+        codeEl.textContent = row.code;
+        statusEl.textContent = 'aktiv – Kollegen können einreichen';
+        statusEl.style.color = '#16a34a';
+      } else {
+        _auftragCode = null;
+        codeEl.textContent = '—';
+        statusEl.textContent = 'gesperrt – kein Code aktiv';
+        statusEl.style.color = '#b91c1c';
+      }
+    } catch (e) {
+      codeEl.textContent = '—';
+      statusEl.textContent = 'konnte nicht laden';
+      statusEl.style.color = '#b91c1c';
+      msgEl.style.color = '#b91c1c'; msgEl.textContent = String((e && e.message) || e).slice(0, 140);
+    }
   }
+  await refresh();
+
+  ov.querySelector('#ac-copy').onclick = function() {
+    if (!_auftragCode) { msgEl.style.color = '#b91c1c'; msgEl.textContent = 'Kein Code zum Kopieren.'; return; }
+    const done = () => { msgEl.style.color = '#16a34a'; msgEl.textContent = 'Kopiert ✓'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(_auftragCode).then(done).catch(() => {
+        const ta = document.createElement('textarea'); ta.value = _auftragCode; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta);
+      });
+    } else {
+      const ta = document.createElement('textarea'); ta.value = _auftragCode; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta);
+    }
+  };
+
+  ov.querySelector('#ac-new').onclick = async function() {
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    msgEl.style.color = '#777'; msgEl.textContent = 'Erzeuge…';
+    try {
+      await sbFetch('auftrag_gate?id=eq.1', { method: 'PATCH', prefer: 'return=minimal',
+        body: JSON.stringify({ open: true, code: code, updated_at: new Date().toISOString() }) });
+      await refresh();
+      msgEl.style.color = '#16a34a'; msgEl.textContent = 'Neuer Code: ' + code;
+    } catch (e) {
+      msgEl.style.color = '#b91c1c'; msgEl.textContent = 'Fehler: ' + String((e && e.message) || e).slice(0, 160);
+    }
+  };
+
+  ov.querySelector('#ac-lock').onclick = async function() {
+    msgEl.style.color = '#777'; msgEl.textContent = 'Sperre…';
+    try {
+      await sbFetch('auftrag_gate?id=eq.1', { method: 'PATCH', prefer: 'return=minimal',
+        body: JSON.stringify({ open: false, code: null, updated_at: new Date().toISOString() }) });
+      await refresh();
+      msgEl.style.color = '#16a34a'; msgEl.textContent = 'Gesperrt – Kollegen können nicht mehr einreichen.';
+    } catch (e) {
+      msgEl.style.color = '#b91c1c'; msgEl.textContent = 'Fehler: ' + String((e && e.message) || e).slice(0, 160);
+    }
+  };
 }
 
 function render() {
