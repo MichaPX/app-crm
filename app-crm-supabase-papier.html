@@ -1627,6 +1627,7 @@
   <div class="vnav-sep admin-only"></div>
   <button title="Abmelden" class="vnav-btn accent-red" onclick="doLogout()"><i class="ti ti-logout"></i><span class="tip">Abmelden</span></button>
   <div class="vnav-avatar" id="vnav-avatar">?</div>
+  <div id="vnav-version" style="font-size:8.5px;color:#9b9b9b;text-align:center;margin-top:3px;line-height:1.25;max-width:46px;word-break:break-word"></div>
 </nav>
 
 <input type="file" id="backup-file" accept=".json" style="display:none" onchange="restoreFromBackup(this)">
@@ -1872,7 +1873,7 @@
 
 <script>
 // ── Build-Kennung (zum Prüfen, ob die neueste Version geladen ist) ──
-const BUILD_STAMP = '2026-10-20 10:20 · 2FA';
+const BUILD_STAMP = 'Version 5 · 2026-10-20 11:25';
 console.log('%cMicha Notebook — Build ' + BUILD_STAMP, 'background:#4f46e5;color:#fff;padding:2px 8px;border-radius:4px');
 
 // ── Globale Versions-Vergleichs-Helfer (überall verfügbar) ──
@@ -6957,6 +6958,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (_c2fa) _c2fa.addEventListener('keydown', e => { if(e.key==='Enter') verifyLoginMfa(); });
   const bs = document.getElementById('build-stamp');
   if (bs) bs.textContent = 'Build ' + BUILD_STAMP;
+  const vv = document.getElementById('vnav-version'); if (vv) vv.textContent = BUILD_STAMP;
   const token = localStorage.getItem('crm_access_token');
   let email = localStorage.getItem('crm_user_email') || localStorage.getItem('crm_email');
   if (token && !email) {
