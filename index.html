@@ -554,7 +554,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '18.11.2026 13:09';
+var APP_BUILD = '18.11.2026 15:31';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -874,22 +874,26 @@ function saleMode(it) {
   if (m && m.sale && SALE[m.sale]) return m.sale;
   return S.cfg.abos === false ? 'single' : 'options';
 }
-function bought(it) { return S.flat || S.subs.indexOf(it.magId) >= 0 || S.owned.indexOf(it.id) >= 0; }
+/* Käufe und Abos gehören zum Konto: sie gelten nur mit Anmeldung (Test-Login) */
+function mySubs() { return S.loggedIn ? S.subs : []; }
+function myOwned() { return S.loggedIn ? S.owned : []; }
+function myFlat() { return !!(S.loggedIn && S.flat); }
+function bought(it) { return myFlat() || mySubs().indexOf(it.magId) >= 0 || myOwned().indexOf(it.id) >= 0; }
 function owns(it) { return saleMode(it) === 'free' || bought(it); }
 function fmtDate(t) { var d = new Date(t); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear(); }
 function addMonths(t, n) { var d = new Date(t); d.setMonth(d.getMonth() + n); return d.getTime(); }
 function subOf(it) {
-  if (S.subs.indexOf(it.magId) >= 0) {
+  if (mySubs().indexOf(it.magId) >= 0) {
     var type = S.subPlan[it.magId] || 'monat', since = S.subSince[it.magId] || Date.now(), until;
     if (type === 'jahr') { until = addMonths(since, 12); while (until < Date.now()) until = addMonths(until, 12); }
     else { until = addMonths(since, 1); while (until < Date.now()) until = addMonths(until, 1); }
     return { type: type, until: until };
   }
-  if (S.flat) { var u = addMonths(S.flatSince || Date.now(), 1); while (u < Date.now()) u = addMonths(u, 1); return { type: 'flat', until: u }; }
-  if (S.owned.indexOf(it.id) >= 0) return { type: 'single' };
+  if (myFlat()) { var u = addMonths(S.flatSince || Date.now(), 1); while (u < Date.now()) u = addMonths(u, 1); return { type: 'flat', until: u }; }
+  if (myOwned().indexOf(it.id) >= 0) return { type: 'single' };
   return null;
 }
-function magSubscribed(m) { return S.flat || S.subs.indexOf(m.id) >= 0; }
+function magSubscribed(m) { return myFlat() || mySubs().indexOf(m.id) >= 0; }
 function nextIssueText(magId) {
   var l = issuesOf(magId); if (!l.length) return '';
   var t = l[0], mo = t.month % 12 + 1, yr = t.month === 12 ? t.year + 1 : t.year;
@@ -1147,7 +1151,7 @@ function header(title, subline) {
   return '<div class="hdr"><button class="btn roundbtn" data-act="menu" aria-label="Menü öffnen" aria-expanded="' + (S.menu ? 'true' : 'false') + '">' + ICON.menu +
     (S.loggedIn ? '<span class="dotmark" aria-hidden="true"></span>' : '') + '</button>' +
     '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0">' + (title === '__brand' ? brandHTML() : '<h1>' + esc(title) + '</h1>') + '<div class="sub">' + esc(subline) + '</div></div>' +
-    (S.screen === 'library' && (S.flat || S.subs.length) ? '<div class="badge">Abo aktiv</div>' : '') +
+    (S.screen === 'library' && (myFlat() || mySubs().length) ? '<div class="badge">Abo aktiv</div>' : '') +
     (S.screen === 'kiosk' && (IS_ADMIN || newsVisible().length) ? '<button class="btn roundbtn nbtn" data-act="news" aria-label="News öffnen">' + ICON.news + (newsUnread() ? '<span class="dotmark" aria-hidden="true"></span>' : '') + '</button>' : '') + '</div>';
 }
 
@@ -1712,8 +1716,9 @@ function sheetHTML() {
     h += opts.map(function (o) {
       return '<button class="bare opt' + (o.id === plan ? ' on' : '') + '" data-act="plan" data-arg="' + o.id + '"><span class="radio" aria-hidden="true"></span><span class="t"><b>' + esc(o.title) + '</b><small>' + esc(o.desc) + '</small></span><span class="p">' + esc(String(o.price).replace(' / ', '\n/ ')) + '</span></button>';
     }).join('');
-    h += '<button class="btn bigbtn" data-act="confirm">' + (plan === 'single' ? 'Kaufen · ' + esc(it.price) : 'Abo abschließen · ' + esc(chosen.price)) + '</button>';
-    h += '<div class="note">' + (plan === 'single' ? 'Abrechnung über App Store bzw. Google Play.' : 'Abrechnung über App Store bzw. Google Play. Das Abo verlängert sich automatisch und ist jederzeit in den Store-Einstellungen kündbar.') + '</div>';
+    var needLogin = !S.loggedIn;
+    h += '<button class="btn bigbtn" data-act="confirm">' + (needLogin ? 'Anmelden & ' + (plan === 'single' ? 'kaufen · ' + esc(it.price) : 'Abo abschließen · ' + esc(chosen.price)) : (plan === 'single' ? 'Kaufen · ' + esc(it.price) : 'Abo abschließen · ' + esc(chosen.price))) + '</button>';
+    h += '<div class="note">' + (needLogin ? 'Käufe und Abos gehören zu deinem Konto und gelten so auf all deinen Geräten. ' : '') + (plan === 'single' ? 'Abrechnung über App Store bzw. Google Play.' : 'Abrechnung über App Store bzw. Google Play. Das Abo verlängert sich automatisch und ist jederzeit in den Store-Einstellungen kündbar.') + '</div>';
   } else if (S.sheet === 'done' && it) {
     var mm = magById(it.magId);
     var txt = S.donePlan === 'single' ? mm.name + ' · ' + label(it) + ' liegt jetzt in deiner Bibliothek.'
@@ -1722,7 +1727,7 @@ function sheetHTML() {
     h += '<div class="done"><div class="ok">' + ICON.check + '</div><h2>' + (S.donePlan === 'single' ? 'Gekauft!' : 'Willkommen im Abo!') + '</h2><p>' + esc(txt) + '</p>' +
       '<div class="cta"><button class="btn sbtn" data-act="closesheet">Weiter stöbern</button><button class="btn pbtn" data-act="read" data-arg="' + it.id + '">Jetzt lesen</button></div></div>';
   } else if (S.sheet === 'login') {
-    h += '<h2 style="font-size:22px">Anmelden</h2><p style="margin:0;font-size:13px;line-height:1.45;color:var(--muted)">Mit deinem Konto sind Käufe und Abos auf allen Geräten verfügbar.</p>' +
+    h += '<h2 style="font-size:22px">Anmelden</h2><p style="margin:0;font-size:13px;line-height:1.45;color:var(--muted)">' + (S.pendingBuy ? (S.pendingBuy.plan === 'single' ? 'Zum Kaufen brauchst du ein Konto. Melde dich an oder registriere dich – danach wird der Kauf direkt abgeschlossen.' : 'Für ein Abo brauchst du ein Konto. Melde dich an oder registriere dich – danach wird dein Abo direkt abgeschlossen.') : 'Mit deinem Konto sind Käufe und Abos auf allen Geräten verfügbar.') + '</p>' +
       '<div class="field"><label for="lm">E-Mail</label><input id="lm" type="email" autocomplete="email" placeholder="name@beispiel.de"></div>' +
       '<div class="field"><label for="lp">Passwort</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••••"></div>' +
       '<button class="bare link" data-act="toast" data-arg="Link zum Zurücksetzen wurde per E-Mail gesendet">Passwort vergessen?</button>' +
@@ -1741,8 +1746,8 @@ function sheetHTML() {
     h += helpHTML();
   } else if (S.sheet === 'account') {
     var abos = [];
-    if (S.flat) abos.push('Kiosk-Flatrate');
-    S.subs.forEach(function (id) { var m2 = magById(id); if (m2) abos.push(m2.name); });
+    if (myFlat()) abos.push('Kiosk-Flatrate');
+    mySubs().forEach(function (id) { var m2 = magById(id); if (m2) abos.push(m2.name); });
     h += '<h2 style="font-size:22px">Kontodaten</h2><div class="kv"><div><span>Name</span><b>Lea Beispiel</b></div><div><span>E-Mail</span><b>lea@beispiel.de</b></div><div><span>Abos</span><b>' + esc(abos.join(', ') || 'Keine') + '</b></div><div><span>Einzelkäufe</span><b>' + S.owned.length + '</b></div></div>' +
       '<button class="btn sbtn" style="flex:none;height:48px" data-act="toast" data-arg="Öffnet die Abo-Verwaltung im App Store bzw. Google Play">Abos verwalten</button>' +
       '<button class="btn sbtn" style="flex:none;height:48px" data-act="toast" data-arg="Link zum Ändern wurde per E-Mail gesendet">Passwort ändern</button>' +
@@ -2414,6 +2419,8 @@ var ACT = {
     var it = issueById(S.sheetIssue);
     var opts = buyOptions(it);
     var plan = opts.some(function (o) { return o.id === S.plan; }) ? S.plan : 'single';
+    if (!S.loggedIn) { S.pendingBuy = { id: it.id, plan: plan }; S.sheet = 'login'; S.anim = true; rerender(); return; }
+    S.pendingBuy = null;
     if (plan === 'flat') { S.flat = true; S.flatSince = Date.now(); }
     else if (plan === 'monat' || plan === 'jahr') { if (S.subs.indexOf(it.magId) < 0) S.subs.push(it.magId); S.subPlan[it.magId] = plan; S.subSince[it.magId] = Date.now(); }
     else if (S.owned.indexOf(it.id) < 0) S.owned.push(it.id);
@@ -2423,7 +2430,7 @@ var ACT = {
     if (S.screen === 'lesen') { ttsStop(); LM = null; S.screen = S.lmBack === 'reader' ? 'library' : (S.lmBack || 'library'); }
     rerender(); renderPanel();
   },
-  closesheet: function () { S.sheet = null; rerender(); },
+  closesheet: function () { S.sheet = null; S.pendingBuy = null; rerender(); },
   closereader: function () { closeReader(); },
   zoom: function () { if (R) { hideTextCard(); setZoom(!R.zoom); } },
   tcclose: function () { hideTextCard(); },
@@ -2443,10 +2450,15 @@ var ACT = {
   newslink: function (k) { var n = S.news.filter(function (x) { return x.key === k; })[0]; if (n && n.url) openExternal(n.url); },
   tab: function (t) { S.newsOpen = false; S.screen = t; S.kIndex = S.kIndex || 0; render(); },
   login: function () { S.menu = false; S.sheet = 'login'; S.anim = true; rerender(); },
-  dologin: function () { S.loggedIn = true; S.sheet = null; savePrefs(); toast('Angemeldet als lea@beispiel.de'); },
-  logout: function () { S.loggedIn = false; S.menu = false; savePrefs(); toast('Abgemeldet'); },
+  dologin: function () {
+    S.loggedIn = true; S.sheet = null; savePrefs();
+    var pb = S.pendingBuy;
+    if (pb && issueById(pb.id)) { S.pendingBuy = null; S.sheetIssue = pb.id; S.plan = pb.plan; ACT.confirm(); toast(pb.plan === 'single' ? 'Angemeldet – Kauf abgeschlossen' : 'Angemeldet – Abo abgeschlossen'); return; }
+    rerender(); renderPanel(); toast('Angemeldet als lea@beispiel.de');
+  },
+  logout: function () { var had = S.subs.length || S.flat || S.owned.length; S.loggedIn = false; S.menu = false; savePrefs(); rerender(); renderPanel(); toast(had ? 'Abgemeldet – deine Käufe und Abos sind nach dem Anmelden wieder da' : 'Abgemeldet'); },
   account: function () { S.menu = false; S.sheet = 'account'; S.anim = true; rerender(); },
-  restore: function () { S.menu = false; toast(S.owned.length || S.subs.length || S.flat ? 'Käufe wurden wiederhergestellt' : 'Keine früheren Käufe gefunden'); },
+  restore: function () { S.menu = false; if (!S.loggedIn) { S.sheet = 'login'; S.anim = true; rerender(); return; } toast(myOwned().length || mySubs().length || myFlat() ? 'Käufe wurden wiederhergestellt' : 'Keine früheren Käufe gefunden'); },
   look: function (k) { S.settings.look = k; savePrefs(); applyTheme(); rerender(); },
   setting: function (k) { S.settings[k] = !S.settings[k]; savePrefs(); rerender(); },
   link: function (l) { S.menu = false; toast(l + ' öffnet sich im Browser'); },
@@ -2967,11 +2979,11 @@ function bindPanel() {
     sel.addEventListener('change', function () {
       var id = sel.getAttribute('data-subsim');
       S.subs = S.subs.filter(function (x) { return x !== id; });
-      if (sel.value) { S.subs.push(id); S.subPlan[id] = sel.value; S.subSince[id] = Date.now(); }
+      if (sel.value) { S.subs.push(id); S.subPlan[id] = sel.value; S.subSince[id] = Date.now(); S.loggedIn = true; }
       savePrefs(); rerender();
     });
   });
-  $('#cFlatOn', panel).addEventListener('change', function (e) { S.flat = e.target.checked; if (S.flat) S.flatSince = Date.now(); savePrefs(); rerender(); });
+  $('#cFlatOn', panel).addEventListener('change', function (e) { S.flat = e.target.checked; if (S.flat) { S.flatSince = Date.now(); S.loggedIn = true; } savePrefs(); rerender(); });
   $('#cReset', panel).addEventListener('click', function () { S.owned = []; S.subs = []; S.flat = false; S.subPlan = {}; S.subSince = {}; S.loggedIn = false; savePrefs(); if (R) closeReader(); else render(); renderPanel(); });
   $('#cWipe', panel).addEventListener('click', async function () {
     if (!confirm('Wirklich ALLE Magazine und Ausgaben aus Supabase löschen? Sie verschwinden dann auch aus der App aller Leser. Werbung, Logo und Farben bleiben erhalten.')) return;
