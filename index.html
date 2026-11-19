@@ -237,17 +237,19 @@ button{font:inherit;color:inherit}
 .lhint{display:flex;align-items:center;justify-content:center;gap:8px;margin:22px 20px 0;font-size:12.5px;color:var(--muted)}
 .lempty{margin:40px 24px;text-align:center;font-size:14px;line-height:1.5;color:var(--muted)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
-.lovl .lscrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .45s;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lovl .lscrim{position:absolute;inset:0;background:rgba(0,0,0,.58);opacity:0}
 .lovl.on{pointer-events:auto}
-.lovl.on .lscrim{opacity:1}
+
 .l3d{position:absolute;inset:0;perspective:1100px;pointer-events:none}
-.lmag{position:absolute;left:0;top:0;transform-style:preserve-3d;transform-origin:50% 50%;will-change:transform}
+.lmag{position:absolute;left:0;top:0;transform-style:preserve-3d;transform-origin:0 50%;will-change:transform;backface-visibility:hidden}
+.lmag .lit{position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--lit,0);pointer-events:none;z-index:2}
 .lmag .f{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-.lmag .front{inset:0;background-size:cover;background-position:center;border-radius:2px 5px 5px 2px;box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.lmag .front{inset:0;background-size:cover;background-position:center;border-radius:2px 5px 5px 2px;box-shadow:0 10px 24px rgba(0,0,0,.35);transition:box-shadow .4s}
+.lmag.rest .front{box-shadow:0 26px 50px rgba(0,0,0,.45)}
 .lmag .front::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%,rgba(0,0,0,0) 85%,rgba(0,0,0,.12))}
 .lmag .back{inset:0;background:#e8e3d8;border-radius:5px 2px 2px 5px}
 .lmag .edge{background:repeating-linear-gradient(90deg,#f4f0e6 0 1px,#d9d2c3 1px 2px)}
-.ldet{position:absolute;left:14px;right:14px;bottom:calc(66px + max(env(safe-area-inset-bottom) - 12px, 4px));max-height:calc(100% - 200px);overflow-y:auto;border-radius:22px;background:var(--surf);padding:16px 16px 10px;box-shadow:0 20px 50px rgba(0,0,0,.4);transform:translateY(30px);opacity:0;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.ldet{will-change:transform,opacity;position:absolute;left:14px;right:14px;bottom:calc(66px + max(env(safe-area-inset-bottom) - 12px, 4px));max-height:calc(100% - 200px);overflow-y:auto;border-radius:22px;background:var(--surf);padding:16px 16px 10px;box-shadow:0 20px 50px rgba(0,0,0,.4);transform:translateY(40px);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.25,1),opacity .3s ease}
 .lovl.on .ldet.show{transform:none;opacity:1}
 .ldet .k{font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .ldet h2{margin:4px 0 2px;font-size:22px;font-weight:800}
@@ -697,7 +699,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '19.11.2026 09:04';
+var APP_BUILD = '19.11.2026 09:30';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1545,93 +1547,106 @@ function bindShelf() {
       var dy = e.clientY - sy, dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dy), Math.abs(dx));
       if (Math.abs(dx) > 12 && Math.abs(dy) < 10 || dy > 10) { drag = false; el.style.transition = ''; el.style.transform = ''; return; }
       if (-dy > 6) { try { el.setPointerCapture(pid); } catch (er) {} e.preventDefault(); }
-      var up = Math.max(0, -dy) / (ZOOM || 1), hgt = el.offsetHeight;
-      el.style.transform = 'translateY(' + (-Math.min(up, hgt * .6)) + 'px)';
-      if (up > hgt * .42) { drag = false; pullOut(el, true); }
+      var up = Math.max(0, -dy) / (ZOOM || 1), hgt = el.offsetHeight, lim = hgt * .55;
+      var shown = up < lim ? up : lim + (up - lim) * .25;
+      el.style.transform = 'translateY(' + (-shown) + 'px)';
+      if (up > hgt * .5) { drag = false; pullOut(el, true); }
     });
-    var end = function () { if (!drag) return; drag = false; el.style.transition = ''; if (moved < 8) pullOut(el, false); else el.style.transform = ''; };
+    var end = function () {
+      if (!drag) return; drag = false;
+      var m = /translateY\((-?[\d.]+)px\)/.exec(el.style.transform || ''), up = m ? -Number(m[1]) : 0;
+      if (moved < 8 || up > el.offsetHeight * .22) { pullOut(el, up > 4); return; }
+      el.style.transition = 'transform .3s cubic-bezier(.3,1.4,.5,1)'; el.style.transform = '';
+    };
     el.addEventListener('pointerup', end); el.addEventListener('pointercancel', function () { drag = false; el.style.transition = ''; el.style.transform = ''; });
   });
 }
 function libDetailHTML(it) {
   var m = magById(it.magId) || {}, full = owns(it), mk = marksOf(it), sub = full ? '' : ' (Leseprobe)';
   return '<button class="bare x" data-act="putback" aria-label="Zurück ins Regal">' + ICON.close + '</button><div class="k">' + esc(m.name || '') + ' · ' + num(it) + '</div><h2>' + label(it) + '</h2>' +
-    '<p>' + (full ? (it.totalPages || it.pageCount) + ' Seiten' : 'Leseprobe · ' + samplePagesOf(it).length + ' Seiten') + (mk.length ? ' · Lesezeichen auf Seite ' + mk[0] : '') + '</p>' +
+    '<p>' + (full ? (it.totalPages || it.pageCount) + ' Seiten' : 'Leseprobe · ' + samplePagesOf(it).length + ' Seiten') + (mk.length ? ' · Lesezeichen: S. ' + mk.join(', ') : '') + '</p>' +
     libOrgHTML(it) +
-    '<div class="acts"><button class="bare pri" data-act="libopen" data-arg="read">' + ICON.flipic + (mk.length && full ? 'Beim Lesezeichen weiterlesen' : 'Lesen' + sub) + '</button>' +
+    '<div class="acts">' + (mk.length && full
+      ? '<button class="bare pri" data-act="libopen" data-arg="mark:' + mk[mk.length - 1] + '">' + ICON.markOn + 'Beim Lesezeichen weiterlesen · S. ' + mk[mk.length - 1] + '</button>' +
+        (mk.length > 1 ? '<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)">Weitere Lesezeichen:' + mk.slice(0, -1).map(function (pg) { return '<button class="bare" style="height:30px;padding:0 12px;border-radius:15px;font-size:12.5px" data-act="libopen" data-arg="mark:' + pg + '">S. ' + pg + '</button>'; }).join('') + '</div>' : '') +
+        '<button class="bare" style="grid-column:1/-1" data-act="libopen" data-arg="read">' + ICON.flipic + 'Von vorne lesen</button>'
+      : '<button class="bare pri" data-act="libopen" data-arg="read">' + ICON.flipic + 'Lesen' + sub + '</button>') +
     '<button class="bare" data-act="libopen" data-arg="vorlesen">' + ICON.speak + 'Vorlesen</button><button class="bare" data-act="libopen" data-arg="lesen"><b>Aa</b>Lesemodus</button>' +
     (!full ? '<button class="bare pri" style="background:var(--chip);color:var(--text)" data-act="libopen" data-arg="buy">' + ICON.lock + (saleMode(it) === 'options' ? 'Kaufoptionen' : 'Kaufen · ' + esc(it.price)) + '</button>' : '') +
     (saved(it) && full ? '<button class="bare lnk red" data-act="libopen" data-arg="remove">Aus der Bibliothek entfernen</button>' : '') +
     '<button class="bare lnk" data-act="putback">Zurück ins Regal stellen</button></div>';
 }
+/* Herausziehen – eine durchgehende Bewegung: erst ein Stück aus dem Regal, dann im Bogen nach vorn, dabei aufs Cover drehen */
+function lpEase(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+function lpSmooth(a, b, t) { t = Math.max(0, Math.min(1, (t - a) / (b - a))); return t * t * (3 - 2 * t); }
+function lpFrame(t) {
+  var o = LP; if (!o || !o.mag) return;
+  var lift = lpSmooth(0, .32, t) * o.pull;                       // Stück nach oben aus dem Regal
+  var v = lpEase(Math.max(0, Math.min(1, (t - .16) / .84)));     // Flug nach vorn
+  // Drehpunkt ist der Heftrücken selbst – so liegt er bei 90° genau dort, wo er im Regal stand
+  var x0 = o.cx, y0 = o.cy - lift, x1 = o.tx - o.W / 2, y1 = o.ty;
+  var qx = x0 + (x1 - x0) * .15, qy = Math.min(y0, y1) - 70;     // Bogen nach oben
+  var iv = 1 - v, x = iv * iv * x0 + 2 * iv * v * qx + v * v * x1, y = iv * iv * y0 + 2 * iv * v * qy + v * v * y1;
+  var s = o.s0 + (1 - o.s0) * v, ry = 90 * (1 - v), rz = -5 * Math.sin(Math.PI * v);
+  o.mag.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + (y - o.H / 2).toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
+  o.mag.style.setProperty('--lit', (ry / 90 * .55).toFixed(3));
+  if (o.scrim) o.scrim.style.opacity = String(Math.min(1, v * 1.3));
+}
+function lpRun(from, to, dur, done) {
+  var o = LP; if (!o) return;
+  cancelAnimationFrame(o.raf);
+  var t0 = performance.now();
+  (function step(now) {
+    var k = Math.min(1, (now - t0) / dur), t = from + (to - from) * k;
+    o.t = t; lpFrame(t);
+    if (k < 1) o.raf = requestAnimationFrame(step); else if (done) done();
+  })(t0);
+}
 function pullOut(el, dragged) {
   if (LP) return;
   var it = issueById(el.getAttribute('data-spine')); if (!it) return;
-  var scr = app, sr = scr.getBoundingClientRect(), z = sr.width / scr.offsetWidth || 1;
-  var hgt = el.offsetHeight;
-  el.style.transition = 'transform .24s cubic-bezier(.3,.7,.3,1)';
-  el.style.transform = 'translateY(' + (-hgt * .5) + 'px)';
-  LP = { el: el, it: it };
-  var ov = document.createElement('div'); ov.className = 'lovl'; ov.id = 'lovl';
-  ov.innerHTML = '<div class="lscrim" data-act="putback"></div><div class="l3d" id="l3d"></div><div class="ldet" id="ldet" role="dialog" aria-label="' + esc(label(it)) + '"></div>';
+  var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1;
+  // aktuelle Lage des Rückens (inkl. schon gezogenem Stück) messen, dann zurück auf Ruhelage rechnen
+  var cur = el.getBoundingClientRect(), dragUp = 0;
+  var m = /translateY\((-?[\d.]+)px\)/.exec(el.style.transform || ''); if (m) dragUp = -Number(m[1]);
+  var sw = cur.width / z, sh = cur.height / z, cx = (cur.left - sr.left) / z + sw / 2, cy = (cur.top - sr.top) / z + sh / 2 + dragUp;
+  var ar = it.aspect || 1.33, W = Math.min(app.offsetWidth * 0.48, 200), H = W * ar, D = Math.max(sw, 10);
+  var c = spineCol(it);
+  var ov = document.createElement('div'); ov.className = 'lovl on'; ov.id = 'lovl';
+  ov.innerHTML = '<div class="lscrim" data-act="putback" style="opacity:0"></div><div class="l3d" id="l3d"><div class="lmag" id="lmag" style="width:' + W + 'px;height:' + H + 'px">' +
+    '<div class="f front" style="background-image:url(\'' + cover(it) + '\');transform:translateZ(' + (D / 2) + 'px)"><i class="lit"></i></div>' +
+    '<div class="f" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(-90deg) translateZ(' + (W / 2) + 'px)"><div class="lsp" style="position:absolute;inset:0;width:100%;height:100%;border-radius:0;box-shadow:none;transition:none;--sw:' + D + 'px;--sh:' + H + 'px;--sc:' + c.bg + ';--ink:' + c.ink + '">' + spineHTML(it) + '</div></div>' +
+    '<div class="f edge" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(90deg) translateZ(' + (W / 2) + 'px)"></div>' +
+    '<div class="f back" style="transform:rotateY(180deg) translateZ(' + (D / 2) + 'px)"></div></div></div><div class="ldet" id="ldet" role="dialog" aria-label="' + esc(label(it)) + '"></div>';
   app.appendChild(ov);
-  setTimeout(function () {
-    if (!LP) return;
-    var r = el.getBoundingClientRect();
-    var sw = r.width / z, sh = r.height / z, cx = (r.left - sr.left) / z + sw / 2, cy = (r.top - sr.top) / z + sh / 2;
-    var ar = it.aspect || 1.33, W = Math.min(scr.offsetWidth * 0.48, 200), H = W * ar, D = Math.max(sw, 10);
-    var tx = scr.offsetWidth / 2, ty = (S.full !== false ? 70 : 50) + H / 2 + 6;
-    var c = spineCol(it);
-    $('#l3d').innerHTML = '<div class="lmag" id="lmag" style="width:' + W + 'px;height:' + H + 'px">' +
-      '<div class="f front" style="background-image:url(\'' + cover(it) + '\');transform:translateZ(' + (D / 2) + 'px)"></div>' +
-      '<div class="f" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(-90deg) translateZ(' + (W / 2) + 'px)"><div class="lsp" style="position:absolute;inset:0;width:100%;height:100%;border-radius:0;box-shadow:none;--sw:' + D + 'px;--sh:' + H + 'px;--sc:' + c.bg + ';--ink:' + c.ink + '">' + spineHTML(it) + '</div></div>' +
-      '<div class="f edge" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(90deg) translateZ(' + (W / 2) + 'px)"></div>' +
-      '<div class="f back" style="transform:rotateY(180deg) translateZ(' + (D / 2) + 'px)"></div></div>';
-    var mag = $('#lmag'), s0 = sh / H;
-    var tf = function (x, y, s, ry, rz) { return 'translate(' + (x - W / 2) + 'px,' + (y - H / 2) + 'px) scale(' + s + ') rotateY(' + ry + 'deg) rotateZ(' + (rz || 0) + 'deg)'; };
-    LP.tf = tf; LP.W = W; LP.H = H; LP.to = { x: tx, y: ty };
-    mag.style.transform = tf(cx, cy, s0, 90);
-    el.classList.add('gone'); el.style.transition = 'none'; el.style.transform = '';
-    ov.classList.add('on');
-    var done = false, show = function () { if (done || !LP) return; done = true; var d = $('#ldet'); d.innerHTML = libDetailHTML(it); d.classList.add('show'); };
-    if (mag.animate) {
-      var a = mag.animate([
-        { transform: tf(cx, cy, s0, 90) },
-        { transform: tf(cx + (tx - cx) * .35, cy - 60, s0 + (1 - s0) * .45, 55, -4), offset: .45 },
-        { transform: tf(tx, ty - 10, 1.02, -6, 0), offset: .82 },
-        { transform: tf(tx, ty, 1, 0, 0) }
-      ], { duration: 820, easing: 'cubic-bezier(.3,.6,.2,1)', fill: 'forwards' });
-      a.onfinish = show;
-    } else { mag.style.transform = tf(tx, ty, 1, 0); }
-    setTimeout(show, 380);
-  }, dragged ? 60 : 230);
+  LP = { el: el, it: it, mag: $('#lmag'), scrim: $('.lscrim', ov), W: W, H: H, s0: sh / H, cx: cx, cy: cy, pull: sh * .55,
+    tx: app.offsetWidth / 2, ty: 64 + H / 2 + 8, t: 0 };
+  var startT = dragged ? Math.min(.3, .32 * Math.min(1, dragUp / LP.pull)) : 0;
+  lpFrame(startT);
+  el.classList.add('gone'); el.style.transition = 'none'; el.style.transform = '';
+  var shown = false;
+  lpRun(startT, 1, dragged ? 640 : 760, function () { if (LP) LP.mag.classList.add('rest'); });
+  setTimeout(function () { if (!LP || shown) return; shown = true; var d = $('#ldet'); d.innerHTML = libDetailHTML(it); requestAnimationFrame(function () { d.classList.add('show'); }); }, dragged ? 360 : 440);
 }
 function putBack(after) {
   if (!LP || LP.closing) return;
-  LP.closing = true;
-  var o = LP, mag = $('#lmag'), ov = $('#lovl'), d = $('#ldet');
+  var o = LP; o.closing = true;
+  var d = $('#ldet'); if (d) d.classList.remove('show');
+  o.mag.classList.remove('rest');
   var finish = function () {
-    if (ov) ov.remove();
-    o.el.classList.remove('gone');
-    o.el.style.transition = 'none'; o.el.style.transform = 'translateY(' + (-o.el.offsetHeight * .5) + 'px)';
-    void o.el.offsetWidth;
-    o.el.style.transition = 'transform .3s cubic-bezier(.3,1.3,.5,1)'; o.el.style.transform = '';
-    setTimeout(function () { o.el.style.transition = ''; LP = null; if (o.dirty) rerender(); if (after) after(); }, 320);
+    var ov = $('#lovl'); if (ov) ov.remove();
+    o.el.classList.remove('gone'); o.el.style.transition = ''; o.el.style.transform = '';
+    LP = null;
+    if (o.dirty) rerender();
+    if (after) after();
   };
-  if (d) d.classList.remove('show');
-  if (ov) ov.classList.remove('on');
-  if (!mag || !o.tf || !mag.animate || !document.body.contains(o.el)) { if (ov) ov.remove(); LP = null; if (o.dirty) rerender(); if (after) after(); return; }
-  var r = o.el.getBoundingClientRect(), sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1;
-  var sw = r.width / z, sh = r.height / z, cx = (r.left - sr.left) / z + sw / 2, cy = (r.top - sr.top) / z + sh / 2 - sh * .5;
-  var s0 = sh / o.H, tf = o.tf;
-  var a = mag.animate([
-    { transform: tf(o.to.x, o.to.y, 1, 0) },
-    { transform: tf(o.to.x + (cx - o.to.x) * .6, cy - 50, s0 + (1 - s0) * .4, 60, 3), offset: .55 },
-    { transform: tf(cx, cy, s0, 90) }
-  ], { duration: 600, easing: 'cubic-bezier(.4,.1,.3,1)', fill: 'forwards' });
-  a.onfinish = finish;
+  if (!document.body.contains(o.el)) { finish(); return; }
+  // Zielposition neu messen (falls die Seite inzwischen gescrollt wurde)
+  var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1, r = o.el.getBoundingClientRect();
+  o.cx = (r.left - sr.left) / z + r.width / z / 2; o.cy = (r.top - sr.top) / z + r.height / z / 2;
+  lpRun(o.t || 1, 0, 620, finish);
 }
-function closeLibPull() { var ov = $('#lovl'); if (ov) ov.remove(); if (LP && LP.el) LP.el.classList.remove('gone'); LP = null; }
+function closeLibPull() { var ov = $('#lovl'); if (ov) ov.remove(); if (LP) { cancelAnimationFrame(LP.raf); if (LP.el) LP.el.classList.remove('gone'); } LP = null; }
 function libraryHTML() {
   var lib = S.issues.filter(inLib).sort(function (a, b) { return b.year - a.year || b.month - a.month; });
   var h = '<div class="page noscroll" id="kpage" style="animation:fade .25s ease">';
@@ -2092,7 +2107,8 @@ function sheetHTML() {
     var li = issueById(S.sheetIssue), lm2 = magById(li.magId), full = owns(li);
     var sub = full ? '' : ' (Leseprobe)';
     h += '<div class="shead"><div class="scover"><img src="' + cover(li) + '" alt=""></div><div><small>' + esc(lm2.name) + ' · ' + num(li) + '</small><b>' + label(li) + '</b><span>' + (full ? li.pageCount + ' Seiten' : 'Leseprobe · ' + samplePagesOf(li).length + ' Seiten') + '</span></div></div>' + libOrgHTML(li) + '<div>' +
-      '<button class="bare hrow" data-act="libgo" data-arg="read"><span class="hic">' + ICON.flipic + '</span><span class="t"><b>Lesen' + sub + '</b><small>Im Heft blättern wie auf Papier</small></span>' + ICON.chev + '</button>' +
+      (full && marksOf(li).length ? marksOf(li).slice().reverse().map(function (pg) { return '<button class="bare hrow" data-act="libgo" data-arg="mark:' + pg + '"><span class="hic" style="color:#C9352F">' + ICON.markOn + '</span><span class="t"><b>Beim Lesezeichen weiterlesen</b><small>Seite ' + pg + '</small></span>' + ICON.chev + '</button>'; }).join('') : '') +
+      '<button class="bare hrow" data-act="libgo" data-arg="read"><span class="hic">' + ICON.flipic + '</span><span class="t"><b>' + (full && marksOf(li).length ? 'Von vorne lesen' : 'Lesen' + sub) + '</b><small>Im Heft blättern wie auf Papier</small></span>' + ICON.chev + '</button>' +
       '<button class="bare hrow" data-act="libgo" data-arg="lesen"><span class="hic">' + ICON.lmode + '</span><span class="t"><b>Lesemodus' + sub + '</b><small>Nur der Text – große Schrift, hell, Sepia oder dunkel</small></span>' + ICON.chev + '</button>' +
       '<button class="bare hrow" data-act="libgo" data-arg="vorlesen"><span class="hic">' + ICON.speak + '</span><span class="t"><b>Vorlesen mit KI-Stimme' + sub + '</b><small>Artikel anhören, Absatz für Absatz</small></span>' + ICON.chev + '</button>' +
       (!full ? '<button class="bare hrow" data-act="libgo" data-arg="buy"><span class="hic">' + ICON.lock + '</span><span class="t"><b>' + (saleMode(li) === 'options' ? 'Kaufoptionen' : 'Kaufen · ' + esc(li.price)) + '</b><small>Ganze Ausgabe freischalten</small></span>' + ICON.chev + '</button>' : '') +
@@ -2248,7 +2264,7 @@ function switchKiosk(patch) {
 /* ================= Reader: Blättern wie im Buch ================= */
 var R = null;
 var pageURLs = {};
-function openReader(issueId, preview) {
+function openReader(issueId, preview, startPage) {
   var it = issueById(issueId); if (!it) return;
   if (preview && owns(it)) preview = false;
   var nums = [];
@@ -2261,7 +2277,9 @@ function openReader(issueId, preview) {
     if (S.cfg.ads && idx + 1 === S.cfg.adAfter && idx < nums.length - 1) leaves.push({ type: 'ad' });
   });
   if (preview) leaves.push({ type: 'pay' });
-  R = { it: it, preview: preview, leaves: leaves, cur: 0, fdir: 0, fp: 0, anim: false, txt: null };
+  var start = 0;
+  if (startPage) { var si = leaves.findIndex(function (l) { return l.type === 'img' && l.n === Number(startPage); }); if (si >= 0) start = si; }
+  R = { it: it, preview: preview, leaves: leaves, cur: start, fdir: 0, fp: 0, anim: false, txt: null };
   DB.get('texts', it.id).then(function (rec) { if (R && R.it.id === it.id) R.txt = rec || null; });
   if (S.screen !== 'reader') S.back = S.screen;
   S.screen = 'reader'; S.sheet = null; S.menu = false;
@@ -2919,6 +2937,7 @@ var ACT = {
     var id = S.sheetIssue, it = issueById(id), pv = !owns(it);
     S.sheet = null;
     if (what === 'read') openReader(id, pv);
+    else if (String(what).indexOf('mark:') === 0) openReader(id, pv, Number(String(what).slice(5)));
     else if (what === 'lesen') openLM(id, pv, false);
     else if (what === 'vorlesen') openLM(id, pv, true);
     else if (what === 'buy') ACT.buy(id);
