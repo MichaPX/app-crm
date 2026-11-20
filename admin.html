@@ -193,7 +193,7 @@ body.full input,body.full textarea,body.full select{font-size:16px!important}
 .lsw{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--chip)}
 .lgsel{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
 .lgsel select{appearance:none;-webkit-appearance:none;height:28px;padding:0 22px 0 10px;border-radius:14px;border:0;background:var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 8px center;color:var(--text);font:inherit;font-size:12.5px!important;font-weight:650}
-body.full .lgsel select{font-size:16px!important;height:30px}
+body.full .lgsel select{font-size:13.5px!important;height:30px}
 .lsw button{height:26px!important;padding:0 10px!important;border-radius:7px!important;font-size:12px;font-weight:650;color:var(--muted)}
 .lsw button.on{background:var(--pill);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .lbar{position:sticky;top:0;z-index:5;padding:8px 0 8px;background:var(--bg);box-shadow:0 8px 14px -8px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:8px}
@@ -235,6 +235,9 @@ body.full .lgsel select{font-size:16px!important;height:30px}
 .lbookend{flex:0 0 auto;width:12px;height:120px;margin-left:14px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,#555,#888 40%,#444);opacity:.7}
 .lhint{display:flex;align-items:center;justify-content:center;gap:8px;margin:22px 20px 0;font-size:12.5px;color:var(--muted)}
 .lempty{margin:40px 24px;text-align:center;font-size:14px;line-height:1.5;color:var(--muted)}
+/* Statusleiste: beim Scrollen bekommt sie einen ruhigen Hintergrund, damit Uhrzeit und Filter sich nicht überlagern */
+body.full .lbar{top:env(safe-area-inset-top)}
+body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--bg);z-index:45;pointer-events:none}
 /* ---------- Bibliothek: Zeitschriftenständer ---------- */
 .zrack{position:relative;z-index:0;isolation:isolate;margin:4px 6px 0;padding:40px 18px 46px}
 .zrack .zback{position:absolute;left:14px;right:14px;top:30px;bottom:30px;border-radius:3px;
@@ -252,15 +255,16 @@ body.full .lgsel select{font-size:16px!important;height:30px}
   box-shadow:0 -2px 6px rgba(0,0,0,.22),0 10px 18px rgba(0,0,0,.32);cursor:pointer;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .zcv::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.14) 3%,rgba(255,255,255,0) 9%,rgba(0,0,0,0) 88%,rgba(0,0,0,.14)),linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 26%,rgba(0,0,0,0) 70%,rgba(0,0,0,.18));box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.2)}
 .zcv.gone{visibility:hidden}
+.zcv.fan{box-shadow:-5px 0 10px rgba(0,0,0,.3),0 8px 14px rgba(0,0,0,.28)}
 .zcv .nd{position:absolute;right:6px;top:6px;width:9px;height:9px;border-radius:5px;background:var(--accent);box-shadow:0 0 0 2px rgba(0,0,0,.35);z-index:2;display:none}
 .zcv.unread .nd{display:block}
 .zcv.mark::before{content:"";position:absolute;top:-6px;right:14px;width:10px;height:26px;z-index:3;background:linear-gradient(90deg,#7E1619,#C9352F 45%,#E0504A 55%,#A3231F);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
 @media (hover:hover){.zcv:hover{transform:rotateX(9deg) translateY(-10px)!important}}
-.ztier .zlip{position:absolute;left:-6px;right:-6px;bottom:0;height:24px;z-index:150;border-radius:2px 2px 4px 4px;
+.ztier .zlip{position:absolute;left:-6px;right:-6px;bottom:4px;height:7px;z-index:150;border-radius:2px 2px 4px 4px;
   background:linear-gradient(180deg,rgba(255,255,255,.4) 0,rgba(255,255,255,0) 2px),linear-gradient(180deg,var(--rk1) 0,var(--rk2) 45%,var(--rk3) 100%);box-shadow:0 10px 16px -4px rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.2)}
 .ztier .zlip::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.3));pointer-events:none}
-.ztier .zlip::after{content:"";position:absolute;inset:3px 0 0;opacity:.6;background:repeating-linear-gradient(90deg,var(--rkgrain) 0 1px,transparent 1px 11px,var(--rkgrain) 11px 12px,transparent 12px 27px)}
-.ztier .ztag{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);z-index:151;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rkink);white-space:nowrap}
+.ztier .zlip::after{content:"";position:absolute;inset:3px 0 0;opacity:0;background:repeating-linear-gradient(90deg,var(--rkgrain) 0 1px,transparent 1px 11px,var(--rkgrain) 11px 12px,transparent 12px 27px)}
+.ztier .ztag{display:none;position:absolute;left:50%;bottom:5px;transform:translateX(-50%);z-index:151;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rkink);white-space:nowrap}
 .lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
 .lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
@@ -760,7 +764,7 @@ var PDF_WORKER_B64 = "LyoqCiAqIEBsaWNzdGFydCBUaGUgZm9sbG93aW5nIGlzIHRoZSBlbnRpcm
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '20.11.2026 14:48';
+var APP_BUILD = '20.11.2026 16:14';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1288,6 +1292,8 @@ function render() {
   if (S.screen === 'library' && S.libView === 'shelf') bindShelf();
   if (S.screen === 'library' && S.libView === 'rack') bindRack();
   var gs = $('[data-groupsel]'); if (gs) gs.addEventListener('change', function () { ACT.libgroup(gs.value); });
+  app.classList.remove('scrolled');
+  var kp = $('#kpage'); if (kp && (S.screen === 'library' || S.screen === 'kiosk')) { var sc = function () { app.classList.toggle('scrolled', kp.scrollTop > 8); }; kp.addEventListener('scroll', sc, { passive: true }); sc(); }
   var nl = $('.nlist'); if (nl) { if (S.newsScroll) nl.scrollTop = S.newsScroll; nl.addEventListener('scroll', function () { S.newsScroll = nl.scrollTop; }, { passive: true }); }
   if (S.screen === 'reader') setupBook();
   if (S.screen === 'lesen') setupLM();
@@ -1838,9 +1844,10 @@ function libRackHTML(lib) {
   else list0.forEach(function (it) { var m = magById(it.magId); add(G === 'year' ? String(it.year) : (m ? m.name : '?'), it); });
   var tab = document.body.classList.contains('tablet');
   var W = Math.max(260, (IS_ADMIN ? (S.preview === 'ipad' ? 820 : 390) : window.innerWidth) - 12 - 36);
-  var per = tab ? Math.max(4, Math.floor(W / 150)) : 3;
-  var cw = Math.floor((W - 12) / per) - 10, ch = Math.round(cw * 1.33);
-  var step = Math.round(ch * 0.58) + 14;
+  // wie am echten Kiosk: viele Hefte pro Reihe, seitlich geschuppt, jede Reihe zeigt nur den Kopf (Logo) der Reihe dahinter
+  var per = tab ? Math.max(6, Math.floor(W / 105)) : 4;
+  var Wa = W - 12, cw = Math.floor(Wa / (1 + 0.72 * (per - 1))), ch = Math.round(cw * 1.33);
+  var step = Math.round(ch * 0.42) + 8;
   var h = '<div class="zrack" style="--cw:' + cw + 'px;--chh:' + ch + 'px;--step:' + step + 'px"><div class="zback"></div><div class="zcheek l"></div><div class="zcheek r"></div><div class="zcrown">Meine Hefte</div><div class="zplinth"></div>';
   if (!list0.length) h += '<div class="lempty" style="position:relative;z-index:200">' + (S.libFilter && S.libFilter.indexOf('c:') === 0 ? 'In diesem Fach steht noch nichts.' : 'Hier steht nichts.') + '</div>';
   var z = 1;
@@ -1850,14 +1857,24 @@ function libRackHTML(lib) {
     h += '<div class="glab" id="lg' + gi + '">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Heft' : ' Hefte') + '</span></div>';
     var rows = []; for (var r = 0; r < list.length; r += per) rows.push(list.slice(r, r + per));
     rows.reverse();   // neueste Hefte vorne unten, ältere dahinter
-    h += '<div style="height:' + (ch - step + 14) + 'px"></div>';
+    h += '<div style="height:' + Math.round(ch * 1.1 - step + 10) + 'px"></div>';
     rows.forEach(function (row, ri) {
       z += 10;
-      var gap = (W - 12 - row.length * cw) / (row.length + 1);
       h += '<div class="ztier" style="z-index:' + z + '">';
       row.forEach(function (it, ci) {
-        var x = gap + ci * (cw + gap), rz = ((ci - (row.length - 1) / 2) * 0.8 + (ri % 2 ? .5 : -.4)).toFixed(2), m = magById(it.magId) || {};
-        h += '<button class="zcv' + (isReadIt(it) ? '' : ' unread') + (marksOf(it).length ? ' mark' : '') + '" data-rack="' + esc(it.id) + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + ' aus dem Ständer nehmen" style="left:' + x.toFixed(1) + 'px;background-image:url(\'' + cover(it) + '\');transform:rotateX(9deg) rotateZ(' + rz + 'deg)"><i class="nd"></i></button>';
+        // nur ganz leicht unregelmäßig wie von Hand eingestellt – fest pro Heft, damit nichts springt
+        var hs = 0; for (var q = 0; q < String(it.id).length; q++) hs = (hs * 31 + String(it.id).charCodeAt(q)) >>> 0;
+        var j1 = ((hs % 1000) / 1000) - .5, j2 = (((hs >>> 10) % 1000) / 1000) - .5, j3 = (((hs >>> 20) % 1000) / 1000) - .5;
+        var mid = ci - (row.length - 1) / 2, fan = row.length > 1, j4 = (((hs >>> 5) % 997) / 997) - .5;
+        var sp = (Wa - cw) / (per - 1);                                   // seitlicher Schritt wie bei voller Reihe
+        var start = row.length < per ? (Wa - cw - sp * (row.length - 1)) / 2 : 0;
+        var x = start + ci * sp + j1 * cw * 0.16 + (ri % 2 ? sp * 0.22 : -sp * 0.1);
+        x = Math.max(-4, Math.min(Wa - cw + 4, x));
+        var sw = 1 + j4 * 0.1, shh = 1 + j3 * 0.12;                        // Hefte haben unterschiedliche Formate
+        var rz = (j2 * 3).toFixed(2), dy = (j3 * 6).toFixed(1);
+        var szs = 'width:' + (cw * sw).toFixed(1) + 'px;height:' + (ch * sw * shh).toFixed(1) + 'px;';
+        var m = magById(it.magId) || {};
+        h += '<button class="zcv' + (fan ? ' fan' : '') + (isReadIt(it) ? '' : ' unread') + (marksOf(it).length ? ' mark' : '') + '" data-rack="' + esc(it.id) + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + ' aus dem Ständer nehmen" style="' + szs + 'left:' + x.toFixed(1) + 'px;bottom:' + (8 + Number(dy)).toFixed(1) + 'px;background-image:url(\'' + cover(it) + '\');transform:rotateX(' + (6 + j3 * 3).toFixed(1) + 'deg) rotateZ(' + rz + 'deg)"><i class="nd"></i></button>';
       });
       h += '<div class="zlip"></div><div class="ztag">' + row.map(function (it) { return MSH[it.month - 1] + (G === 'year' ? '' : ' ' + String(it.year).slice(2)); }).join(' · ') + '</div></div>';
     });
