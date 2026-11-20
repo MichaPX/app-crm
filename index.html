@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#121214">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -23,6 +23,9 @@ button{font:inherit;color:inherit}
 .phone{flex:0 0 auto;width:414px;height:868px;border-radius:58px;background:#0A0A0B;padding:12px;box-shadow:0 40px 90px rgba(0,0,0,.28),inset 0 0 0 2px #2C2C30}
 .screen{position:relative;width:390px;height:844px;border-radius:46px;overflow:hidden;background:var(--bg);color:var(--text)}
 #app{position:absolute;inset:0}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* iOS zoomt beim Tippen in Eingabefelder unter 16 px automatisch hinein – deshalb in der App immer 16 px */
+body.full input,body.full textarea,body.full select{font-size:16px!important}
 .phone.ipad{width:844px;height:1204px;border-radius:44px;padding:12px}
 .phone.ipad .screen{width:820px;height:1180px;border-radius:32px}
 .devsw{display:flex;gap:3px;padding:3px;border-radius:10px;background:#EFEDE8;margin:12px 0 2px}
@@ -69,6 +72,7 @@ button{font:inherit;color:inherit}
 .btrack{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .btrack::-webkit-scrollbar{display:none}
 .bslide{flex:0 0 100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always;padding:0;border:0;background:none;cursor:pointer;display:block}
+.bslide .bvid{display:block;width:100%;height:100%;background:#000}
 .bslide img,.bslide video{display:block;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none}
 .bdots{position:absolute;left:0;right:0;bottom:6px;display:flex;justify-content:center;gap:5px;pointer-events:none}
 .bdots span{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.55);box-shadow:0 0 0 1px rgba(0,0,0,.15);transition:width .25s,background .25s}
@@ -194,7 +198,10 @@ button{font:inherit;color:inherit}
 .empty h2{margin:0;font-size:20px;font-weight:750}
 .empty p{margin:0;font-size:14px;line-height:1.5;color:var(--muted)}
 /* ---------- Bibliothek: Regal ---------- */
-.lsw{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--chip);margin-left:auto}
+.lsw{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--chip)}
+.lgsel{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.lgsel select{appearance:none;-webkit-appearance:none;height:28px;padding:0 22px 0 10px;border-radius:14px;border:0;background:var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 8px center;color:var(--text);font:inherit;font-size:12.5px!important;font-weight:650}
+body.full .lgsel select{font-size:16px!important;height:30px}
 .lsw button{height:26px!important;padding:0 10px!important;border-radius:7px!important;font-size:12px;font-weight:650;color:var(--muted)}
 .lsw button.on{background:var(--pill);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .lbar{position:sticky;top:0;z-index:5;padding:8px 0 8px;background:var(--bg);box-shadow:0 8px 14px -8px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:8px}
@@ -210,7 +217,7 @@ button{font:inherit;color:inherit}
 .lgsw button{height:26px;padding:0 9px;white-space:nowrap;border-radius:12px;font-size:12px;font-weight:650;color:var(--muted)}
 .lgsw button.on{background:var(--chip);color:var(--text)}
 .ljump button{flex:0 0 auto;height:24px;min-width:34px;padding:0 8px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line);font-size:11.5px;font-weight:700;color:var(--text2)}
-.lwall{padding:2px 0 30px;min-height:100%;background:linear-gradient(180deg,var(--wall1),var(--wall2))}
+.lwall{position:relative;z-index:0;isolation:isolate;padding:2px 0 30px;min-height:100%;background:linear-gradient(180deg,var(--wall1),var(--wall2))}
 .lshelf{margin:16px 0 0}
 .lshelf .lab{display:flex;align-items:baseline;gap:8px;padding:0 20px 8px;font-size:13px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .lshelf .lab span{font-weight:600;letter-spacing:0;text-transform:none;font-size:12px}
@@ -236,13 +243,41 @@ button{font:inherit;color:inherit}
 .lbookend{flex:0 0 auto;width:12px;height:120px;margin-left:14px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,#555,#888 40%,#444);opacity:.7}
 .lhint{display:flex;align-items:center;justify-content:center;gap:8px;margin:22px 20px 0;font-size:12.5px;color:var(--muted)}
 .lempty{margin:40px 24px;text-align:center;font-size:14px;line-height:1.5;color:var(--muted)}
+/* ---------- Bibliothek: Zeitschriftenständer ---------- */
+.zrack{position:relative;z-index:0;isolation:isolate;margin:4px 6px 0;padding:40px 18px 46px}
+.zrack .zback{position:absolute;left:14px;right:14px;top:30px;bottom:30px;border-radius:3px;
+  background:repeating-linear-gradient(90deg,var(--rkgrain) 0 1px,transparent 1px 9px,var(--rkgrain) 9px 10px,transparent 10px 23px),linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.22)),var(--rkback);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.2),inset 0 30px 40px -24px rgba(0,0,0,.45)}
+.zrack .zcheek{position:absolute;top:22px;bottom:20px;width:14px;z-index:260;border-radius:3px;background:linear-gradient(90deg,var(--rk3),var(--rk1) 35%,var(--rk2) 70%,var(--rk3));box-shadow:0 10px 20px rgba(0,0,0,.35)}
+.zrack .zcheek.l{left:4px}.zrack .zcheek.r{right:4px}
+.zrack .zcrown{position:absolute;left:0;right:0;top:8px;height:22px;z-index:261;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--rk1),var(--rk2) 60%,var(--rk3));box-shadow:0 8px 14px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--rkink)}
+.zrack .zplinth{position:absolute;left:-2px;right:-2px;bottom:6px;height:18px;z-index:261;border-radius:2px 2px 6px 6px;background:linear-gradient(180deg,var(--rk2),var(--rk3));box-shadow:0 14px 24px rgba(0,0,0,.4)}
+.zrack .glab{position:relative;z-index:200;display:flex;align-items:baseline;gap:8px;margin:12px 4px 6px;font-size:12.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.zrack .glab span{font-weight:600;letter-spacing:0;text-transform:none}
+.ztier{position:relative;height:var(--step);perspective:700px;margin:0 2px}
+.zcv{position:absolute;bottom:14px;width:var(--cw);height:var(--chh);padding:0;border:0;transform-origin:50% 100%;border-radius:2px 4px 4px 2px;background-color:var(--chip);background-size:cover;background-position:center top;
+  box-shadow:0 -2px 6px rgba(0,0,0,.22),0 10px 18px rgba(0,0,0,.32);cursor:pointer;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.zcv::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.14) 3%,rgba(255,255,255,0) 9%,rgba(0,0,0,0) 88%,rgba(0,0,0,.14)),linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 26%,rgba(0,0,0,0) 70%,rgba(0,0,0,.18));box-shadow:inset 0 2px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.2)}
+.zcv.gone{visibility:hidden}
+.zcv .nd{position:absolute;right:6px;top:6px;width:9px;height:9px;border-radius:5px;background:var(--accent);box-shadow:0 0 0 2px rgba(0,0,0,.35);z-index:2;display:none}
+.zcv.unread .nd{display:block}
+.zcv.mark::before{content:"";position:absolute;top:-6px;right:14px;width:10px;height:26px;z-index:3;background:linear-gradient(90deg,#7E1619,#C9352F 45%,#E0504A 55%,#A3231F);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+@media (hover:hover){.zcv:hover{transform:rotateX(9deg) translateY(-10px)!important}}
+.ztier .zlip{position:absolute;left:-6px;right:-6px;bottom:0;height:24px;z-index:150;border-radius:2px 2px 4px 4px;
+  background:linear-gradient(180deg,rgba(255,255,255,.4) 0,rgba(255,255,255,0) 2px),linear-gradient(180deg,var(--rk1) 0,var(--rk2) 45%,var(--rk3) 100%);box-shadow:0 10px 16px -4px rgba(0,0,0,.45),0 2px 0 rgba(0,0,0,.2)}
+.ztier .zlip::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.3));pointer-events:none}
+.ztier .zlip::after{content:"";position:absolute;inset:3px 0 0;opacity:.6;background:repeating-linear-gradient(90deg,var(--rkgrain) 0 1px,transparent 1px 11px,var(--rkgrain) 11px 12px,transparent 12px 27px)}
+.ztier .ztag{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);z-index:151;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rkink);white-space:nowrap}
+.lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
+.lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
 .lovl .lscrim{position:absolute;inset:0;background:rgba(0,0,0,.58);opacity:0}
 .lovl.on{pointer-events:auto}
 
 .l3d{position:absolute;inset:0;perspective:1100px;pointer-events:none}
-.lmag{position:absolute;left:0;top:0;transform-style:preserve-3d;transform-origin:0 50%;will-change:transform;backface-visibility:hidden}
-.lmag .lit{position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--lit,0);pointer-events:none;z-index:2}
+.lmag{position:absolute;left:0;top:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transform-origin:0 50%;will-change:transform}
+.lmag .lit{position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none;z-index:2}
 .lmag .f{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .lmag .front{inset:0;background-size:cover;background-position:center;border-radius:2px 5px 5px 2px;box-shadow:0 10px 24px rgba(0,0,0,.35);transition:box-shadow .4s}
 .lmag.rest .front{box-shadow:0 26px 50px rgba(0,0,0,.45)}
@@ -269,7 +304,7 @@ button{font:inherit;color:inherit}
 .lorg .oc{height:30px;padding:0 12px;border-radius:15px;font-size:12.5px;font-weight:650;box-shadow:inset 0 0 0 1.5px var(--chip2);color:var(--text)}
 .lorg .oc.on{background:var(--accent);color:var(--onaccent);box-shadow:none}
 .lorg .ocnew{display:flex;align-items:center;height:30px;border-radius:15px;background:var(--chip);padding:0 3px 0 10px}
-.lorg .ocnew input{width:110px;border:0;background:none;color:var(--text);font:inherit;font-size:13px;outline:none}
+.lorg .ocnew input{width:128px;min-width:0;border:0;background:none;color:var(--text);font:inherit;font-size:13px;outline:none}
 .lorg .ocnew button{width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--onaccent);font-weight:800}
 .tablet .lrow{height:250px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 14px;padding:16px 16px 28px}
@@ -287,6 +322,29 @@ button{font:inherit;color:inherit}
 .thl{position:absolute;z-index:40;display:none;border-radius:4px;background:color-mix(in srgb,var(--accent) 22%,transparent);box-shadow:0 0 0 2px var(--accent);pointer-events:none;transition:all .25s}
 .tcard{position:absolute;left:8px;right:8px;bottom:8px;z-index:60;max-height:58%;display:flex;flex-direction:column;background:var(--surf);color:var(--text);border-radius:20px;box-shadow:0 -10px 40px rgba(0,0,0,.45);border:1px solid var(--line)}
 .tcard.in{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+/* Milchglas: Farben der Seite schimmern durch, Text bleibt lesbar */
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .tcard{background:color-mix(in srgb,var(--surf) 74%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-color:color-mix(in srgb,var(--text) 12%,transparent)}
+  .tcard .tcb,.tcard .tcx{background:color-mix(in srgb,var(--chip2) 70%,transparent)}
+  .tcard .tcbar{border-top-color:color-mix(in srgb,var(--text) 10%,transparent)}
+}
+/* Beim Vorlesen: schmale Leiste, die Seite bleibt frei */
+.tctext .snt{border-radius:5px;padding:1px 0;cursor:pointer;transition:background .25s,color .25s;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.tctext .snt:active{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.tctext .snt.on{background:color-mix(in srgb,var(--accent) 26%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 26%,transparent)}
+.tctext .snt.resume{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:4px}
+.tchint{padding:0 18px 8px;font-size:11.5px;color:var(--muted);font-family:-apple-system,system-ui,sans-serif}
+.tcard.mini{max-height:none;border-radius:18px;padding:8px 8px 8px 14px;flex-direction:row;align-items:center;gap:10px;animation:none;transition:none}
+.tcard.mini .tcsent{flex:1;min-width:0;cursor:pointer;font-family:Georgia,"Iowan Old Style",serif;font-size:15px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tcard.mini .tcsent small{display:block;font-family:inherit;font-size:11px;font-weight:650;letter-spacing:.02em;color:var(--muted);font-family:-apple-system,system-ui,sans-serif;margin-bottom:1px}
+.tcard.mini .tcb{height:40px;min-width:40px;border-radius:20px}
+.tcard.mini .tcb.pri{background:var(--accent);color:var(--onaccent)}
+.tcard .tcmore{width:34px;height:34px;border-radius:17px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tcard.grow{animation:tcgrow .28s cubic-bezier(.2,.8,.2,1)}
+.tcard.shrink{animation:tcgrow .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes tcgrow{from{opacity:.4;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.thl.live{animation:thlpulse 2.2s ease-in-out infinite}
+@keyframes thlpulse{0%,100%{box-shadow:0 0 0 2px var(--accent)}50%{box-shadow:0 0 0 4px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 50%,transparent)}}
 .tchead{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 4px 18px;font-size:12px;font-weight:650;color:var(--muted);letter-spacing:.02em}
 .tcx{width:34px;height:34px;border-radius:17px;background:var(--chip2);color:var(--text);display:flex;align-items:center;justify-content:center}
 .tctext{flex:1;overflow-y:auto;padding:4px 18px 14px;font-family:Georgia,"Iowan Old Style",serif;line-height:1.65}
@@ -699,10 +757,15 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '19.11.2026 09:30';
+var APP_BUILD = '20.11.2026 14:48';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
+/* Kein Zoomen der ganzen App (Pinch oder Doppeltipp) – Zoomen gibt es nur im Heft über die eigene Lupe */
+if (!IS_ADMIN) {
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (ev) { document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false }); });
+  document.addEventListener('touchmove', function (e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+}
 var panel = document.getElementById('panel');
 function $(s, r) { return (r || document).querySelector(s); }
 function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -726,6 +789,7 @@ function wollySVG(full) {
     head + '</svg>';
 }
 var ICON = {
+  chevDown: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
   up: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
   mark: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
   markOn: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
@@ -912,7 +976,7 @@ function loadPrefs() {
     ['shelf', 'marks', 'owned', 'subs', 'flat', 'saved', 'subPlan', 'subSince', 'flatSince', 'loggedIn', 'settings', 'cfg'].forEach(function (k) { if (p[k] !== undefined) S[k] = k === 'cfg' ? Object.assign(S.cfg, p.cfg) : p[k]; });
   } catch (e) {}
 }
-var SERVER_KEYS = ['ads', 'bannerH', 'bannerSec', 'adAfter', 'accent', 'bg', 'bgLight', 'look', 'magAccent', 'flat', 'mail', 'phone', 'hours', 'helpUrl', 'bot', 'botName', 'botHello', 'abos'];
+var SERVER_KEYS = ['ads', 'bannerH', 'bannerSec', 'adAfter', 'accent', 'bg', 'bgLight', 'look', 'rackMat', 'magAccent', 'flat', 'mail', 'phone', 'hours', 'helpUrl', 'bot', 'botName', 'botHello', 'abos'];
 var LASTCFG = '', cfgTimer = 0;
 function serverCfg() { var o = {}; SERVER_KEYS.forEach(function (k) { if (S.cfg[k] !== undefined) o[k] = S.cfg[k]; }); return o; }
 function pushServerCfg() {
@@ -1141,6 +1205,14 @@ function applyTheme() {
     '--wood1': light ? '#C99A6B' : '#5A3C26', '--wood2': light ? '#B0814F' : '#3F2918', '--wood3': light ? '#8A6038' : '#2A1B10', '--woodtop': light ? '#DCB284' : '#6D4B31',
     '--ondanger': light ? '#FFFFFF' : '#2A0A0A'
   };
+  // Ständer: Standard passt sich den App-Farben an (hell = lackiert weiß, dunkel = dunkel lackiert), sonst Holz oder Metall
+  var mat = S.cfg.rackMat || 'auto', rk;
+  if (mat === 'wood') rk = light ? ['#DCB284', '#B0814F', '#8A6038', mix(bg, '#C8B79F', 0.4), 'rgba(0,0,0,.18)', 'rgba(255,255,255,.85)'] : ['#7A5536', '#55381F', '#2E1D10', '#2B2420', 'rgba(0,0,0,.18)', 'rgba(255,255,255,.8)'];
+  else if (mat === 'metal') rk = light ? ['#E3E6EA', '#A9B0B8', '#6B727A', '#D9DDE1', 'rgba(0,0,0,.04)', 'rgba(0,0,0,.55)'] : ['#D9DDE2', '#9AA1A9', '#5D636B', '#24272B', 'rgba(255,255,255,.05)', 'rgba(0,0,0,.55)'];
+  else rk = light
+    ? [mix(bg, '#FFFFFF', 0.85), mix(bg, '#FFFFFF', 0.25), mix(bg, '#000000', 0.16), mix(bg, '#000000', 0.05), 'rgba(0,0,0,.03)', mix(text, bg, 0.45)]
+    : [mix(bg, '#FFFFFF', 0.2), mix(bg, '#FFFFFF', 0.1), mix(bg, '#000000', 0.35), mix(bg, '#000000', 0.12), 'rgba(255,255,255,.03)', mix(text, bg, 0.3)];
+  ['--rk1', '--rk2', '--rk3', '--rkback', '--rkgrain', '--rkink'].forEach(function (k, i) { v[k] = rk[i]; });
   Object.keys(v).forEach(function (k) { document.documentElement.style.setProperty(k, v[k]); });
   var sb = capPlugin('StatusBar');
   if (sb && !IS_ADMIN) {
@@ -1208,9 +1280,11 @@ function render() {
   S.anim = false;
   if ($('#kpage') && S.keepPageScroll) $('#kpage').scrollTop = keepScroll;
   S.keepPageScroll = false;
-  if (S.screen === 'kiosk') { setupCarousel(); setupBanner(); if (S.chat) bindChat(); } else clearTimeout(BR.t);
+  if (S.screen === 'kiosk') { setupCarousel(); setupBanner(); if (S.chat) bindChat(); } else { clearTimeout(BR.t); clearInterval(VW); Object.keys(VCACHE).forEach(function (k) { try { VCACHE[k].pause(); } catch (e) {} }); }
   LP = null;
   if (S.screen === 'library' && S.libView === 'shelf') bindShelf();
+  if (S.screen === 'library' && S.libView === 'rack') bindRack();
+  var gs = $('[data-groupsel]'); if (gs) gs.addEventListener('change', function () { ACT.libgroup(gs.value); });
   var nl = $('.nlist'); if (nl) { if (S.newsScroll) nl.scrollTop = S.newsScroll; nl.addEventListener('scroll', function () { S.newsScroll = nl.scrollTop; }, { passive: true }); }
   if (S.screen === 'reader') setupBook();
   if (S.screen === 'lesen') setupLM();
@@ -1226,7 +1300,7 @@ function adBanner() {
     S.bIndex = Math.min(S.bIndex, sl.length - 1);
     return '<div class="banner" style="' + bh + '"><div class="adlabel">Anzeige</div><div class="bslides" id="bslides"><div class="btrack noscroll" id="btrack">' + sl.map(function (b, i) {
       var media = b.kind === 'video'
-        ? '<video src="' + esc(b.mediaURL) + '" muted playsinline webkit-playsinline preload="' + (i === S.bIndex ? 'auto' : 'metadata') + '"' + (sl.length === 1 ? ' loop autoplay' : '') + '></video>'
+        ? '<span class="bvid" data-vkey="' + esc(b.key) + '" data-src="' + esc(b.mediaURL) + '"></span>'
         : '<img src="' + esc(b.mediaURL) + '" alt="" draggable="false">';
       return '<button class="bslide" data-act="slidelink" data-arg="' + esc(b.key) + '" aria-label="Anzeige ' + (i + 1) + ' von ' + sl.length + '">' + media + '</button>';
     }).join('') + '</div>' + (sl.length > 1 ? '<div class="bdots" id="bdots">' + sl.map(function (b, i) { return '<span' + (i === S.bIndex ? ' class="on"' : '') + '></span>'; }).join('') + '</div>' : '') + '</div></div>';
@@ -1247,11 +1321,17 @@ function setupBanner() {
   var sl = bannerSlides(); BR.n = sl.length;
   tr.scrollLeft = S.bIndex * tr.clientWidth;
   var showDots = function () { $$('#bdots span').forEach(function (d, i) { d.classList.toggle('on', i === S.bIndex); }); };
-  var playCur = function () {
-    $$('video', tr).forEach(function (v, i) {
-      if (i === S.bIndex) { try { v.currentTime = 0; } catch (e) {} var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+  // Video-Elemente überleben Neuaufbauten der Seite: kein Neuladen, kein Neustart bei jedem Antippen
+  Object.keys(VCACHE).forEach(function (k) { if (!sl.some(function (b) { return b.key === k; })) { try { VCACHE[k].pause(); VCACHE[k].removeAttribute('src'); VCACHE[k].load(); } catch (e) {} delete VCACHE[k]; } });
+  $$('.bvid', tr).forEach(function (ph) { var v = bannerVideo(ph.getAttribute('data-vkey'), ph.getAttribute('data-src'), sl.length === 1); ph.appendChild(v); });
+  var lastIdx = BR.playIdx;
+  var playCur = function (restart) {
+    $$('.bslide', tr).forEach(function (sd, i) {
+      var v = sd.querySelector('video'); if (!v) return;
+      if (i === S.bIndex) { if (restart) { try { v.currentTime = 0; } catch (e) {} } safePlay(v); }
       else { try { v.pause(); } catch (e) {} }
     });
+    BR.playIdx = S.bIndex;
   };
   var schedule = function () {
     clearTimeout(BR.t);
@@ -1274,16 +1354,61 @@ function setupBanner() {
     BR.rt = setTimeout(function () {
       var i = Math.round(tr.scrollLeft / Math.max(1, tr.clientWidth));
       i = Math.max(0, Math.min(BR.n - 1, i));
-      if (i !== S.bIndex || !tr.dataset.started) { S.bIndex = i; tr.dataset.started = '1'; showDots(); playCur(); }
+      if (i !== S.bIndex || !tr.dataset.started) { var ch = i !== S.bIndex; S.bIndex = i; tr.dataset.started = '1'; showDots(); playCur(ch); }
       schedule();
     }, 140);
   }, { passive: true });
   tr.addEventListener('pointerdown', function () { BR.paused = true; clearTimeout(BR.t); }, { passive: true });
   tr.addEventListener('pointerup', function () { BR.paused = false; schedule(); }, { passive: true });
   tr.addEventListener('pointercancel', function () { BR.paused = false; schedule(); }, { passive: true });
-  tr.dataset.started = '1'; showDots(); playCur(); schedule();
+  tr.dataset.started = '1'; showDots(); playCur(lastIdx != null && lastIdx !== S.bIndex); schedule();
+  startVideoWatch();
 }
-document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(BR.t); else if (S.screen === 'kiosk') setupBanner(); });
+/* ---- Banner-Videos robust abspielen ---- */
+var VCACHE = {};
+function bannerVideo(key, src, loop) {
+  var v = VCACHE[key];
+  if (!v || v.getAttribute('data-src') !== src) {
+    v = document.createElement('video');
+    v.muted = true; v.defaultMuted = true; v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+    v.preload = 'auto'; v.setAttribute('data-src', src); v.src = src;
+    v.disablePictureInPicture = true;
+    ['stalled', 'waiting', 'suspend'].forEach(function (ev) { v.addEventListener(ev, function () { v._stuck = (v._stuck || 0) + 1; }); });
+    v.addEventListener('playing', function () { v._stuck = 0; });
+    VCACHE[key] = v;
+  }
+  v.loop = !!loop;
+  return v;
+}
+function safePlay(v) {
+  if (!v) return;
+  v.muted = true;
+  var pr; try { pr = v.play(); } catch (e) {}
+  if (pr && pr.catch) pr.catch(function () { /* z. B. Stromsparmodus: erstes Bild bleibt stehen */ });
+}
+// Wächter: läuft das aktuelle Video nicht weiter, wird es wieder angestoßen
+var VW = 0, VLAST = { t: -1, n: 0 };
+function startVideoWatch() {
+  clearInterval(VW);
+  VW = setInterval(function () {
+    if (S.screen !== 'kiosk' || document.hidden) return;
+    var tr = $('#btrack'); if (!tr) { clearInterval(VW); return; }
+    var sd = tr.children[S.bIndex], v = sd && sd.querySelector('video');
+    if (!v) return;
+    if (v.paused && !v.ended) { safePlay(v); return; }
+    if (Math.abs(v.currentTime - VLAST.t) < 0.01) {
+      VLAST.n++;
+      if (VLAST.n === 2) safePlay(v);
+      if (VLAST.n === 4) { var at = v.currentTime; v.load(); try { v.currentTime = at; } catch (e) {} safePlay(v); }   // hängt fest → neu puffern
+    } else VLAST.n = 0;
+    VLAST.t = v.currentTime;
+  }, 1500);
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) { clearTimeout(BR.t); Object.keys(VCACHE).forEach(function (k) { try { VCACHE[k].pause(); } catch (e) {} }); }
+  else if (S.screen === 'kiosk') setupBanner();
+});
 function adNative() {
   if (!S.cfg.ads) return '<div style="height:28px"></div>';
   var a = S.ads.native || {};
@@ -1501,7 +1626,7 @@ function libShelfHTML(lib) {
     });
     h += '</div>';
   });
-  if (list0.length) h += '<div class="lhint">' + ICON.up + 'Heft antippen oder nach oben ziehen</div>';
+  if (list0.length) h += '<div class="lhint">' + ICON.up + 'Heft antippen – oder kurz halten und nach oben ziehen</div>';
   return { html: h + '</div>', keys: keys };
 }
 function libBarHTML(lib, keys) {
@@ -1513,10 +1638,11 @@ function libBarHTML(lib, keys) {
   var h = '<div class="lbar"><div class="lchips">' + chips.map(function (c) { return '<button class="bare lchip' + (f === c[0] ? ' on' : '') + (c[0].indexOf('c:') === 0 ? ' uc' : '') + '" data-act="libfilter" data-arg="' + esc(c[0]) + '">' + esc(c[1]) + '</button>'; }).join('') +
     '<button class="bare lchip add" data-act="libnewcol">+ Fach</button>' +
     (mags.length > 1 ? '<i class="sep"></i>' + mags.map(function (id) { var m = magById(id); return '<button class="bare lchip' + (f === 'm:' + id ? ' on' : '') + '" data-act="libfilter" data-arg="m:' + esc(id) + '">' + esc(m ? m.name : '') + '</button>'; }).join('') : '') + '</div>';
-  var vsw = '<div class="lsw" role="radiogroup" aria-label="Ansicht"><button class="bare' + (S.libView !== 'shelf' ? ' on' : '') + '" data-act="libview" data-arg="grid">Raster</button><button class="bare' + (S.libView === 'shelf' ? ' on' : '') + '" data-act="libview" data-arg="shelf">Regal</button></div>';
-  if (S.libView !== 'shelf') h += '<div class="lgsw">' + vsw + '</div>';
-  if (S.libView === 'shelf') {
-    h += '<div class="lgsw"><span>Nach</span>' + [['year', 'Jahr'], ['mag', 'Magazin'], ['cols', 'Fächern']].map(function (g) { return '<button class="bare' + (G === g[0] ? ' on' : '') + '" data-act="libgroup" data-arg="' + g[0] + '">' + g[1] + '</button>'; }).join('') + vsw + '</div>';
+  var vsw = '<div class="lsw" role="radiogroup" aria-label="Ansicht">' + [['grid', 'Raster'], ['shelf', 'Regal'], ['rack', 'Ständer']].map(function (v) { return '<button class="bare' + ((S.libView || 'grid') === v[0] ? ' on' : '') + '" data-act="libview" data-arg="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>';
+  var spatial = S.libView === 'shelf' || S.libView === 'rack';
+  if (!spatial) h += '<div class="lgsw">' + vsw + '</div>';
+  if (spatial) {
+    h += '<div class="lgsw">' + vsw + '<label class="lgsel"><span>Nach</span><select data-groupsel aria-label="Sortieren nach">' + [['year', 'Jahr'], ['mag', 'Magazin'], ['cols', 'Fächern']].map(function (g) { return '<option value="' + g[0] + '"' + (G === g[0] ? ' selected' : '') + '>' + g[1] + '</option>'; }).join('') + '</select></label></div>';
     if (keys && keys.length > 2) h += '<div class="ljump">' + keys.map(function (k, i) { var m = G === 'mag' ? S.mags.filter(function (x) { return x.name === k; })[0] : null; return '<button class="bare" data-act="libjump" data-arg="' + i + '">' + esc(m ? magShort(m) : k) + '</button>'; }).join('') + '</div>';
   }
   return h + '</div>';
@@ -1538,27 +1664,48 @@ function libNewCol(name) {
 }
 /* Herausziehen */
 var LP = null;
+/* Antippen = herausnehmen. Ziehen: kurz halten (oder Maus), dann nach oben – so bleibt normales Scrollen über das Regal möglich */
 function bindShelf() {
   $$('.lsp').forEach(function (el) {
-    var sy = 0, sx = 0, drag = false, moved = 0, pid = null;
-    el.addEventListener('pointerdown', function (e) { if (LP) return; sy = e.clientY; sx = e.clientX; drag = true; moved = 0; pid = e.pointerId; el.style.transition = 'none'; });
+    var sy = 0, sx = 0, drag = false, armed = false, lock = false, moved = 0, pid = null, holdT = 0;
+    var reset = function (anim) { drag = false; armed = false; clearTimeout(holdT); el.style.transition = anim ? 'transform .3s cubic-bezier(.3,1.4,.5,1)' : ''; el.style.transform = ''; };
+    el.addEventListener('pointerdown', function (e) {
+      if (lpAlive()) return;
+      sy = e.clientY; sx = e.clientX; drag = true; armed = e.pointerType === 'mouse'; moved = 0; pid = e.pointerId;
+      clearTimeout(holdT);
+      if (!armed) holdT = setTimeout(function () {
+        if (!drag || moved > 6) return;
+        armed = true; lock = true;
+        el.style.transition = 'transform .15s ease'; el.style.transform = 'translateY(-5px)';   // fühlbares „Anheben“
+        if (navigator.vibrate) try { navigator.vibrate(8); } catch (er) {}
+      }, 170);
+    });
+    // Während gehalten wird, darf die Seite nicht scrollen
+    el.addEventListener('touchmove', function (e) { if (lock) e.preventDefault(); }, { passive: false });
+    var unlock = function () { lock = false; };
+    el.addEventListener('touchend', unlock); el.addEventListener('touchcancel', unlock);
     el.addEventListener('pointermove', function (e) {
       if (!drag) return;
       var dy = e.clientY - sy, dx = e.clientX - sx; moved = Math.max(moved, Math.abs(dy), Math.abs(dx));
-      if (Math.abs(dx) > 12 && Math.abs(dy) < 10 || dy > 10) { drag = false; el.style.transition = ''; el.style.transform = ''; return; }
-      if (-dy > 6) { try { el.setPointerCapture(pid); } catch (er) {} e.preventDefault(); }
+      if (!armed) { if (moved > 6) { drag = false; clearTimeout(holdT); } return; }   // normales Scrollen
+      if (dy > 14) { reset(true); return; }
+      try { el.setPointerCapture(pid); } catch (er) {}
+      el.style.transition = 'none';
       var up = Math.max(0, -dy) / (ZOOM || 1), hgt = el.offsetHeight, lim = hgt * .55;
-      var shown = up < lim ? up : lim + (up - lim) * .25;
+      var shown = Math.max(5, up < lim ? up : lim + (up - lim) * .25);
       el.style.transform = 'translateY(' + (-shown) + 'px)';
-      if (up > hgt * .5) { drag = false; pullOut(el, true); }
+      if (up > hgt * .5) { drag = false; armed = false; pullOut(el, true); }
     });
-    var end = function () {
-      if (!drag) return; drag = false;
+    el.addEventListener('pointerup', function () {
+      if (!drag) return;
+      clearTimeout(holdT); drag = false;
       var m = /translateY\((-?[\d.]+)px\)/.exec(el.style.transform || ''), up = m ? -Number(m[1]) : 0;
-      if (moved < 8 || up > el.offsetHeight * .22) { pullOut(el, up > 4); return; }
-      el.style.transition = 'transform .3s cubic-bezier(.3,1.4,.5,1)'; el.style.transform = '';
-    };
-    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', function () { drag = false; el.style.transition = ''; el.style.transform = ''; });
+      if (moved < 8 || up > el.offsetHeight * .22) { armed = false; pullOut(el, up > 8); return; }
+      reset(true);
+    });
+    el.addEventListener('pointercancel', function () { reset(true); });
+    // Rückfall: Wenn iOS die Zeiger-Ereignisse abbricht, kommt trotzdem ein Klick an
+    el.addEventListener('click', function () { if (Date.now() - LPLAST > 500 && !lpAlive()) { reset(false); pullOut(el, false); } });
   });
 }
 function libDetailHTML(it) {
@@ -1579,31 +1726,56 @@ function libDetailHTML(it) {
 /* Herausziehen – eine durchgehende Bewegung: erst ein Stück aus dem Regal, dann im Bogen nach vorn, dabei aufs Cover drehen */
 function lpEase(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 function lpSmooth(a, b, t) { t = Math.max(0, Math.min(1, (t - a) / (b - a))); return t * t * (3 - 2 * t); }
-function lpFrame(t) {
-  var o = LP; if (!o || !o.mag) return;
-  var lift = lpSmooth(0, .32, t) * o.pull;                       // Stück nach oben aus dem Regal
-  var v = lpEase(Math.max(0, Math.min(1, (t - .16) / .84)));     // Flug nach vorn
-  // Drehpunkt ist der Heftrücken selbst – so liegt er bei 90° genau dort, wo er im Regal stand
+function lpState(t) {
+  var o = LP;
+  var lift = lpSmooth(0, .32, t) * o.pull;
+  var v = lpEase(Math.max(0, Math.min(1, (t - .16) / .84)));
   var x0 = o.cx, y0 = o.cy - lift, x1 = o.tx - o.W / 2, y1 = o.ty;
-  var qx = x0 + (x1 - x0) * .15, qy = Math.min(y0, y1) - 70;     // Bogen nach oben
+  var qx = x0 + (x1 - x0) * .15, qy = Math.min(y0, y1) - 70;
   var iv = 1 - v, x = iv * iv * x0 + 2 * iv * v * qx + v * v * x1, y = iv * iv * y0 + 2 * iv * v * qy + v * v * y1;
   var s = o.s0 + (1 - o.s0) * v, ry = 90 * (1 - v), rz = -5 * Math.sin(Math.PI * v);
-  o.mag.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + (y - o.H / 2).toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)';
-  o.mag.style.setProperty('--lit', (ry / 90 * .55).toFixed(3));
-  if (o.scrim) o.scrim.style.opacity = String(Math.min(1, v * 1.3));
+  return {
+    tf: 'translate3d(' + x.toFixed(2) + 'px,' + (y - o.H / 2).toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ') rotateY(' + ry.toFixed(2) + 'deg) rotateZ(' + rz.toFixed(2) + 'deg)',
+    op: Math.min(1, v * 1.3), lit: ry / 90 * .55
+  };
 }
+function lpFrame(t) {
+  var o = LP; if (!o || !o.mag) return;
+  var st = lpState(t);
+  o.mag.style.transform = st.tf;
+  if (o.lit) o.lit.style.opacity = st.lit.toFixed(3);
+  if (o.scrim) o.scrim.style.opacity = String(st.op);
+}
+/* Die Bewegung läuft als Web-Animation (auf dem Grafikchip) – unabhängig davon, ob das Programm gerade beschäftigt ist */
 function lpRun(from, to, dur, done) {
   var o = LP; if (!o) return;
-  cancelAnimationFrame(o.raf);
-  var t0 = performance.now();
-  (function step(now) {
-    var k = Math.min(1, (now - t0) / dur), t = from + (to - from) * k;
-    o.t = t; lpFrame(t);
-    if (k < 1) o.raf = requestAnimationFrame(step); else if (done) done();
-  })(t0);
+  lpStop();
+  var N = 36, kf = [], ks = [], kl = [];
+  for (var i = 0; i <= N; i++) { var st = lpState(from + (to - from) * i / N); kf.push({ transform: st.tf }); ks.push({ opacity: st.op }); kl.push({ opacity: st.lit }); }
+  o.run = { from: from, to: to, dur: dur, t0: performance.now() };
+  if (!o.mag.animate) { lpFrame(to); o.t = to; if (done) done(); return; }
+  var opt = { duration: dur, easing: 'linear', fill: 'forwards' };
+  o.anims = [o.mag.animate(kf, opt), o.scrim.animate(ks, opt)];
+  if (o.lit) o.anims.push(o.lit.animate(kl, opt));
+  var fin = false;
+  o.anims[0].onfinish = function () { if (fin) return; fin = true; o.t = to; lpFrame(to); lpStop(); if (done) done(); };
+  o.endT = setTimeout(function () { if (!fin && o.anims) o.anims[0].onfinish(); }, dur + 400);
 }
+function lpNow() { var o = LP; if (!o || !o.run) return o ? o.t : 0; var k = Math.min(1, (performance.now() - o.run.t0) / o.run.dur); return o.run.from + (o.run.to - o.run.from) * k; }
+function lpStop() { var o = LP; if (!o) return; clearTimeout(o.endT); if (o.anims) { o.anims.forEach(function (a) { try { a.cancel(); } catch (e) {} }); o.anims = null; } }
+function lpAlive() {
+  // Hängengebliebenen Zustand erkennen (Overlay fehlt, Animation steht) und aufräumen
+  if (LP && (!document.body.contains(LP.mag) || (LP.started && Date.now() - LP.started > 4000 && !LP.closing && !$('#ldet.show')))) {
+    var ov = $('#lovl'); if (ov) ov.remove();
+    if (LP.el) { LP.el.classList.remove('gone'); LP.el.style.transform = ''; }
+    lpStop(); LP = null;
+  }
+  return !!LP;
+}
+var LPLAST = 0;
 function pullOut(el, dragged) {
-  if (LP) return;
+  if (lpAlive()) return;
+  LPLAST = Date.now();
   var it = issueById(el.getAttribute('data-spine')); if (!it) return;
   var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1;
   // aktuelle Lage des Rückens (inkl. schon gezogenem Stück) messen, dann zurück auf Ruhelage rechnen
@@ -1612,23 +1784,28 @@ function pullOut(el, dragged) {
   var sw = cur.width / z, sh = cur.height / z, cx = (cur.left - sr.left) / z + sw / 2, cy = (cur.top - sr.top) / z + sh / 2 + dragUp;
   var ar = it.aspect || 1.33, W = Math.min(app.offsetWidth * 0.48, 200), H = W * ar, D = Math.max(sw, 10);
   var c = spineCol(it);
-  var ov = document.createElement('div'); ov.className = 'lovl on'; ov.id = 'lovl';
+  var ov = document.createElement('div'); ov.className = 'lovl on'; ov.id = 'lovl'; ov.style.pointerEvents = 'none';
+  setTimeout(function () { ov.style.pointerEvents = ''; }, 550);
   ov.innerHTML = '<div class="lscrim" data-act="putback" style="opacity:0"></div><div class="l3d" id="l3d"><div class="lmag" id="lmag" style="width:' + W + 'px;height:' + H + 'px">' +
     '<div class="f front" style="background-image:url(\'' + cover(it) + '\');transform:translateZ(' + (D / 2) + 'px)"><i class="lit"></i></div>' +
     '<div class="f" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(-90deg) translateZ(' + (W / 2) + 'px)"><div class="lsp" style="position:absolute;inset:0;width:100%;height:100%;border-radius:0;box-shadow:none;transition:none;--sw:' + D + 'px;--sh:' + H + 'px;--sc:' + c.bg + ';--ink:' + c.ink + '">' + spineHTML(it) + '</div></div>' +
     '<div class="f edge" style="left:' + ((W - D) / 2) + 'px;top:0;width:' + D + 'px;height:' + H + 'px;transform:rotateY(90deg) translateZ(' + (W / 2) + 'px)"></div>' +
     '<div class="f back" style="transform:rotateY(180deg) translateZ(' + (D / 2) + 'px)"></div></div></div><div class="ldet" id="ldet" role="dialog" aria-label="' + esc(label(it)) + '"></div>';
   app.appendChild(ov);
-  LP = { el: el, it: it, mag: $('#lmag'), scrim: $('.lscrim', ov), W: W, H: H, s0: sh / H, cx: cx, cy: cy, pull: sh * .55,
-    tx: app.offsetWidth / 2, ty: 64 + H / 2 + 8, t: 0 };
+  LP = { el: el, it: it, mag: $('#lmag'), scrim: $('.lscrim', ov), lit: $('#lmag .lit'), W: W, H: H, s0: sh / H, cx: cx, cy: cy, pull: sh * .55,
+    tx: app.offsetWidth / 2, ty: 64 + H / 2 + 8, t: 0, started: Date.now() };
   var startT = dragged ? Math.min(.3, .32 * Math.min(1, dragUp / LP.pull)) : 0;
   lpFrame(startT);
   el.classList.add('gone'); el.style.transition = 'none'; el.style.transform = '';
   var shown = false;
-  lpRun(startT, 1, dragged ? 640 : 760, function () { if (LP) LP.mag.classList.add('rest'); });
-  setTimeout(function () { if (!LP || shown) return; shown = true; var d = $('#ldet'); d.innerHTML = libDetailHTML(it); requestAnimationFrame(function () { d.classList.add('show'); }); }, dragged ? 360 : 440);
+  lpRun(startT, 1, dragged ? 640 : 760, function () { if (LP && LP.mag) LP.mag.classList.add('rest'); });
+  var showCard = function () { if (!LP || shown) return; shown = true; var d = $('#ldet'); if (!d) return; d.innerHTML = libDetailHTML(it); requestAnimationFrame(function () { d.classList.add('show'); }); setTimeout(function () { d.classList.add('show'); }, 120); };
+  setTimeout(showCard, dragged ? 360 : 440);
+  // Sicherheitsnetz: falls der Bildlauf der Animation stockt (z. B. iOS pausiert sie), Endzustand erzwingen
+  setTimeout(function () { if (LP && !LP.closing && LP.t < 1) { lpStop(); LP.t = 1; lpFrame(1); LP.mag.classList.add('rest'); } showCard(); }, 1300);
 }
 function putBack(after) {
+  if (LP && LP.rack) { rackBack(after); return; }
   if (!LP || LP.closing) return;
   var o = LP; o.closing = true;
   var d = $('#ldet'); if (d) d.classList.remove('show');
@@ -1644,16 +1821,90 @@ function putBack(after) {
   // Zielposition neu messen (falls die Seite inzwischen gescrollt wurde)
   var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1, r = o.el.getBoundingClientRect();
   o.cx = (r.left - sr.left) / z + r.width / z / 2; o.cy = (r.top - sr.top) / z + r.height / z / 2;
-  lpRun(o.t || 1, 0, 620, finish);
+  var fin = false, once = function () { if (fin) return; fin = true; finish(); };
+  var tNow = lpNow(); lpFrame(tNow);
+  lpRun(tNow || 1, 0, Math.max(300, 620 * (tNow || 1)), once);
+  setTimeout(function () { if (!fin) { lpStop(); once(); } }, 1300);
 }
-function closeLibPull() { var ov = $('#lovl'); if (ov) ov.remove(); if (LP) { cancelAnimationFrame(LP.raf); if (LP.el) LP.el.classList.remove('gone'); } LP = null; }
+function closeLibPull() { var ov = $('#lovl'); if (ov) ov.remove(); if (LP) { lpStop(); if (LP.el) LP.el.classList.remove('gone'); } LP = null; }
+/* ===== Zeitschriftenständer ===== */
+function libRackHTML(lib) {
+  var list0 = lib.filter(libMatch), G = S.libGroup || 'year', keys = [], groups = {};
+  var add = function (k, it) { if (!groups[k]) { groups[k] = []; keys.push(k); } groups[k].push(it); };
+  if (G === 'cols') { shelfSt().cols.forEach(function (c) { list0.forEach(function (it) { if (colsOfIt(it).indexOf(c.id) >= 0) add(c.name, it); }); }); list0.forEach(function (it) { if (!colsOfIt(it).length) add('Ohne Fach', it); }); }
+  else list0.forEach(function (it) { var m = magById(it.magId); add(G === 'year' ? String(it.year) : (m ? m.name : '?'), it); });
+  var tab = document.body.classList.contains('tablet');
+  var W = Math.max(260, (IS_ADMIN ? (S.preview === 'ipad' ? 820 : 390) : window.innerWidth) - 12 - 36);
+  var per = tab ? Math.max(4, Math.floor(W / 150)) : 3;
+  var cw = Math.floor((W - 12) / per) - 10, ch = Math.round(cw * 1.33);
+  var step = Math.round(ch * 0.58) + 14;
+  var h = '<div class="zrack" style="--cw:' + cw + 'px;--chh:' + ch + 'px;--step:' + step + 'px"><div class="zback"></div><div class="zcheek l"></div><div class="zcheek r"></div><div class="zcrown">Meine Hefte</div><div class="zplinth"></div>';
+  if (!list0.length) h += '<div class="lempty" style="position:relative;z-index:200">' + (S.libFilter && S.libFilter.indexOf('c:') === 0 ? 'In diesem Fach steht noch nichts.' : 'Hier steht nichts.') + '</div>';
+  var z = 1;
+  keys.forEach(function (k, gi) {
+    var list = groups[k];
+    list.sort(function (a, b) { return b.year - a.year || b.month - a.month; });
+    h += '<div class="glab" id="lg' + gi + '">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Heft' : ' Hefte') + '</span></div>';
+    var rows = []; for (var r = 0; r < list.length; r += per) rows.push(list.slice(r, r + per));
+    rows.reverse();   // neueste Hefte vorne unten, ältere dahinter
+    h += '<div style="height:' + (ch - step + 14) + 'px"></div>';
+    rows.forEach(function (row, ri) {
+      z += 10;
+      var gap = (W - 12 - row.length * cw) / (row.length + 1);
+      h += '<div class="ztier" style="z-index:' + z + '">';
+      row.forEach(function (it, ci) {
+        var x = gap + ci * (cw + gap), rz = ((ci - (row.length - 1) / 2) * 0.8 + (ri % 2 ? .5 : -.4)).toFixed(2), m = magById(it.magId) || {};
+        h += '<button class="zcv' + (isReadIt(it) ? '' : ' unread') + (marksOf(it).length ? ' mark' : '') + '" data-rack="' + esc(it.id) + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + ' aus dem Ständer nehmen" style="left:' + x.toFixed(1) + 'px;background-image:url(\'' + cover(it) + '\');transform:rotateX(9deg) rotateZ(' + rz + 'deg)"><i class="nd"></i></button>';
+      });
+      h += '<div class="zlip"></div><div class="ztag">' + row.map(function (it) { return MSH[it.month - 1] + (G === 'year' ? '' : ' ' + String(it.year).slice(2)); }).join(' · ') + '</div></div>';
+    });
+  });
+  if (list0.length) h += '<div class="lhint" style="position:relative;z-index:200">Heft antippen zum Herausnehmen</div>';
+  return { html: h + '</div>', keys: keys };
+}
+function bindRack() {
+  $$('.zcv').forEach(function (el) { el.addEventListener('click', function () { if (!lpAlive()) rackPull(el); }); });
+}
+function rackPull(el) {
+  var it = issueById(el.getAttribute('data-rack')); if (!it) return;
+  var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1, r = el.getBoundingClientRect();
+  var x0 = (r.left - sr.left) / z, y0 = (r.top - sr.top) / z, w0 = el.offsetWidth, h0 = el.offsetHeight;
+  var ar = it.aspect || 1.33, W = Math.min(app.offsetWidth * 0.48, 200), H = W * ar, x1 = (app.offsetWidth - W) / 2, y1 = 72;
+  var ov = document.createElement('div'); ov.className = 'lovl on'; ov.id = 'lovl'; ov.style.pointerEvents = 'none';
+  ov.innerHTML = '<div class="lscrim" data-act="putback" style="opacity:0"></div><div class="lfly" id="lfly" style="width:' + W + 'px;height:' + H + 'px;background-image:url(\'' + cover(it) + '\')"></div><div class="ldet" id="ldet" role="dialog" aria-label="' + esc(label(it)) + '"></div>';
+  app.appendChild(ov);
+  setTimeout(function () { ov.style.pointerEvents = ''; }, 550);
+  var fly = $('#lfly'), s0 = w0 / W;
+  var tf = function (x, y, s, rx, rz) { return 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) scale(' + s.toFixed(4) + ') perspective(700px) rotateX(' + rx + 'deg) rotateZ(' + (rz || 0) + 'deg)'; };
+  LP = { rack: true, el: el, it: it, mag: fly, scrim: $('.lscrim', ov), tf: tf, x1: x1, y1: y1, s0: s0, started: Date.now(), t: 1 };
+  el.classList.add('gone');
+  fly.style.transform = tf(x0, y0, s0, 9);
+  if (fly.animate) {
+    LP.anims = [fly.animate([{ transform: tf(x0, y0, s0, 9) }, { transform: tf(x0, y0 - h0 * 0.35, s0 * 1.04, 4, -2), offset: .28 }, { transform: tf(x1, y1, 1, 0, 0) }], { duration: 640, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' }),
+      LP.scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'forwards' })];
+  } else { fly.style.transform = tf(x1, y1, 1, 0); LP.scrim.style.opacity = '1'; }
+  setTimeout(function () { if (!LP || LP.closing) return; var d = $('#ldet'); d.innerHTML = libDetailHTML(it).replace('Zurück ins Regal stellen', 'Zurück in den Ständer stellen'); requestAnimationFrame(function () { d.classList.add('show'); }); }, 340);
+}
+function rackBack(after) {
+  var o = LP; if (!o || o.closing) return; o.closing = true;
+  var d = $('#ldet'); if (d) d.classList.remove('show');
+  var finish = function () { var ov = $('#lovl'); if (ov) ov.remove(); if (o.el) o.el.classList.remove('gone'); lpStop(); LP = null; if (o.dirty) rerender(); if (after) after(); };
+  if (!document.body.contains(o.el) || !o.mag.animate) { finish(); return; }
+  var sr = app.getBoundingClientRect(), z = sr.width / app.offsetWidth || 1, r = o.el.getBoundingClientRect();
+  var x0 = (r.left - sr.left) / z, y0 = (r.top - sr.top) / z;
+  if (o.anims) o.anims.forEach(function (a) { try { a.commitStyles && a.commitStyles(); a.cancel(); } catch (e) {} });
+  var a = o.mag.animate([{ transform: o.tf(o.x1, o.y1, 1, 0, 0) }, { transform: o.tf(x0, y0 - o.el.offsetHeight * 0.35, o.s0 * 1.04, 4, -2), offset: .7 }, { transform: o.tf(x0, y0, o.s0, 9) }], { duration: 560, easing: 'cubic-bezier(.4,.1,.3,1)', fill: 'forwards' });
+  o.scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 480, fill: 'forwards' });
+  var done = false; a.onfinish = function () { if (!done) { done = true; finish(); } };
+  setTimeout(function () { if (!done) { done = true; finish(); } }, 1100);
+}
 function libraryHTML() {
   var lib = S.issues.filter(inLib).sort(function (a, b) { return b.year - a.year || b.month - a.month; });
   var h = '<div class="page noscroll" id="kpage" style="animation:fade .25s ease">';
   h += header('Bibliothek', lib.length === 1 ? '1 Ausgabe' : lib.length + ' Ausgaben');
-  S.libView = S.libView || S.settings.libView || 'grid'; S.libGroup = S.libGroup || S.settings.libGroup || 'year';
+  S.libView = S.libView || 'grid'; S.libGroup = S.libGroup || S.settings.libGroup || 'year';
   if (lib.length) {
-    var sh = S.libView === 'shelf' ? libShelfHTML(lib) : null;
+    var sh = S.libView === 'shelf' ? libShelfHTML(lib) : S.libView === 'rack' ? libRackHTML(lib) : null;
     h += libBarHTML(lib, sh && sh.keys);
     if (sh) return h + sh.html + '</div>';
     lib = lib.filter(libMatch);
@@ -2033,6 +2284,13 @@ function ttsChunks(t) {
   if (cur.trim()) out.push(cur);
   return out;
 }
+/* Sätze eines Absatzes – Grundlage für „ab hier vorlesen“ und die Satz-Markierung */
+function sentencesOf(t) {
+  var parts = String(t || '').match(/[^.!?…]+[.!?…]+["“”»«)]*\s*|[^.!?…]+$/g) || [t], out = [];
+  parts.forEach(function (p) { if (out.length && p.trim().length < 18) out[out.length - 1] += p; else out.push(p); });
+  return out.filter(function (x) { return x.trim(); });
+}
+var TTSPOS = {};   // zuletzt gehörte Stelle je Heft: { page, k, si }
 var TTSRUN = 0;
 function ttsPlay(i) {
   if (!LM || !ttsAvailable()) { toast('Vorlesen ist auf diesem Gerät nicht verfügbar'); return; }
@@ -2444,6 +2702,16 @@ function openAllPages() {
   var on = $('.pgi.on', g); if (on) g.scrollTop = Math.max(0, on.offsetTop - g.clientHeight / 2 + on.offsetHeight / 2);
 }
 function closeAllPages() { var p = $('#pall'); if (PGIO) PGIO.disconnect(); if (p) p.remove(); }
+/* Die Markierung gehört zu genau einer Seite: beim Blättern ausblenden, auf der Seite wieder zeigen */
+function syncTextMark() {
+  var hl = $('#thl'); if (!hl || !R) return;
+  if (!TC) { hl.style.display = 'none'; return; }
+  var r = R.leaves[R.cur], l = R.spread ? R.leaves[R.cur - 1] : null;
+  var onPage = (r && r.type === 'img' && r.n === TC.page && !(TC.off < 0)) || (l && l.type === 'img' && l.n === TC.page && TC.off < 0);
+  hl.style.display = onPage && !R.turn ? 'block' : 'none';
+  // Wer weiterblättert, liest dort weiter: großes Textfeld schließen, laufendes Vorlesen darf als Leiste bleiben
+  if (!onPage && !R.turn && !TC.speaking && !TC.ttsPaused) hideTextCard();
+}
 function goLeaf(i) {
   if (!R || R.anim || R.drag) return;
   i = Math.max(0, Math.min(R.leaves.length - 1, i));
@@ -2550,6 +2818,7 @@ function updateBook() {
     leaf.style.clipPath = (i === turnIdx && geo) ? polyCSS(geo.front) : 'none';
   });
   syncRibbon();
+  syncTextMark();
   var flapw = $('#flapw'), flap = $('#flap'), ush = $('#ushadow');
   if (geo) {
     var nx = geo.n[0], ny = geo.n[1], k = geo.M[0] * nx + geo.M[1] * ny;
@@ -2672,7 +2941,9 @@ function showTextCard(page, k, off) {
   var rec = R.txt, paras = rec.pages[page - 1] || [], box = rec.boxes[page - 1][k];
   if (!paras[k]) return;
   off = off != null ? off : (TC && TC.page === page ? TC.off || 0 : 0);
-  TC = { page: page, k: k, off: off, speaking: TC && TC.page === page && TC.k === k ? TC.speaking : false };
+  var same = TC && TC.page === page && TC.k === k, prev = TC && TC.page === page ? TC : null;
+  TC = { page: page, k: k, off: off, speaking: same ? TC.speaking : false, ttsPaused: same ? TC.ttsPaused : false,
+    expanded: prev ? prev.expanded : true, sent: same ? TC.sent : '', si: same ? TC.si : null };
   var book = $('#book'), hl = $('#thl');
   if (!hl) { hl = document.createElement('div'); hl.id = 'thl'; hl.className = 'thl'; book.appendChild(hl); }
   hl.style.left = ((box[0] + off) * 100 - 0.8) + '%'; hl.style.top = (box[2] * 100 - 0.6) + '%';
@@ -2681,10 +2952,29 @@ function showTextCard(page, k, off) {
   var card = $('#tcard');
   if (!card) { card = document.createElement('div'); card.id = 'tcard'; card.className = 'tcard'; card.setAttribute('role', 'dialog'); card.setAttribute('aria-label', 'Text lesen'); $('.reader').appendChild(card); card.classList.add('in'); }
   var speaking = TC.speaking;
-  card.innerHTML = '<div class="tchead"><span>Seite ' + page + ' · Absatz ' + (k + 1) + ' von ' + paras.length + '</span><button class="btn tcx" data-act="tcclose" aria-label="Schließen">' + ICON.close + '</button></div>' +
-    '<div class="tctext" style="font-size:' + (S.cfg.lmSize || 18) + 'px">' + esc(paras[k]) + '</div>' +
+  var lp = R && TTSPOS[R.it.id], resumeSi = TC.si != null && (TC.ttsPaused || TC.si > 0) ? TC.si : (lp && lp.page === page && lp.k === k && lp.si > 0 ? lp.si : null);
+  if (!speaking) TC.resumeSi = resumeSi;
+  hl.classList.toggle('live', !!speaking);
+  var wasMini = card.classList.contains('mini'), mini = !!(speaking || TC.ttsPaused) && !TC.expanded;
+  card.classList.toggle('mini', mini);
+  if (wasMini !== mini && !card.classList.contains('in')) { card.classList.remove('grow'); void card.offsetWidth; card.classList.add('grow'); }
+  if (mini) {
+    card.setAttribute('aria-label', 'Vorlesen');
+    card.innerHTML = '<div class="tcsent" id="tcsent" data-act="tcexpand" role="button" aria-label="Text groß anzeigen"><small>Seite ' + page + ' · Absatz ' + (k + 1) + ' von ' + paras.length + '</small><span id="tcsentt">' + esc(TC.sent || paras[k]) + '</span></div>' +
+      '<button class="btn tcb pri" data-act="tcspeak" aria-label="' + (speaking ? 'Pause' : 'Weiter vorlesen') + '">' + (speaking ? ICON.pause : ICON.play) + '</button>' +
+      '<button class="btn tcb" data-act="tcnav" data-arg="1" aria-label="Nächster Absatz"' + (k < paras.length - 1 ? '' : ' disabled') + '>' + ICON.next + '</button>' +
+      '<button class="btn tcb" data-act="tcclose" aria-label="Vorlesen beenden">' + ICON.close + '</button>';
+    return;
+  }
+  card.setAttribute('aria-label', 'Text lesen');
+  card.innerHTML = '<div class="tchead"><span>Seite ' + page + ' · Absatz ' + (k + 1) + ' von ' + paras.length + '</span>' + (speaking || TC.ttsPaused ? '<button class="btn tcmore" data-act="tcexpand" aria-label="Einklappen">' + ICON.chevDown + '</button>' : '') + '<button class="btn tcx" data-act="tcclose" aria-label="Schließen">' + ICON.close + '</button></div>' +
+    '<div class="tctext" style="font-size:' + (S.cfg.lmSize || 18) + 'px">' + sentencesOf(paras[k]).map(function (x, i) {
+      var cls = 'snt' + (speaking && TC.si === i ? ' on' : '') + (!speaking && resumeSi === i ? ' resume' : '');
+      return '<span class="' + cls + '" data-act="tcfrom" data-arg="' + i + '" role="button" aria-label="Ab hier vorlesen: ' + esc(x.trim().slice(0, 60)) + '">' + esc(x) + '</span>';
+    }).join('') + '</div>' +
+    (resumeSi != null && !speaking ? '<div class="tchint">Markierter Satz: dort hast du aufgehört. Tippe einen beliebigen Satz an, um ab dort vorzulesen.</div>' : (!speaking ? '<div class="tchint">Tipp: Satz antippen, um ab dort vorzulesen.</div>' : '')) +
     '<div class="tcbar"><button class="btn tcb" data-act="tcnav" data-arg="-1" aria-label="Vorheriger Absatz"' + (k > 0 ? '' : ' disabled') + '>' + ICON.prev + '</button>' +
-    '<button class="btn tcb wide" data-act="tcspeak" aria-label="Vorlesen">' + (speaking ? ICON.pause : ICON.play) + '<span>' + (speaking ? 'Pause' : 'Vorlesen') + '</span></button>' +
+    '<button class="btn tcb wide" data-act="tcspeak" aria-label="Vorlesen">' + (speaking ? ICON.pause : ICON.play) + '<span>' + (speaking ? 'Pause' : (resumeSi ? 'Ab Satz ' + (resumeSi + 1) + ' weiter' : 'Vorlesen')) + '</span></button>' +
     '<button class="btn tcb" data-act="tcnav" data-arg="1" aria-label="Nächster Absatz"' + (k < paras.length - 1 ? '' : ' disabled') + '>' + ICON.next + '</button>' +
     '<button class="btn tcb wide" data-act="tclm" aria-label="Im Lesemodus weiterlesen"><b style="font-size:15px">Aa</b><span>Lesemodus</span></button></div>';
 }
@@ -2694,19 +2984,25 @@ function hideTextCard() {
   var c = $('#tcard'); if (c) c.remove();
   var h = $('#thl'); if (h) h.style.display = 'none';
 }
-function speakCard() {
+function speakCard(fromSi) {
   if (!TC || !ttsAvailable()) { toast('Vorlesen ist auf diesem Gerät nicht verfügbar'); return; }
-  if (TC.speaking) { TTSRUN++; ttsCancel(); TC.speaking = false; showTextCard(TC.page, TC.k); return; }
+  if (TC.speaking && fromSi == null) { TTSRUN++; ttsCancel(); TC.speaking = false; TC.ttsPaused = true; showTextCard(TC.page, TC.k); return; }
   var paras = R.txt.pages[TC.page - 1], run = ++TTSRUN;
-  TC.speaking = true; showTextCard(TC.page, TC.k);
-  var chunks = ttsChunks(paras[TC.k]), i = 0, voice = ttsVoice();
+  var start = fromSi != null ? fromSi : (TC.resumeSi != null ? TC.resumeSi : 0);
+  if (!TC.ttsPaused && fromSi == null) TC.expanded = false;   // beim Start einklappen, damit die Seite frei ist
+  TC.speaking = true; TC.ttsPaused = false; TC.si = start; showTextCard(TC.page, TC.k);
+  var chunks = sentencesOf(paras[TC.k]), i = Math.min(start, chunks.length - 1), voice = ttsVoice();
   ttsCancel();
   (function next() {
     if (run !== TTSRUN || !TC) return;
     if (i >= chunks.length) {
-      if (TC.k < paras.length - 1) { TC.k++; TC.speaking = true; showTextCard(TC.page, TC.k); chunks = ttsChunks(paras[TC.k]); i = 0; }
-      else { TC.speaking = false; showTextCard(TC.page, TC.k); return; }
+      if (TC.k < paras.length - 1) { TC.k++; TC.si = 0; TC.speaking = true; TC.sent = ''; showTextCard(TC.page, TC.k); chunks = sentencesOf(paras[TC.k]); i = 0; }
+      else { TC.speaking = false; TC.ttsPaused = false; TC.expanded = true; TC.sent = ''; TC.si = null; delete TTSPOS[R.it.id]; showTextCard(TC.page, TC.k); return; }
     }
+    TC.si = i; TC.sent = chunks[i];
+    TTSPOS[R.it.id] = { page: TC.page, k: TC.k, si: i };
+    var st = $('#tcsentt'); if (st) st.textContent = chunks[i];
+    $$('#tcard .snt').forEach(function (el, j) { el.classList.toggle('on', j === i); el.classList.remove('resume'); if (j === i && el.scrollIntoView) { try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {} } });
     saySpeak(chunks[i++], voice, function () { if (run === TTSRUN) next(); });
   })();
 }
@@ -2904,7 +3200,7 @@ var ACT = {
     if (i >= 0) { S.saved.splice(i, 1); savePrefs(); toast('Aus der Bibliothek entfernt'); }
     else { S.saved.push(id); savePrefs(); toast('In die Bibliothek gelegt'); }
   },
-  libview: function (v) { S.libView = v; S.settings.libView = v; savePrefs(); render(); },
+  libview: function (v) { S.libView = v; render(); },   // bewusst nicht gespeichert: jeder App-Start beginnt mit dem Raster
   libfilter: function (f) { S.libFilter = f; var sc = $('#kpage') ? $('#kpage').scrollTop : 0; render(); },
   libgroup: function (g) { S.libGroup = g; S.settings.libGroup = g; savePrefs(); render(); },
   libjump: function (i) { var sec = $('#lg' + i), pg = $('#kpage'), bar = $('.lbar'); if (sec && pg) pg.scrollTo({ top: sec.offsetTop - (bar ? bar.offsetHeight : 0) - 70, behavior: 'smooth' }); },
@@ -2925,7 +3221,7 @@ var ACT = {
     var st = shelfSt(), a = (st.as[id] || []).slice(); if (a.indexOf(c.id) < 0) a.push(c.id); st.as[id] = a;
     savePrefs(); refreshLibOrg(id); if (S.sheet === 'lib') S.libDirty = true; ltoast('Fach „' + c.name + '“ angelegt');
   },
-  putback: function () { putBack(); },
+  putback: function () { if (LP && Date.now() - LP.started < 600) return; putBack(); },   // der Klick des Antippens selbst darf das Heft nicht gleich zurückstellen
   libopen: function (what) {
     if (!LP) return;
     var id = LP.it.id;
@@ -3020,8 +3316,10 @@ var ACT = {
   closereader: function () { closeReader(); },
   zoom: function () { if (R) { hideTextCard(); setZoom(!R.zoom); } },
   tcclose: function () { hideTextCard(); },
-  tcnav: function (d) { if (TC) { var sp = TC.speaking; if (sp) { TTSRUN++; ttsCancel(); TC.speaking = false; } var n = R.txt.pages[TC.page - 1].length; showTextCard(TC.page, Math.max(0, Math.min(n - 1, TC.k + Number(d)))); var hl = $('#thl'); } },
+  tcnav: function (d) { if (TC) { var sp = TC.speaking; if (sp) { TTSRUN++; ttsCancel(); TC.speaking = false; } var n = R.txt.pages[TC.page - 1].length; showTextCard(TC.page, Math.max(0, Math.min(n - 1, TC.k + Number(d)))); if (sp) speakCard(); } },
   tcspeak: function () { speakCard(); },
+  tcfrom: function (i) { if (!TC) return; TTSRUN++; ttsCancel(); TC.speaking = false; TC.ttsPaused = false; speakCard(Number(i)); },
+  tcexpand: function () { if (!TC) return; TC.expanded = !TC.expanded; showTextCard(TC.page, TC.k, TC.off); },
   tclm: function () { if (!TC || !R) return; var f = { page: TC.page, k: TC.k }, id = R.it.id, pv = R.preview; hideTextCard(); openLM(id, pv, false, f); },
   goleaf: function (i) { goLeaf(Number(i)); },
   allpages: function () { openAllPages(); },
@@ -3274,6 +3572,7 @@ function renderPanel() {
     '<label class="ck">Hintergrund im Hell-Modus<input type="color" id="cBgL" value="' + esc(themeBg('light')) + '"></label>' +
     '<div class="pf" style="margin-top:8px"><label for="cLook">Standard-Darstellung der App</label><select id="cLook">' + [['system', 'Automatisch (wie das Gerät)'], ['light', 'Hell'], ['dark', 'Dunkel']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.look || 'system') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<div class="help">Leser können das im Menü unter „Darstellung“ selbst umstellen.</div>' +
+    '<div class="pf" style="margin-top:8px"><label for="cRack">Zeitschriftenständer in der Bibliothek</label><select id="cRack">' + [['auto', 'Passend zu den App-Farben'], ['wood', 'Holz'], ['metal', 'Metall']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.rackMat || 'auto') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<label class="ck">Akzentfarbe (Buttons, Markierungen)<input type="color" id="cAccent" value="' + esc(S.cfg.accent) + '"></label>' +
     '<label class="ck">Akzent folgt der Farbe des Magazins<input type="checkbox" id="cMagAcc"' + (S.cfg.magAccent ? ' checked' : '') + '></label>' +
     '<div class="help" style="margin-top:4px">Schrift- und Flächenfarben passen sich automatisch an hellen oder dunklen Hintergrund an.</div></div>';
@@ -3581,6 +3880,7 @@ function bindPanel() {
   });
   $('#cBg', panel).addEventListener('input', function (e) { S.cfg.bg = e.target.value; S.settings.look = 'dark'; savePrefs(); applyTheme(); });
   $('#cBgL', panel).addEventListener('input', function (e) { S.cfg.bgLight = e.target.value; S.settings.look = 'light'; savePrefs(); applyTheme(); });
+  $('#cRack', panel).addEventListener('change', function (e) { S.cfg.rackMat = e.target.value; savePrefs(); applyTheme(); if (S.screen !== 'library') { S.screen = 'library'; S.libView = 'rack'; } rerender(); });
   $('#cLook', panel).addEventListener('change', function (e) { S.cfg.look = e.target.value; delete S.settings.look; savePrefs(); applyTheme(); rerender(); });
   $('#cAccent', panel).addEventListener('input', function (e) { S.cfg.accent = e.target.value; savePrefs(); applyTheme(); });
   $('#cMagAcc', panel).addEventListener('change', function (e) { S.cfg.magAccent = e.target.checked; savePrefs(); applyTheme(); });
