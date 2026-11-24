@@ -331,6 +331,32 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .cxih{display:flex;align-items:center;gap:4px;margin-bottom:6px}.cxih b{flex:1}
 .cxih .ghost{height:26px;padding:0 8px;font-size:12px}
 .cxitem textarea{width:100%;box-sizing:border-box;font:14px/1.4 system-ui;border:1px solid #DADADF;border-radius:6px;padding:6px;resize:vertical}
+.kseg{display:inline-flex;margin-left:auto;background:#EEEEF1;border-radius:8px;padding:2px;gap:2px;flex:none;order:9}
+.kseg button{border:0;background:none;font:600 11.5px system-ui,-apple-system,sans-serif;color:#55555D;padding:4px 9px;border-radius:6px;cursor:pointer;height:auto;width:auto}
+.kseg button.on{background:#fff;color:#1B1B1F;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.ksec{margin-top:14px}.ksec h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6B6B73;margin:0 0 6px;display:flex;gap:6px;align-items:center}
+.ksec h3 span{background:#EEEEF1;border-radius:9px;padding:0 7px;font-size:11px;letter-spacing:0}
+.ksec-empty{font-size:12.5px;color:#9A9AA2;padding:8px 2px}
+.ksec-legend{font-size:12.5px;color:#6B6B73;margin:2px 0 4px}
+.imag{display:block}
+.imsum{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:2px 0}
+.imsum::-webkit-details-marker{display:none}
+.imsum::before{content:"›";font-size:18px;color:#9A9AA2;width:10px;transition:transform .15s;flex:none}
+details.imag[open] > .imsum::before{transform:rotate(90deg)}
+.imname{display:flex;flex-direction:column;min-width:0;flex:1}.imname b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imname small{font-size:11.5px;color:#8A8A92;font-weight:500}
+.imbody{padding-top:8px}
+.ktabs{display:flex;gap:4px;background:#EEEEF1;border-radius:10px;padding:3px;margin:4px 0 10px}
+.ktabs button{flex:1;border:0;background:none;height:32px;border-radius:8px;font:650 13px system-ui,-apple-system,sans-serif;color:#55555D;cursor:pointer}
+.ktabs button.on{background:#fff;color:#1B1B1F;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.ktabs span{font-size:11px;color:#8A8A92;margin-left:3px}
+.ktools{display:flex;gap:8px;margin-bottom:10px}.ktools input{flex:1;min-width:0;height:34px;border:1px solid #DADADF;border-radius:8px;padding:0 10px;font:14px system-ui}
+.ktools .ghost{height:34px;padding:0 12px;flex:none;width:auto}
+.psec>h2{scroll-margin-top:54px}
+.admnav{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;padding:8px 0 8px;margin:0 0 4px;background:inherit;scrollbar-width:none}
+.admnav::-webkit-scrollbar{display:none}
+.admnav button{flex:none;border:1px solid #E2E2E6;background:#fff;border-radius:16px;height:30px;padding:0 12px;font:600 12.5px system-ui,-apple-system,sans-serif;color:#3A3A40;cursor:pointer;white-space:nowrap}
+.admnav button:hover{border-color:#2B6CB0;color:#2B6CB0}
 .lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
 .lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
@@ -617,6 +643,10 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 @keyframes dropin{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
 
 .brandlogo{display:block;height:40px;width:auto;max-height:40px;max-width:220px;object-fit:contain;object-position:left center;margin-bottom:2px}
+.kinds{display:flex;gap:6px;padding:12px 16px 0;overflow-x:auto}
+.kinds button{flex:none;height:34px;padding:0 16px;border-radius:17px;background:var(--chip);color:var(--text);font-size:14px;font-weight:650}
+.kinds button.on{background:var(--text);color:var(--bg)}
+.tablet .kinds{padding-left:24px;padding-right:24px}
 .cats{display:flex;gap:10px;overflow-x:auto;padding:14px 16px 0}
 .cat{position:relative;flex:0 0 108px;height:60px;border-radius:12px;overflow:hidden;background:var(--chip);color:var(--text);transition:box-shadow .2s,transform .2s}
 .cat img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
@@ -819,7 +849,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '24.11.2026 11:01';
+var APP_BUILD = '24.11.2026 11:53';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1133,14 +1163,17 @@ async function logoFrom(file) {
   catch (e) { return { blob: blob, aspect: 1, bg: '#FFFFFF' }; }
 }
 function catKey(name) { return name ? slug(name) : ''; }
+function magsOfKind() { var k = S.kind || 'all'; return k === 'all' ? S.mags : S.mags.filter(function (m) { return (m.kind || 'mag') === k; }); }
 function catList() {
   var out = [], seen = {};
-  S.mags.forEach(function (m) { var k = catKey(m.cat); if (k && !seen[k]) { seen[k] = 1; out.push({ key: k, name: m.cat }); } });
+  magsOfKind().forEach(function (m) { var k = catKey(m.cat); if (k && !seen[k]) { seen[k] = 1; out.push({ key: k, name: m.cat }); } });
   return out;
 }
 function magsInCat() {
-  if (S.cat === 'all') return S.mags;
-  return S.mags.filter(function (m) { return catKey(m.cat) === S.cat; });
+  var base = magsOfKind();
+  if ((S.kind || 'all') === 'all' || S.cat === 'all') return base;
+  var f = base.filter(function (m) { return catKey(m.cat) === S.cat; });
+  return f.length ? f : base;
 }
 var SALE = { options: 'Kaufoptionen (Einzelkauf + Abos)', single: 'Nur Einzelkauf (Preis anzeigen)', free: 'Gratis' };
 function saleMode(it) {
@@ -1215,6 +1248,7 @@ async function loadData() {
     if (ad.img) S.adImg[ak] = fileURL(ad.img);
   }
   if (ADS.settings && ADS.settings.cfg) { Object.assign(S.cfg, ADS.settings.cfg); LASTCFG = JSON.stringify(serverCfg()); }
+  S.allMags = mags;
   S.mags = mags.filter(function (m) { return issues.some(function (i) { return i.magId === m.id; }); })
     .sort(function (a, b) { return (a.created || 0) - (b.created || 0); });
   S.issues = issues;
@@ -1554,7 +1588,10 @@ function kioskHTML() {
   var nIss = S.issues.length;
   h += header('__brand', S.mags.length + (S.mags.length === 1 ? ' Magazin' : ' Magazine') + ' · ' + nIss + (nIss === 1 ? ' Ausgabe' : ' Ausgaben'));
   h += adBanner();
-  var cats = catList();
+  // Bereiche: Alle · Magazine · Bücher · Comics (nur die, die es gibt) – Kategorien erst innerhalb eines Bereichs
+  var kindsHere = ['mag', 'book', 'comic'].filter(function (k) { return S.mags.some(function (m) { return (m.kind || 'mag') === k; }); });
+  if (kindsHere.length > 1) h += '<div class="kinds noscroll" role="tablist" aria-label="Bereich">' + [['all', 'Alle']].concat(kindsHere.map(function (k) { return [k, { mag: 'Magazine', book: 'Bücher', comic: 'Comics' }[k]]; })).map(function (k) { var on = (S.kind || 'all') === k[0]; return '<button class="bare' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" data-act="kind" data-arg="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div>';
+  var cats = (S.kind || 'all') === 'all' && kindsHere.length > 1 ? [] : catList();
   if (cats.length > 1) {
     var tile = function (key, name, url) {
       return '<button class="bare cat' + (url ? ' img' : '') + (S.cat === key ? ' on' : '') + '" data-act="cat" data-arg="' + esc(key) + '" aria-pressed="' + (S.cat === key) + '">' +
@@ -1664,6 +1701,7 @@ function spineHTML(it, extra, style) {
 function kindOf(it) { var m = magById(it.magId); return (m && m.kind) || 'mag'; }
 function isBookish(it) { var k = kindOf(it); return k === 'book' || k === 'comic'; }
 var KINDS = [['mag', 'Zeitschrift'], ['book', 'Buch'], ['comic', 'Comic']];
+var ADMOPEN = {};
 function kindSel(attrs, val) { return '<select ' + attrs + '>' + KINDS.map(function (k) { return '<option value="' + k[0] + '"' + ((val || 'mag') === k[0] ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>'; }
 function libShelfHTML(lib) {
   var st = shelfSt(), list0 = lib.filter(libMatch), G = S.libGroup || 'year';
@@ -2754,14 +2792,14 @@ function closeGuided() {
 function loadImg(src) { return new Promise(function (res, rej) { var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); }
 function detectPanels(img) {
   // Hintergrund = Farbe am Seitenrand; Bilder werden an durchgehenden Hintergrund-Streifen (Rinnen) getrennt – rekursiv quer und längs
-  var W = 420, H = Math.round(img.naturalHeight * W / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
+  var W = 700, H = Math.round(img.naturalHeight * W / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
   var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
   var d = g.getImageData(0, 0, W, H).data, br = [], bgc = [0, 0, 0], nb = 0;
   for (var x = 0; x < W; x += 3) { [1, H - 2].forEach(function (y) { var o = (y * W + x) * 4; bgc[0] += d[o]; bgc[1] += d[o + 1]; bgc[2] += d[o + 2]; nb++; }); }
   bgc = bgc.map(function (v) { return v / nb; });
   var bg = new Uint8Array(W * H);
   for (var i = 0; i < W * H; i++) { var o2 = i * 4; bg[i] = Math.abs(d[o2] - bgc[0]) + Math.abs(d[o2 + 1] - bgc[1]) + Math.abs(d[o2 + 2] - bgc[2]) < 60 ? 1 : 0; }
-  var out = [], minGap = 3;
+  var out = [], minGap = 2;
   function trim(r) {
     var x0 = r[0], y0 = r[1], x1 = r[2], y1 = r[3], fx = W, fy = H, lx = -1, ly = -1;
     for (var y = y0; y < y1; y++) for (var x = x0; x < x1; x++) if (!bg[y * W + x]) { if (x < fx) fx = x; if (x > lx) lx = x; if (y < fy) fy = y; if (y > ly) ly = y; }
@@ -2771,7 +2809,7 @@ function detectPanels(img) {
     var x0 = r[0], y0 = r[1], x1 = r[2], y1 = r[3], segs = [], run = -1, a = horiz ? y0 : x0, b = horiz ? y1 : x1;
     for (var p = a; p <= b; p++) {
       var full = true;
-      if (p < b) { var cnt = 0, tot = 0; if (horiz) { for (var x = x0; x < x1; x++) { cnt += bg[p * W + x]; tot++; } } else { for (var y = y0; y < y1; y++) { cnt += bg[y * W + p]; tot++; } } full = cnt / tot > 0.985; }
+      if (p < b) { var cnt = 0, tot = 0; if (horiz) { for (var x = x0; x < x1; x++) { cnt += bg[p * W + x]; tot++; } } else { for (var y = y0; y < y1; y++) { cnt += bg[y * W + p]; tot++; } } full = cnt / tot > 0.8; /* Sprechblasen dürfen über die Rinne ragen */ }
       if (!full && run < 0) run = p;
       if (full && run >= 0) { segs.push([run, p]); run = -1; }
     }
@@ -2808,6 +2846,7 @@ function cleanComicText(lines) {
     var letters = (t.match(/[A-Za-zÄÖÜäöüß]/g) || []).length;
     return letters / t.replace(/\s/g, '').length > 0.7 && /[A-Za-zÄÖÜäöüß]{2,}/.test(t);
   }).map(function (l) { return l.text.trim(); });
+  keep = keep.map(function (l) { return l.replace(/(^|\s)[\/|]ch\b/g, '$1Ich').replace(/(^|\s)\|(?=\s)/g, '$1I'); });
   var t = keep.join('\n').replace(/-\n(?=[a-zäöüß])/gi, '').replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').replace(/\s+([,.!?…])/g, '$1').trim();
   var up = (t.match(/[A-ZÄÖÜ]/g) || []).length, lo = (t.match(/[a-zäöüß]/g) || []).length;
   if (up > lo * 2) {   // Comic-Großbuchstaben → normal schreiben, damit es gut vorgelesen wird
@@ -2824,7 +2863,7 @@ async function ocrPanelWhole(img, b) {
 }
 /* Sprechblasen finden: zusammenhängende, fast weiße Flächen im Bild – jede Blase wird einzeln, freigestellt und schwarz-weiß gelesen */
 function findBubbles(img, b) {
-  var IW = img.naturalWidth, IH = img.naturalHeight, sx = b.x * IW, sy = b.y * IH, sw = b.w * IW, sh = b.h * IH;
+  var IW = img.naturalWidth || img.width, IH = img.naturalHeight || img.height, ins = 0.012, sx = (b.x + b.w * ins) * IW, sy = (b.y + b.h * ins) * IH, sw = b.w * (1 - ins * 2) * IW, sh = b.h * (1 - ins * 2) * IH;
   var W = 260, H = Math.max(20, Math.round(sh * W / sw)), c = document.createElement('canvas'); c.width = W; c.height = H;
   var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
   var d = g.getImageData(0, 0, W, H).data, wh = new Uint8Array(W * H), lab = new Int32Array(W * H), out = [];
@@ -2846,7 +2885,7 @@ function findBubbles(img, b) {
     var bw = x1 - x0 + 1, bh = y1 - y0 + 1, A = W * H;
     // Blase: mittelgroß, nicht der ganze Bildrand, ziemlich „voll“ (Ellipse/Kasten) und mit Schrift darin
     var touches = (x0 === 0) + (y0 === 0) + (x1 === W - 1) + (y1 === H - 1);
-    if (n < A * 0.008 || bw * bh > A * 0.6 || touches > 1 || bw < 14 || bh < 8) continue;
+    if (n < A * 0.004 || bw * bh > A * 0.6 || touches > 2 || bw < 12 || bh < 7) continue;
     var hull = 0, ink = 0;
     for (var yy = y0; yy <= y1; yy++) { if (rowMin[yy] == null) continue; hull += rowMax[yy] - rowMin[yy] + 1; for (var xx = rowMin[yy]; xx <= rowMax[yy]; xx++) if (!wh[yy * W + xx]) ink++; }
     if (n / (bw * bh) < 0.35 || ink < hull * 0.03) continue;
@@ -3630,6 +3669,12 @@ function toast(t) {
 var ACT = {
   menu: function () { S.menu = true; S.anim = true; rerender(); },
   closemenu: function () { S.menu = false; rerender(); },
+  kind: function (k) {
+    if ((S.kind || 'all') === k) return;
+    S.kind = k; S.cat = 'all';
+    var list = magsInCat(), id = list.some(function (m) { return m.id === S.magId; }) ? S.magId : (list[0] && list[0].id);
+    switchKiosk({ magId: id, year: yearsOf(id)[0], kIndex: 0 });
+  },
   cat: function (k) {
     if (k === S.cat) return;
     S.cat = k;
@@ -3899,12 +3944,12 @@ function renderPanel() {
   h += '<datalist id="catlist">' + catList().map(function (c) { return '<option value="' + esc(c.name) + '">'; }).join('') + '</datalist>';
   /* Neue Ausgabe */
   h += '<div class="psec" style="border-top:0;padding-top:8px;margin-top:16px"><h2>Neue Ausgabe</h2>';
-  h += '<div class="dz" id="dz" role="button" tabindex="0"><div style="color:#8A8A92;margin-bottom:6px">' + ICON.upload + '</div><b>PDF hierher ziehen</b>oder klicken zum Auswählen<input type="file" id="fin" accept="application/pdf,.pdf" hidden></div>';
+  h += '<div class="dz" id="dz" role="button" tabindex="0"><div style="color:#8A8A92;margin-bottom:6px">' + ICON.upload + '</div><b>PDF oder EPUB hierher ziehen</b>oder klicken zum Auswählen<input type="file" id="fin" accept="application/pdf,.pdf,application/epub+zip,.epub" hidden></div>';
   h += '<div class="file" id="finfo" style="display:none"></div>';
   h += '<div id="form" style="margin-top:14px;display:none">';
   h += '<div class="pf"><label for="fMag">Magazin</label><select id="fMag">' + mags.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('') + '<option value="__new">+ Neues Magazin anlegen</option></select></div>';
   h += '<div class="newmag" id="newmag"><div class="pf"><label for="fName">Name des Magazins</label><input id="fName" type="text" placeholder="z. B. PC Games"></div>' +
-    '<div class="pf"><label for="fKind">Art</label>' + kindSel('id="fKind"', 'mag') + '<small style="color:#6B6B73">Zeitschriften stehen im Ständer und Kiosk, Bücher und Comics im Regal.</small></div>' +
+    '<div class="pf"><label for="fKind">Bereich</label>' + kindSel('id="fKind"', 'mag') + '</div>' +
     '<div class="prow"><div class="pf"><label for="fCat">Kategorie</label><input id="fCat" type="text" list="catlist" placeholder="z. B. Games"></div><div class="pf"><label for="fColor">Farbe</label><input id="fColor" type="color" style="padding:3px"></div></div>' +
     '<div class="pf"><label>Bild / Logo des Magazins (optional)</label>' + imgPick('newlogo', U.newLogoURL || '', '', 'image/*') + '</div>' +
     '<div class="prow"><div class="pf"><label for="fAm">Monatsabo</label><input id="fAm" type="text" value="4,99 € / Monat"></div><div class="pf"><label for="fAy">Jahresabo</label><input id="fAy" type="text" value="49,99 € / Jahr"></div></div></div>';
@@ -3932,8 +3977,15 @@ function renderPanel() {
   h += '<div class="psec"><h2>Magazine &amp; Ausgaben</h2>';
   if (!S.issues.length) h += '<div class="pempty">Noch keine Ausgaben hochgeladen.</div>';
   else {
-    h += '<div class="ilist">' + mags.map(function (m) {
-      var r = '<div class="imag"><div style="display:flex;align-items:center;gap:8px">' + (S.logos[m.id] ? '<img src="' + S.logos[m.id] + '" alt="" style="width:26px;height:26px;border-radius:13px;object-fit:cover">' : '<i style="width:12px;height:12px;border-radius:6px;background:' + esc(m.color) + ';display:block"></i>') + '<b>' + esc(m.name) + '</b></div>';
+    var KN = { mag: 'Zeitschriften', book: 'Bücher', comic: 'Comics' };
+    var AK = S.admKind || 'mag', cntK = function (kd) { return mags.filter(function (m) { return (m.kind || 'mag') === kd; }).length; };
+    h += '<div class="ktabs" role="tablist">' + ['mag', 'book', 'comic'].map(function (kd) { return '<button role="tab" class="' + (AK === kd ? 'on' : '') + '" data-admkind="' + kd + '">' + KN[kd] + ' <span>' + cntK(kd) + '</span></button>'; }).join('') + '</div>';
+    h += '<div class="ktools"><input type="search" id="admFind" placeholder="Titel suchen …" value="' + esc(S.admFind || '') + '"><button class="ghost" id="admAll">Alle aufklappen</button></div>';
+    h += [AK].map(function (kd) {
+      var list = mags.filter(function (m) { return (m.kind || 'mag') === kd; });
+      return '<div class="ksec">' + (list.length ? '' : '<div class="ksec-empty">Noch nichts in „' + KN[kd] + '“. Über den Umschalter bei einem Titel verschiebst du ihn hierher.</div>') + '<div class="ilist">' + list.map(function (m) {
+      var nI = issuesOf(m.id).length;
+      var r = '<details class="imag" data-mid="' + esc(m.id) + '"' + (ADMOPEN[m.id] ? ' open' : '') + '><summary class="imsum">' + (S.logos[m.id] ? '<img src="' + S.logos[m.id] + '" alt="" style="width:28px;height:28px;border-radius:14px;object-fit:cover;flex:none">' : '<i style="width:12px;height:12px;border-radius:6px;background:' + esc(m.color) + ';display:block;flex:none"></i>') + '<span class="imname"><b>' + esc(m.name) + '</b><small>' + nI + (nI === 1 ? ' Ausgabe' : ' Ausgaben') + (m.cat ? ' · ' + esc(m.cat) : '') + '</small></span>' + '<span class="kseg" role="group" aria-label="Bereich">' + KINDS.map(function (k) { return '<button class="' + ((m.kind || 'mag') === k[0] ? 'on' : '') + '" data-setkind="' + esc(m.id) + '|' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</span></summary><div class="imbody">';
       r += '<details class="ed"><summary>Magazin bearbeiten</summary>' +
         '<div class="prow"><div class="pf"><label>Name</label><input type="text" data-m="' + m.id + '" data-k="name" value="' + esc(m.name) + '"></div><div class="pf" style="flex:.6"><label>Art</label>' + kindSel('data-m="' + m.id + '" data-k="kind"', m.kind) + '</div></div>' +
         '<div class="prow"><div class="pf"><label>Kategorie</label><input type="text" list="catlist" data-m="' + m.id + '" data-k="cat" value="' + esc(m.cat || '') + '"></div><div class="pf"><label>Farbe</label><input type="color" data-m="' + m.id + '" data-k="color" value="' + esc(m.color || '#888888') + '" style="padding:3px"></div></div>' +
@@ -3944,14 +3996,15 @@ function renderPanel() {
         var sp = samplePagesOf(it);
         return '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
           '<details class="ed"><summary>Ausgabe bearbeiten</summary>' +
+          '<div class="pf"><label>Gehört zu</label><select data-i="' + it.id + '" data-k="magId">' + (S.allMags || S.mags).slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); }).map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + ' · ' + ({ mag: 'Zeitschrift', book: 'Buch', comic: 'Comic' })[mm.kind || 'mag'] + (mm.cat ? ' · ' + esc(mm.cat) : '') + '</option>'; }).join('') + '</select></div>' +
           '<div class="prow"><div class="pf"><label>Einzelpreis</label><input type="text" data-i="' + it.id + '" data-k="price" value="' + esc(it.price) + '"></div><div class="pf"><label>Leseprobe-Seiten</label><input type="text" data-i="' + it.id + '" data-k="sample" value="' + esc(fmtPages(sp).replace(/–/g, '-')) + '"></div></div>' +
           '<div class="pf"><label>Verkauf dieser Ausgabe</label><select data-i="' + it.id + '" data-k="sale"><option value="">Wie beim Magazin (' + SALE[(magById(it.magId) || {}).sale || 'options'] + ')</option>' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + (it.sale === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div>' +
           '<div class="pf"><label>Kurzbeschreibung</label><textarea data-i="' + it.id + '" data-k="teaser">' + esc(it.teaser || '') + '</textarea></div>' +
           '<button class="go small" data-saveissue="' + it.id + '">Speichern</button>' +
           '<div class="pf" style="margin-top:12px"><label>Text für Lesemodus &amp; Vorlesen</label><label class="ghost" style="display:inline-flex;align-items:center;align-self:flex-start">Text aus PDF übernehmen<input type="file" accept="application/pdf,.pdf" hidden data-textpdf="' + it.id + '"></label><span class="help" style="margin:6px 0 0" id="tx-' + it.id + '"></span></div></details>';
-      }).join('') + '</div>';
+      }).join('') + '</div></details>';
       return r;
-    }).join('') + '</div>';
+    }).join('') + '</div></div>'; }).join('');
   }
   h += '</div>';
 
@@ -4057,6 +4110,13 @@ function renderPanel() {
   h += '<div class="psec"><h2>Speicher</h2><div class="prow2"><button class="ghost red" id="cWipe">Alle Magazine löschen</button></div><div class="store">Daten liegen in Supabase: ' + esc(SBURL.replace(/^https?:\/\//, '')) + '</div></div>';
   var st = panel.scrollTop;
   panel.innerHTML = h;
+  // Sprungleiste zu allen Bereichen – oben angeheftet, damit man nicht endlos scrollt
+  (function () {
+    var hs = $$('.psec > h2', panel); if (hs.length < 3) return;
+    var nav = document.createElement('div'); nav.className = 'admnav';
+    hs.forEach(function (h2, i) { h2.id = 'adm-s' + i; var b = document.createElement('button'); b.textContent = h2.textContent.replace(/\s*\(optional\)/i, ''); b.onclick = function () { h2.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; nav.appendChild(b); });
+    var first = hs[0].parentNode; first.parentNode.insertBefore(nav, first);
+  })();
   panel.scrollTop = st;
   bindPanel();
 }
@@ -4261,6 +4321,19 @@ function bindPanel() {
   $('#bTitle', panel).addEventListener('change', function (e) { saveAd('brand', { title: e.target.value.trim() || null }); });
 
   /* Magazin / Ausgabe bearbeiten */
+  $$('[data-admkind]', panel).forEach(function (b) { b.addEventListener('click', function () { S.admKind = b.getAttribute('data-admkind'); renderPanel(); }); });
+  $$('details.imag', panel).forEach(function (d) { d.addEventListener('toggle', function () { ADMOPEN[d.getAttribute('data-mid')] = d.open; }); });
+  var fnd = $('#admFind', panel), applyFind = function () { var q = (fnd.value || '').trim().toLowerCase(); S.admFind = fnd.value; $$('details.imag', panel).forEach(function (d) { var t = (d.querySelector('.imname b') || {}).textContent || ''; d.style.display = !q || t.toLowerCase().indexOf(q) >= 0 ? '' : 'none'; }); };
+  if (fnd) { fnd.addEventListener('input', applyFind); applyFind(); }
+  var aAll = $('#admAll', panel); if (aAll) aAll.addEventListener('click', function () { var ds = $$('details.imag', panel), open = !ds.every(function (d) { return d.open; }); ds.forEach(function (d) { d.open = open; ADMOPEN[d.getAttribute('data-mid')] = open; }); aAll.textContent = open ? 'Alle zuklappen' : 'Alle aufklappen'; });
+  $$('[data-setkind]', panel).forEach(function (b) {
+    b.addEventListener('click', async function (ev) {
+      ev.preventDefault(); ev.stopPropagation();
+      var a = b.getAttribute('data-setkind').split('|'), m = magById(a[0]); if (!m || (m.kind || 'mag') === a[1]) return;
+      m.kind = a[1]; await DB.put('mags', m); await loadData(); rerender(); renderPanel();
+      toast(m.name + ' → ' + ({ mag: 'Zeitschriften', book: 'Bücher', comic: 'Comics' })[a[1]]);
+    });
+  });
   $$('[data-savemag]', panel).forEach(function (b) {
     b.addEventListener('click', async function () {
       var id = b.getAttribute('data-savemag'), m = magById(id);
@@ -4278,7 +4351,9 @@ function bindPanel() {
       it.freePages = it.samplePages.length;
       it.teaser = get('teaser');
       it.sale = get('sale');
-      await DB.put('issues', it); await loadData(); rerender(); renderPanel(); toast('Ausgabe gespeichert');
+      var nm = get('magId'), moved = nm && nm !== it.magId && (S.allMags || S.mags).filter(function (x) { return x.id === nm; })[0];
+      if (moved) it.magId = nm;
+      await DB.put('issues', it); await loadData(); rerender(); renderPanel(); toast(moved ? 'Ausgabe verschoben zu ' + moved.name : 'Ausgabe gespeichert');
     });
   });
   $$('[data-textpdf]', panel).forEach(function (inp) {
@@ -4384,20 +4459,83 @@ async function showStorage() {
   } catch (err) {}
 }
 
+/* ===== EPUB mit Seitenbildern (z. B. Comics) – ohne Zusatzbibliothek entpacken ===== */
+function zipIndex(buf) {
+  var dv = new DataView(buf), n = buf.byteLength, e = -1;
+  for (var i = n - 22; i >= Math.max(0, n - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('Keine gültige EPUB-/ZIP-Datei');
+  var cnt = dv.getUint16(e + 10, true), off = dv.getUint32(e + 16, true), map = {}, dec = new TextDecoder();
+  for (var k = 0; k < cnt; k++) {
+    if (dv.getUint32(off, true) !== 0x02014b50) break;
+    var meth = dv.getUint16(off + 10, true), cs = dv.getUint32(off + 20, true), nl = dv.getUint16(off + 28, true), xl = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true), lo = dv.getUint32(off + 42, true);
+    var name = dec.decode(new Uint8Array(buf, off + 46, nl));
+    map[name] = { m: meth, cs: cs, lo: lo };
+    off += 46 + nl + xl + cl;
+  }
+  return map;
+}
+async function zipRead(buf, ent) {
+  var dv = new DataView(buf), lo = ent.lo, start = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), raw = new Uint8Array(buf, start, ent.cs);
+  if (ent.m === 0) return raw.slice();
+  if (ent.m !== 8) throw new Error('Unbekannte Komprimierung in der EPUB');
+  return new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+}
+function zipPath(base, rel) { try { return decodeURIComponent(new URL(rel, 'http://x/' + base).pathname.slice(1)); } catch (e) { return rel; } }
+async function openEpub(buf) {
+  var idx = zipIndex(buf), txt = async function (p) { var en = idx[p]; if (!en) throw new Error('Fehlt in der EPUB: ' + p); return new TextDecoder().decode(await zipRead(buf, en)); };
+  var xml = function (s) { return new DOMParser().parseFromString(s, 'application/xml'); };
+  var cont = xml(await txt('META-INF/container.xml')), opfPath = cont.getElementsByTagName('rootfile')[0].getAttribute('full-path');
+  var opf = xml(await txt(opfPath)), man = {};
+  Array.prototype.forEach.call(opf.getElementsByTagName('item'), function (it) { man[it.getAttribute('id')] = { href: zipPath(opfPath, it.getAttribute('href')), type: it.getAttribute('media-type') || '' }; });
+  var imgs = [];
+  for (var r of Array.prototype.slice.call(opf.getElementsByTagName('itemref'))) {
+    if (r.getAttribute('linear') === 'no') continue;
+    var m = man[r.getAttribute('idref')]; if (!m) continue;
+    if (/^image\//.test(m.type)) { imgs.push(m.href); continue; }
+    var doc = new DOMParser().parseFromString(await txt(m.href), 'application/xhtml+xml'), src = null;
+    var im = doc.getElementsByTagName('img')[0]; if (im) src = im.getAttribute('src');
+    if (!src) { var si = doc.getElementsByTagName('image')[0]; if (si) src = si.getAttribute('xlink:href') || si.getAttribute('href'); }
+    if (src) { var p = zipPath(m.href, src); if (!/(^|\/)blank\.[a-z]+$/i.test(p)) imgs.push(p); }
+  }
+  if (!imgs.length) throw new Error('Diese EPUB enthält keine Seitenbilder (nur Text-EPUBs mit festen Seiten werden unterstützt).');
+  var tag = function (t) { var e = opf.getElementsByTagName(t)[0]; return e ? e.textContent.trim() : ''; };
+  return {
+    numPages: imgs.length, title: tag('dc:title'), author: tag('dc:creator'),
+    image: async function (p) { var b = new Blob([await zipRead(buf, idx[imgs[p - 1]])]); return await createImageBitmap(b); }
+  };
+}
+/* gemeinsame Schnittstelle für PDF und EPUB beim Hochladen */
+async function openUploadDoc(buf, isEpub) {
+  if (isEpub) {
+    var ep = await openEpub(buf);
+    return { numPages: ep.numPages, title: ep.title, isEpub: true,
+      render: async function (canvas, p) { var bm = await ep.image(p), w = Math.min(1400, bm.width); canvas.width = w; canvas.height = Math.round(bm.height * w / bm.width); var c = canvas.getContext('2d'); c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, canvas.width, canvas.height); c.drawImage(bm, 0, 0, canvas.width, canvas.height); bm.close && bm.close(); },
+      texts: async function (N) { var a = []; for (var i = 0; i < N; i++) a.push([]); return a; },
+      destroy: async function () {} };
+  }
+  var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+  return { numPages: pdf.numPages, title: '', isEpub: false,
+    render: async function (canvas, p) { var page = await pdf.getPage(p), vp1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: 1100 / vp1.width }); canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height); var c = canvas.getContext('2d'); c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, canvas.width, canvas.height); await page.render({ canvasContext: c, viewport: vp }).promise; page.cleanup(); },
+    texts: function (N) { return extractTexts(pdf, N); },
+    destroy: function () { return pdf.destroy(); } };
+}
 async function pickFile(f) {
   if (U.busy) return;
-  if (!/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { alert('Bitte eine PDF-Datei wählen.'); return; }
-  U.file = f;
+  var isEpub = /\.epub$/i.test(f.name) || f.type === 'application/epub+zip';
+  if (!isEpub && !/\.pdf$/i.test(f.name) && f.type !== 'application/pdf') { alert('Bitte eine PDF- oder EPUB-Datei wählen.'); return; }
+  U.file = f; U.epub = isEpub;
   U.buf = await f.arrayBuffer();
+  var title = '';
   try {
-    var pdf = await pdfjsLib.getDocument({ data: U.buf.slice(0) }).promise;
-    U.pages = pdf.numPages;
-    await pdf.destroy();
+    var dd = await openUploadDoc(U.buf, isEpub);
+    U.pages = dd.numPages; title = dd.title;
+    await dd.destroy();
   } catch (err) {
-    alert('Die PDF-Datei konnte nicht gelesen werden.');
+    alert((isEpub ? 'Die EPUB-Datei' : 'Die PDF-Datei') + ' konnte nicht gelesen werden.' + (err && err.message ? '\n\n' + err.message : ''));
     U.file = null; U.buf = null; return;
   }
   U.guess = guessFromName(f.name);
+  if (isEpub && title) U.guess.title = title.replace(/\s*[-–:]?\s*(Bd\.|Band)\s*\d+.*$/i, '').trim() || title;
   U.formSet = false;
   restoreForm();
 }
@@ -4423,7 +4561,8 @@ function restoreForm() {
     var last = issuesOf(match.id)[0];
     if (last) $('#fPrice', panel).value = last.price;
   }
-  $('#fLim', panel).value = U.pages > 60 ? '40' : '0';
+  $('#fLim', panel).value = U.pages > 60 && !U.epub ? '40' : '0';
+  if (U.epub && $('#fKind', panel)) $('#fKind', panel).value = 'comic';
   syncNewMag();
   rememberForm();
 }
@@ -4465,18 +4604,13 @@ async function processUpload() {
   try {
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
     await DB.delPages(issueId);
-    var pdf = await pdfjsLib.getDocument({ data: U.buf.slice(0) }).promise;
+    var pdf = await openUploadDoc(U.buf, U.epub);
     var N = lim ? Math.min(lim, pdf.numPages) : pdf.numPages;
     var coverBlob = null, aspect = 1.414;
     var canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
     for (var p = 1; p <= N; p++) {
       txt.textContent = 'Seite ' + p + ' von ' + N + ' wird aufbereitet …';
-      var page = await pdf.getPage(p);
-      var vp1 = page.getViewport({ scale: 1 });
-      var vp = page.getViewport({ scale: 1100 / vp1.width });
-      canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height);
-      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      await pdf.render(canvas, p);
       var blob = await new Promise(function (r) { canvas.toBlob(r, 'image/jpeg', 0.82); });
       await DB.put('pages', blob, issueId + ':' + pad3(p));
       var tcv = document.createElement('canvas'); tcv.width = 160; tcv.height = Math.round(160 * canvas.height / canvas.width);
@@ -4489,11 +4623,10 @@ async function processUpload() {
         c2.getContext('2d').drawImage(canvas, 0, 0, c2.width, c2.height);
         coverBlob = await new Promise(function (r) { c2.toBlob(r, 'image/jpeg', 0.86); });
       }
-      page.cleanup();
       bar.style.width = (p / N * 100) + '%';
     }
     txt.textContent = 'Text für Lesemodus und Vorlesen wird übernommen …';
-    var texts = await extractTexts(pdf, N);
+    var texts = await pdf.texts(N);
     await DB.put('texts', texts, issueId);
     var total = pdf.numPages;
     await pdf.destroy();
