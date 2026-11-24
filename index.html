@@ -292,6 +292,45 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .zedit{position:relative;z-index:300;margin:4px 6px 8px;padding:10px 12px;border-radius:16px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:8px;align-items:center;font-size:12.5px;color:var(--muted)}
 .zedit div{display:flex;gap:8px}.zedit .btn{height:38px;padding:0 18px;flex:none}
 .zarr{height:34px;padding:0 16px;font-size:13px;border:1px solid var(--line,rgba(0,0,0,.12))}
+/* Comics: Bild für Bild */
+.gv{position:fixed;inset:0;z-index:900;background:#0B0B0D;color:#fff;animation:fade .25s ease}
+.gvstage{position:absolute;inset:0;overflow:hidden;touch-action:none}
+.gvstage img{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform .45s cubic-bezier(.3,.8,.25,1),opacity .25s;user-select:none;-webkit-user-select:none;max-width:none}
+.gvhole{position:absolute;pointer-events:none;box-shadow:0 0 0 200vmax rgba(8,8,10,.86);border-radius:3px;transition:left .45s cubic-bezier(.3,.8,.25,1),top .45s cubic-bezier(.3,.8,.25,1),width .45s cubic-bezier(.3,.8,.25,1),height .45s cubic-bezier(.3,.8,.25,1)}
+.gvtop{position:absolute;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 12px 8px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:650;color:rgba(255,255,255,.8);pointer-events:none}
+.gvtop .btn{pointer-events:auto}
+.gv .roundbtn{background:rgba(255,255,255,.14);color:#fff}
+.gv .roundbtn:disabled{opacity:.3}
+.gvbar{position:absolute;left:0;right:0;bottom:0;padding:10px 16px max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:18px}
+.gvplay{height:44px;padding:0 20px;border-radius:22px;background:rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.gvplay.on{background:var(--accent);color:var(--onaccent)}
+.gvcap{position:absolute;left:14px;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));padding:10px 14px;border-radius:14px;background:rgba(20,20,24,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:15px;line-height:1.4;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;max-height:30vh;overflow:hidden}
+.gvcap.on{opacity:1;transform:none}
+.rgvbtn[hidden]{display:none}
+.cxed{position:fixed;inset:0;z-index:2000;background:#F4F4F6;display:flex;flex-direction:column;font:14px/1.4 system-ui,-apple-system,sans-serif;color:#1B1B1F}
+.cxhead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #E2E2E6;background:#fff;flex-wrap:wrap}
+.cxhead b{font-size:15px}.cxhead #cxst{flex:1;color:#2B6CB0;font-size:12.5px;min-width:120px}
+.cxhead button{width:auto!important;flex:none!important;height:34px;padding:0 14px;margin:0!important}
+.cxbody{flex:1;display:flex;min-height:0}
+.cxpages{width:92px;overflow:auto;padding:8px;border-right:1px solid #E2E2E6;background:#fff;display:flex;flex-direction:column;gap:8px}
+.cxpages button{border:2px solid transparent;border-radius:6px;padding:2px;background:none;cursor:pointer;font-size:11px;color:#555}
+.cxpages button.on{border-color:#2B6CB0;color:#2B6CB0;font-weight:700}
+.cxpages img{width:100%;display:block;border-radius:3px;background:#ddd;min-height:60px}
+.cxmain{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;align-items:center}
+.cxpage{position:relative;height:calc(100vh - 120px);aspect-ratio:auto;display:inline-block;touch-action:none;cursor:crosshair;user-select:none}
+.cxpage img{height:100%;width:auto;display:block;box-shadow:0 4px 18px rgba(0,0,0,.15);pointer-events:none}
+.cxbox{position:absolute;border:2px solid #2B6CB0;background:rgba(43,108,176,.10);cursor:move;border-radius:2px}
+.cxbox.sel{border-color:#E8590C;background:rgba(232,89,12,.12)}
+.cxbox i{position:absolute;left:-2px;top:-2px;background:#2B6CB0;color:#fff;font:700 12px system-ui;font-style:normal;padding:1px 6px;border-radius:2px 0 4px 0}
+.cxbox.sel i{background:#E8590C}
+.cxbox u{position:absolute;right:-6px;bottom:-6px;width:14px;height:14px;background:#fff;border:2px solid currentColor;border-radius:3px;cursor:nwse-resize;color:#2B6CB0}
+.cxhint{font-size:12px;color:#6B6B73;margin:8px 0}
+.cxlist{width:330px;overflow:auto;padding:10px;border-left:1px solid #E2E2E6;background:#fff}
+.cxitem{border:1px solid #E2E2E6;border-radius:8px;padding:8px;margin-bottom:8px}
+.cxitem.sel{border-color:#E8590C;box-shadow:0 0 0 2px rgba(232,89,12,.15)}
+.cxih{display:flex;align-items:center;gap:4px;margin-bottom:6px}.cxih b{flex:1}
+.cxih .ghost{height:26px;padding:0 8px;font-size:12px}
+.cxitem textarea{width:100%;box-sizing:border-box;font:14px/1.4 system-ui;border:1px solid #DADADF;border-radius:6px;padding:6px;resize:vertical}
 .lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
 .lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
@@ -780,7 +819,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '20.11.2026 16:30';
+var APP_BUILD = '24.11.2026 11:01';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1229,7 +1268,7 @@ function applyTheme() {
     '--ondanger': light ? '#FFFFFF' : '#2A0A0A'
   };
   // Ständer: Standard passt sich den App-Farben an (hell = lackiert weiß, dunkel = dunkel lackiert), sonst Holz oder Metall
-  var mat = S.cfg.rackMat || 'dark', rk;
+  var mat = S.cfg.rackMat || 'wood', rk;
   if (mat === 'wood') rk = light ? ['#DCB284', '#B0814F', '#8A6038', mix(bg, '#C8B79F', 0.4), 'rgba(0,0,0,.18)', 'rgba(255,255,255,.85)'] : ['#7A5536', '#55381F', '#2E1D10', '#2B2420', 'rgba(0,0,0,.18)', 'rgba(255,255,255,.8)'];
   else if (mat === 'dark') rk = ['#4A4E55', '#2F3237', '#1B1D20', light ? '#E4E2DD' : '#26282C', light ? 'rgba(0,0,0,.03)' : 'rgba(255,255,255,.04)', 'rgba(255,255,255,.72)'];
   else if (mat === 'metal') rk = light ? ['#E3E6EA', '#A9B0B8', '#6B727A', '#D9DDE1', 'rgba(0,0,0,.04)', 'rgba(0,0,0,.55)'] : ['#D9DDE2', '#9AA1A9', '#5D636B', '#24272B', 'rgba(255,255,255,.05)', 'rgba(0,0,0,.55)'];
@@ -1307,7 +1346,7 @@ function render() {
   if (S.screen === 'kiosk') { setupCarousel(); setupBanner(); if (S.chat) bindChat(); } else { clearTimeout(BR.t); clearInterval(VW); Object.keys(VCACHE).forEach(function (k) { try { VCACHE[k].pause(); } catch (e) {} }); }
   LP = null;
   if (S.screen === 'library' && S.libView === 'shelf') bindShelf();
-  if (S.screen === 'library' && S.libView === 'rack') bindRack();
+  if (S.screen === 'library' && (S.libView === 'rack' || S.libView === 'kiosk')) bindRack();
   var gs = $('[data-groupsel]'); if (gs) gs.addEventListener('change', function () { ACT.libgroup(gs.value); });
   app.classList.remove('scrolled');
   var kp = $('#kpage'); if (kp && (S.screen === 'library' || S.screen === 'kiosk')) { var sc = function () { app.classList.toggle('scrolled', kp.scrollTop > 8); }; kp.addEventListener('scroll', sc, { passive: true }); sc(); }
@@ -1622,6 +1661,10 @@ function spineHTML(it, extra, style) {
   var m = magById(it.magId) || {}, c = spineCol(it), logo = S.logos && S.logos[it.magId];
   return '<span class="lg">' + (logo ? '<img src="' + logo + '" alt="">' : esc(magShort(m))) + '</span><span class="t">' + esc(m.name || '') + '<i>' + MSH[it.month - 1] + ' ' + String(it.year).slice(2) + '</i></span><span class="no">' + ('0' + it.month).slice(-2) + '</span><span class="nd" aria-hidden="true"></span>';
 }
+function kindOf(it) { var m = magById(it.magId); return (m && m.kind) || 'mag'; }
+function isBookish(it) { var k = kindOf(it); return k === 'book' || k === 'comic'; }
+var KINDS = [['mag', 'Zeitschrift'], ['book', 'Buch'], ['comic', 'Comic']];
+function kindSel(attrs, val) { return '<select ' + attrs + '>' + KINDS.map(function (k) { return '<option value="' + k[0] + '"' + ((val || 'mag') === k[0] ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>'; }
 function libShelfHTML(lib) {
   var st = shelfSt(), list0 = lib.filter(libMatch), G = S.libGroup || 'year';
   var keys = [], groups = {};
@@ -1661,10 +1704,17 @@ function libBarHTML(lib, keys) {
   var chips = [['all', 'Alle'], ['unread', 'Ungelesen · ' + nUn], ['read', 'Gelesen · ' + (lib.length - nUn)]]
     .concat(st.cols.map(function (c) { return ['c:' + c.id, c.name + ' · ' + lib.filter(function (it) { return colsOfIt(it).indexOf(c.id) >= 0; }).length]; }));
   var mags = []; lib.forEach(function (it) { if (mags.indexOf(it.magId) < 0) mags.push(it.magId); });
+  if (S.libView === 'kiosk') return '<div class="lbar"><div class="lgsw">' + vswHTML() + '</div></div>';
   var h = '<div class="lbar"><div class="lchips">' + chips.map(function (c) { return '<button class="bare lchip' + (f === c[0] ? ' on' : '') + (c[0].indexOf('c:') === 0 ? ' uc' : '') + '" data-act="libfilter" data-arg="' + esc(c[0]) + '">' + esc(c[1]) + '</button>'; }).join('') +
     '<button class="bare lchip add" data-act="libnewcol">+ Fach</button>' +
     (mags.length > 1 ? '<i class="sep"></i>' + mags.map(function (id) { var m = magById(id); return '<button class="bare lchip' + (f === 'm:' + id ? ' on' : '') + '" data-act="libfilter" data-arg="m:' + esc(id) + '">' + esc(m ? m.name : '') + '</button>'; }).join('') : '') + '</div>';
-  var vsw = '<div class="lsw" role="radiogroup" aria-label="Ansicht">' + [['grid', 'Raster'], ['shelf', 'Regal'], ['rack', 'Ständer']].map(function (v) { return '<button class="bare' + ((S.libView || 'grid') === v[0] ? ' on' : '') + '" data-act="libview" data-arg="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>';
+  var vsw = vswHTML();
+  return libBarRest(h, vsw, keys, G);
+}
+function vswHTML() {
+  return '<div class="lsw" role="radiogroup" aria-label="Ansicht">' + [['grid', 'Raster'], ['shelf', 'Regal'], ['rack', 'Ständer'], ['kiosk', 'Kiosk']].map(function (v) { return '<button class="bare' + ((S.libView || 'grid') === v[0] ? ' on' : '') + '" data-act="libview" data-arg="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>';
+}
+function libBarRest(h, vsw, keys, G) {
   var spatial = S.libView === 'shelf' || S.libView === 'rack';
   if (!spatial) h += '<div class="lgsw">' + vsw + '</div>';
   if (spatial) {
@@ -1854,41 +1904,43 @@ function putBack(after) {
 }
 function closeLibPull() { var ov = $('#lovl'); if (ov) ov.remove(); if (LP) { lpStop(); if (LP.el) LP.el.classList.remove('gone'); } LP = null; }
 /* ===== Zeitschriftenständer ===== */
-function libRackHTML(lib) {
-  var list0 = lib.filter(libMatch), G = S.libGroup || 'year', keys = [], groups = {};
+function libRackHTML(lib, K) {   // K = Kiosk-Modus: alle Hefte ohne Filter auf einem großen Ständer
+  var list0 = K ? lib.slice() : lib.filter(libMatch), G = K ? 'all' : (S.libGroup || 'year'), keys = [], groups = {};
   var add = function (k, it) { if (!groups[k]) { groups[k] = []; keys.push(k); } groups[k].push(it); };
   if (G === 'cols') { shelfSt().cols.forEach(function (c) { list0.forEach(function (it) { if (colsOfIt(it).indexOf(c.id) >= 0) add(c.name, it); }); }); list0.forEach(function (it) { if (!colsOfIt(it).length) add('Ohne Fach', it); }); }
+  else if (K) list0.forEach(function (it) { add('', it); });
   else list0.forEach(function (it) { var m = magById(it.magId); add(G === 'year' ? String(it.year) : (m ? m.name : '?'), it); });
   var tab = document.body.classList.contains('tablet');
   var W = Math.max(260, (IS_ADMIN ? (S.preview === 'ipad' ? 820 : 390) : window.innerWidth) - 12 - 36);
-  // wie am echten Kiosk: viele Hefte pro Reihe, seitlich geschuppt, jede Reihe zeigt nur den Kopf (Logo) der Reihe dahinter
-  var per = tab ? Math.max(6, Math.floor(W / 105)) : 4;
-  var Wa = W - 12, cw = Math.floor(Wa / (1 + 0.72 * (per - 1))), ch = Math.round(cw * 1.33);
-  var step = Math.round(ch * 0.42) + 8;
-  var pos = shelfSt().pos || {};
-  var h = '<div class="zrack' + (S.rackEdit ? ' edit' : '') + '" data-wa="' + Wa + '" data-cw="' + cw + '" data-step="' + step + '" style="--cw:' + cw + 'px;--chh:' + ch + 'px;--step:' + step + 'px"><div class="zback"></div><div class="zcheek l"></div><div class="zcheek r"></div><div class="zcrown">Meine Hefte</div><div class="zplinth"></div>';
+  // 3 große Hefte pro Reihe (iPad mehr); jede zweite Reihe steht gespreizt – außen weiter nach links bzw. rechts
+  var per = K ? (tab ? Math.max(6, Math.floor(W / 100)) : 4) : (tab ? Math.max(4, Math.floor(W / 150)) : 3);
+  var Wa = W - 12, gp = 7, cw = K ? Math.floor(Wa / (1 + 0.72 * (per - 1))) : Math.floor((Wa - gp * (per + 1)) / per), ch = Math.round(cw * 1.33);
+  var step = Math.round(ch * (K ? 0.42 : 0.57)) + 8;   // Kiosk: dicht wie am Zeitschriftenstand, man sieht vor allem die Logos
+  var PK = K ? 'posK' : 'pos', pos = shelfSt()[PK] || {};
+  var h = '<div class="zrack' + (S.rackEdit ? ' edit' : '') + (K ? ' kiosk' : '') + '" data-store="' + PK + '" data-wa="' + Wa + '" data-cw="' + cw + '" data-step="' + step + '" style="--cw:' + cw + 'px;--chh:' + ch + 'px;--step:' + step + 'px"><div class="zback"></div><div class="zcheek l"></div><div class="zcheek r"></div><div class="zcrown">' + (K ? 'Kiosk · ' + list0.length + ' Hefte' : 'Meine Hefte') + '</div><div class="zplinth"></div>';
   if (!list0.length) h += '<div class="lempty" style="position:relative;z-index:200">' + (S.libFilter && S.libFilter.indexOf('c:') === 0 ? 'In diesem Fach steht noch nichts.' : 'Hier steht nichts.') + '</div>';
-  if (list0.length && S.rackEdit) h += '<div class="zedit"><span>Ziehen: seitlich und in der Höhe frei, auch übereinander · Antippen: neigen</span><div><button class="btn sbtn" data-act="rackreset">Zurücksetzen</button><button class="btn pbtn" data-act="rackedit">Fertig</button></div></div>';
+  if (list0.length && S.rackEdit) h += '<div class="zedit"><span>Ziehen: seitlich frei, auch übereinander, oder in eine andere Reihe · Antippen: neigen</span><div><button class="btn sbtn" data-act="rackreset">Zurücksetzen</button><button class="btn pbtn" data-act="rackedit">Fertig</button></div></div>';
   var z = 1;
   keys.forEach(function (k, gi) {
     var list = groups[k];
     list.sort(function (a, b) { return b.year - a.year || b.month - a.month; });
-    h += '<div class="glab" id="lg' + gi + '">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Heft' : ' Hefte') + '</span></div>';
-    // Reihen mal voller, mal lockerer bestückt – fest pro Heft
-    var rows = [], r = 0; while (r < list.length) { var c0 = String(list[r].id), v0 = 0; for (var q0 = 0; q0 < c0.length; q0++) v0 = (v0 * 37 + c0.charCodeAt(q0) + rows.length * 11) >>> 0; var n0 = per - (v0 % 3 === 0 ? 0 : 1); rows.push(list.slice(r, r + n0)); r += n0; }
+    if (!K) h += '<div class="glab" id="lg' + gi + '">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Heft' : ' Hefte') + '</span></div>';
+    var rows = []; for (var r = 0; r < list.length; r += per) rows.push(list.slice(r, r + per));
     // 1) automatische Platzierung: tf = Reihe von vorne (0 = vorderste)
-    var items = [], hsh = function (id, k) { var v = k; for (var q = 0; q < String(id).length; q++) v = (v * 33 + String(id).charCodeAt(q)) >>> 0; return (v % 1000) / 1000; };
+    var items = [];
     rows.forEach(function (row, rf) {
-      var xs = [0], cx = 0;
-      for (var qi = 1; qi < row.length; qi++) { var rr = hsh(row[qi].id, 7 + rows.length - 1 - rf); cx += cw * (rr < 0.45 ? 0.5 + rr * 0.3 : 0.98 + (rr - 0.45) * 0.25); xs.push(cx); }
-      var span = cx + cw, sc = span > Wa ? (Wa - cw) / cx : 1, off = (Wa - (cx * sc + cw)) / 2;
+      var x0 = (Wa - (row.length * cw + (row.length - 1) * gp)) / 2, spread = !K && rf % 2 === 1;
+      // Kiosk: seitlich geschuppt, mal dicht, mal mit Luft
+      var kx = [0], kc = 0;
+      if (K) { for (var qi = 1; qi < row.length; qi++) { var c1 = String(row[qi].id), v1 = 7 + rf; for (var q1 = 0; q1 < c1.length; q1++) v1 = (v1 * 33 + c1.charCodeAt(q1)) >>> 0; var rr = (v1 % 1000) / 1000; kc += cw * (rr < 0.45 ? 0.5 + rr * 0.3 : 0.98 + (rr - 0.45) * 0.25); kx.push(kc); } var ksc = kc + cw > Wa ? (Wa - cw) / kc : 1, kof = (Wa - (kc * ksc + cw)) / 2; kx = kx.map(function (v) { return kof + v * ksc; }); }
       row.forEach(function (it, ci) {
         var hs = 0; for (var q = 0; q < String(it.id).length; q++) hs = (hs * 31 + String(it.id).charCodeAt(q)) >>> 0;
-        var j1 = ((hs % 1000) / 1000) - .5, j2 = (((hs >>> 10) % 1000) / 1000) - .5, j3 = (((hs >>> 20) % 1000) / 1000) - .5, j4 = (((hs >>> 5) % 997) / 997) - .5;
-        var o = { it: it, tf: rf, x: off + xs[ci] * sc + j1 * 4, rz: j2 * 3, j3: j3, j4: j4, own: false };
+        var j1 = ((hs % 1000) / 1000) - .5, j2 = (((hs >>> 10) % 1000) / 1000) - .5, j3 = (((hs >>> 20) % 1000) / 1000) - .5;
+        var mid = ci - (row.length - 1) / 2;
+        var o = { it: it, tf: rf, x: K ? kx[ci] + j1 * 4 : x0 + ci * (cw + gp) + (spread ? mid * cw * 0.16 : 0) + j1 * 6, rz: K ? j2 * 3 : j2 * 2.4 + (spread ? mid * 1.2 : 0), j3: j3, j4: K ? (((hs >>> 5) % 997) / 997) - .5 : 0, own: false };
         // 2) eigene Platzierung des Lesers hat Vorrang
-        var p = pos[it.id]; if (p) { o.tf = p.t; o.x = p.x * (Wa - cw); if (p.rz != null) o.rz = p.rz; if (p.dy != null) o.dy = p.dy; o.own = true; }
-        o.x = Math.max(-4, Math.min(Wa - cw + 4, o.x));
+        var p = pos[it.id]; if (p) { o.tf = p.t; o.x = p.x * (Wa - cw); if (p.rz != null) o.rz = p.rz; o.own = true; }
+        o.x = Math.max(-cw * 0.14, Math.min(Wa - cw + cw * 0.14, o.x));
         items.push(o);
       });
     });
@@ -1899,7 +1951,7 @@ function libRackHTML(lib) {
       var tierItems = items.filter(function (o) { return o.tf === tf; }).sort(function (a, b) { return a.x - b.x; });
       h += '<div class="ztier" data-tier="' + tf + '" data-grp="' + gi + '" style="z-index:' + z + '">';
       tierItems.forEach(function (o) {
-        var it = o.it, sw = 1 + o.j4 * 0.1, shh = 1 + o.j3 * 0.12, dy = (o.dy != null ? o.dy : o.j3 * 6).toFixed(1);
+        var it = o.it, sw = 1 + o.j4 * 0.1, shh = 1 + o.j3 * (K ? 0.12 : 0.03), dy = (o.dy != null ? o.dy : o.j3 * 6).toFixed(1);
         var szs = 'width:' + (cw * sw).toFixed(1) + 'px;height:' + (ch * sw * shh).toFixed(1) + 'px;';
         var m = magById(it.magId) || {};
         h += '<button class="zcv fan' + (isReadIt(it) ? '' : ' unread') + (marksOf(it).length ? ' mark' : '') + '" data-rack="' + esc(it.id) + '" data-rz="' + o.rz.toFixed(2) + '" data-dy="' + dy + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + (S.rackEdit ? ' verschieben' : ' aus dem Ständer nehmen') + '" style="' + szs + 'left:' + o.x.toFixed(1) + 'px;bottom:' + (8 + Number(dy)).toFixed(1) + 'px;background-image:url(\'' + cover(it) + '\');transform:rotateX(' + (6 + o.j3 * 3).toFixed(1) + 'deg) rotateZ(' + o.rz.toFixed(2) + 'deg)"><i class="nd"></i></button>';
@@ -1912,6 +1964,8 @@ function libRackHTML(lib) {
 }
 function bindRack() {
   var rk = $('.zrack');
+  // frisch abgelegtes Heft rutscht sichtbar auf die Ablage
+  if (rk && S.rackDrop) { var dz = rk.querySelector('.zcv[data-rack="' + S.rackDrop + '"]'); S.rackDrop = null; if (dz && dz.animate) dz.animate([{ translate: '0 -18px' }, { translate: '0 2px', offset: .75 }, { translate: '0 0' }], { duration: 320, easing: 'cubic-bezier(.3,.8,.3,1)' }); }
   if (!rk || !rk.classList.contains('edit')) { $$('.zcv').forEach(function (el) { el.addEventListener('click', function () { if (!lpAlive()) rackPull(el); }); }); return; }
   // Anordnen: Heft frei ziehen (auch in andere Reihen), Antippen neigt es
   var Wa = +rk.getAttribute('data-wa'), cw = +rk.getAttribute('data-cw'), TILTS = [-6, -3, 0, 3, 6];
@@ -1928,8 +1982,8 @@ function bindRack() {
       var up = function (ev) {
         el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
         el.classList.remove('drag'); el.parentNode.style.zIndex = zsave;
-        var st = shelfSt(); st.pos = st.pos || {};
-        var tier = el.parentNode, cur = st.pos[id] || { t: +tier.getAttribute('data-tier'), x: (parseFloat(el.style.left) || 0) / Math.max(1, Wa - cw), rz: +el.getAttribute('data-rz'), dy: +el.getAttribute('data-dy') };
+        var st = shelfSt(), PK = rk.getAttribute('data-store') || 'pos'; st[PK] = st[PK] || {};
+        var tier = el.parentNode, cur = st[PK][id] || { t: +tier.getAttribute('data-tier'), x: (parseFloat(el.style.left) || 0) / Math.max(1, Wa - cw), rz: +el.getAttribute('data-rz') };
         if (!moved) {   // antippen: nächste Neigung
           var k = 0, best = 99; TILTS.forEach(function (t, i) { var d = Math.abs(t - cur.rz); if (d < best) { best = d; k = i; } });
           cur.rz = TILTS[(k + 1) % TILTS.length];
@@ -1939,12 +1993,10 @@ function bindRack() {
           $$('.ztier[data-grp="' + grp + '"]', rk).forEach(function (t) { var d = Math.abs(t.getBoundingClientRect().bottom - bottom); if (d < bd) { bd = d; bestT = t; } });
           var tr = bestT.getBoundingClientRect(), zf = tr.width / bestT.offsetWidth || 1;
           cur.t = +bestT.getAttribute('data-tier');
-          // Höhe in der Reihe frei: tiefer = mehr verdeckt, höher = mehr sichtbar
-          var lim = (+rk.getAttribute('data-step') || 60) * 0.6;
-          cur.dy = Math.max(-lim * 0.5, Math.min(lim, (tr.bottom - r.bottom) / zf - 8));
-          cur.x = Math.max(0, Math.min(1, ((r.left + r.width / 2 - tr.left) / zf - cw / 2) / Math.max(1, Wa - cw)));
+          delete cur.dy;   // steht immer unten auf der Ablage – Höhe ergibt sich aus der Reihe
+          cur.x = Math.max(-0.14 * cw / Math.max(1, Wa - cw), Math.min(1 + 0.14 * cw / Math.max(1, Wa - cw), ((r.left + r.width / 2 - tr.left) / zf - cw / 2) / Math.max(1, Wa - cw)));
         }
-        st.pos[id] = cur; savePrefs(); render();
+        st[PK][id] = cur; savePrefs(); S.rackDrop = id; render();
       };
       el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
     });
@@ -1989,8 +2041,11 @@ function libraryHTML() {
   h += header('Bibliothek', lib.length === 1 ? '1 Ausgabe' : lib.length + ' Ausgaben');
   S.libView = S.libView || 'grid'; S.libGroup = S.libGroup || S.settings.libGroup || 'year';
   if (lib.length) {
-    var sh = S.libView === 'shelf' ? libShelfHTML(lib) : S.libView === 'rack' ? libRackHTML(lib) : null;
-    h += libBarHTML(lib, sh && sh.keys);
+    // Regal = Bücher & Comics, Ständer/Kiosk = Zeitschriften, Raster = alles
+    var vl = S.libView === 'shelf' ? lib.filter(isBookish) : (S.libView === 'rack' || S.libView === 'kiosk') ? lib.filter(function (it) { return !isBookish(it); }) : lib;
+    if (vl !== lib && !vl.length) return h + libBarHTML(vl, []) + '<div class="lempty">' + (S.libView === 'shelf' ? 'Im Regal stehen deine Bücher und Comics.<br>Du hast noch keine.' : 'Hier stehen deine Zeitschriften.<br>Du hast noch keine.') + '</div></div>';
+    var sh = S.libView === 'shelf' ? libShelfHTML(vl) : S.libView === 'rack' ? libRackHTML(vl) : S.libView === 'kiosk' ? libRackHTML(vl, true) : null;
+    h += libBarHTML(vl, sh && sh.keys);
     if (sh) return h + sh.html + '</div>';
     lib = lib.filter(libMatch);
     if (!lib.length) return h + '<div class="lempty">' + (S.libFilter && S.libFilter.indexOf('c:') === 0 ? 'In diesem Fach steht noch nichts.<br>Tippe ein Heft an und ordne es unter „Fächer“ zu.' : 'Hier ist nichts.') + '</div></div>';
@@ -2604,6 +2659,311 @@ function switchKiosk(patch) {
   setTimeout(apply, 170);
 }
 
+/* ================= Comics: Bild für Bild ================= */
+/* Bildrahmen + Text je Seite liegen als texts/panels-<id>.json: { v:1, pages: { "3": [{x,y,w,h,t}] } } (x..h in Anteilen der Seite) */
+function comicKey(it) { return 'panels-' + it.id; }
+function hasPanels(p) { return !!(p && p.pages && Object.keys(p.pages).some(function (k) { return (p.pages[k] || []).length; })); }
+var GV = null;
+function openGuided() {
+  if (!R || !hasPanels(R.pan)) return;
+  var nums = R.leaves.filter(function (l) { return l.type === 'img'; }).map(function (l) { return l.n; });
+  var steps = [];
+  nums.forEach(function (n) {
+    var arr = R.pan.pages[n] || [];
+    if (!arr.length) steps.push({ n: n, b: { x: 0, y: 0, w: 1, h: 1 }, t: '', k: 0, of: 1 });
+    else arr.forEach(function (b, k) { steps.push({ n: n, b: b, t: b.t || '', k: k, of: arr.length }); });
+  });
+  var cl = R.leaves[R.cur], sn = cl && cl.type === 'img' ? cl.n : nums[0], si = 0;
+  steps.some(function (s, i) { if (s.n === sn) { si = i; return true; } });
+  hideTextCard && hideTextCard();
+  GV = { steps: steps, i: si, playing: false, run: 0, n: 0 };
+  var el = document.createElement('div'); el.id = 'gv'; el.className = 'gv';
+  el.innerHTML = '<div class="gvstage" id="gvstage"><img id="gvimg" alt="" draggable="false"><div class="gvhole" id="gvhole"></div></div>' +
+    '<div class="gvtop"><button class="btn roundbtn" id="gvx" aria-label="Bild für Bild beenden">' + ICON.close + '</button><span id="gvpos"></span><span style="width:40px"></span></div>' +
+    '<div class="gvcap" id="gvcap" aria-live="polite"></div>' +
+    '<div class="gvbar"><button class="btn roundbtn" id="gvprev" aria-label="Vorheriges Bild">' + ICON.prev + '</button><button class="btn gvplay" id="gvplay">' + ICON.speak + '<span>Vorlesen</span></button><button class="btn roundbtn" id="gvnext" aria-label="Nächstes Bild">' + ICON.next + '</button></div>';
+  document.body.appendChild(el);
+  $('#gvx').onclick = closeGuided;
+  $('#gvprev').onclick = function () { gvGo(-1); };
+  $('#gvnext').onclick = function () { gvGo(1); };
+  $('#gvplay').onclick = function () { GV.playing ? gvStop() : gvPlay(); };
+  var st = $('#gvstage'), sx = 0, sy = 0, t0 = 0;
+  st.addEventListener('pointerdown', function (e) { sx = e.clientX; sy = e.clientY; t0 = Date.now(); });
+  st.addEventListener('pointerup', function (e) {
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) gvGo(dx < 0 ? 1 : -1);
+    else if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && Date.now() - t0 < 500) gvGo(e.clientX < window.innerWidth / 3 ? -1 : 1);
+  });
+  GV.key = function (e) { if (e.key === 'ArrowRight') gvGo(1); else if (e.key === 'ArrowLeft') gvGo(-1); else if (e.key === 'Escape') closeGuided(); };
+  document.addEventListener('keydown', GV.key);
+  GV.rs = function () { gvShow(false); }; window.addEventListener('resize', GV.rs);
+  gvShow(false);
+}
+function gvShow(anim) {
+  if (!GV) return;
+  var s = GV.steps[GV.i], img = $('#gvimg'), st = $('#gvstage'), hole = $('#gvhole');
+  $('#gvpos').textContent = 'Seite ' + s.n + ' · Bild ' + (s.k + 1) + ' von ' + s.of;
+  $('#gvprev').disabled = GV.i === 0; $('#gvnext').disabled = GV.i === GV.steps.length - 1;
+  $('#gvcap').textContent = s.t || ''; $('#gvcap').classList.toggle('on', GV.playing && !!s.t);
+  var src = pageURL(R.it, s.n), place = function () {
+    var W = img.naturalWidth, H = img.naturalHeight; if (!W) return;
+    var sw = st.clientWidth, b = s.b, pad = 12, top = ($('#gv .gvtop') || {}).offsetHeight || 60, bot = ($('#gv .gvbar') || {}).offsetHeight || 80, sh = st.clientHeight - top - bot;
+    var sc = Math.min((sw - pad * 2) / (b.w * W), (sh - pad * 2) / (b.h * H));
+    var tx = sw / 2 - (b.x + b.w / 2) * W * sc, ty = top + sh / 2 - (b.y + b.h / 2) * H * sc;
+    img.style.transition = hole.style.transition = anim ? '' : 'none';
+    img.style.width = W + 'px'; img.style.height = H + 'px';
+    img.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
+    hole.style.left = (tx + b.x * W * sc) + 'px'; hole.style.top = (ty + b.y * H * sc) + 'px';
+    hole.style.width = (b.w * W * sc) + 'px'; hole.style.height = (b.h * H * sc) + 'px';
+    img.style.opacity = 1;
+  };
+  if (img.getAttribute('data-src') !== src) {
+    anim = false; img.style.opacity = 0; img.setAttribute('data-src', src);
+    img.onload = place; img.src = src;
+    if (img.complete && img.naturalWidth) place();
+  } else place();
+}
+function gvGo(d) {
+  if (!GV) return;
+  var j = Math.max(0, Math.min(GV.steps.length - 1, GV.i + d)); if (j === GV.i) return;
+  GV.i = j; ttsCancel(); GV.run++;
+  gvShow(true);
+  if (GV.playing) { var run = GV.run; setTimeout(function () { if (GV && GV.run === run && GV.playing) gvSpeak(); }, 480); }
+}
+function gvPlay() {
+  if (!ttsAvailable()) { toast('Vorlesen ist auf diesem Gerät nicht verfügbar'); return; }
+  GV.playing = true; $('#gvplay').classList.add('on'); $('#gvplay span').textContent = 'Pause'; gvShow(true); gvSpeak();
+}
+function gvStop() { if (!GV) return; GV.playing = false; GV.run++; ttsCancel(); $('#gvplay').classList.remove('on'); $('#gvplay span').textContent = 'Vorlesen'; $('#gvcap').classList.remove('on'); }
+function gvSpeak() {
+  var run = ++GV.run, s = GV.steps[GV.i];
+  var after = function (ms) { setTimeout(function () { if (!GV || GV.run !== run || !GV.playing) return; if (GV.i >= GV.steps.length - 1) { gvStop(); toast('Fertig vorgelesen'); return; } GV.i++; gvShow(true); setTimeout(function () { if (GV && GV.run === run && GV.playing) gvSpeak(); }, 480); }, ms); };
+  if (!s.t) { after(1700); return; }
+  var chunks = ttsChunks(s.t), k = 0, voice = ttsVoice();
+  (function next() { if (!GV || GV.run !== run) return; if (k >= chunks.length) { after(450); return; } saySpeak(chunks[k++], voice, next); })();
+}
+function closeGuided() {
+  if (!GV) return;
+  var n = GV.steps[GV.i].n; gvStop();
+  document.removeEventListener('keydown', GV.key); window.removeEventListener('resize', GV.rs);
+  var el = $('#gv'); if (el) el.remove(); GV = null;
+  if (R) { var li = R.leaves.findIndex(function (l) { return l.type === 'img' && l.n === n; }); if (li >= 0 && li !== R.cur) goLeaf(li); }
+}
+
+/* ---------- Admin: Bilder erkennen (Rahmen) ---------- */
+function loadImg(src) { return new Promise(function (res, rej) { var i = new Image(); i.crossOrigin = 'anonymous'; i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); }
+function detectPanels(img) {
+  // Hintergrund = Farbe am Seitenrand; Bilder werden an durchgehenden Hintergrund-Streifen (Rinnen) getrennt – rekursiv quer und längs
+  var W = 420, H = Math.round(img.naturalHeight * W / img.naturalWidth), c = document.createElement('canvas'); c.width = W; c.height = H;
+  var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
+  var d = g.getImageData(0, 0, W, H).data, br = [], bgc = [0, 0, 0], nb = 0;
+  for (var x = 0; x < W; x += 3) { [1, H - 2].forEach(function (y) { var o = (y * W + x) * 4; bgc[0] += d[o]; bgc[1] += d[o + 1]; bgc[2] += d[o + 2]; nb++; }); }
+  bgc = bgc.map(function (v) { return v / nb; });
+  var bg = new Uint8Array(W * H);
+  for (var i = 0; i < W * H; i++) { var o2 = i * 4; bg[i] = Math.abs(d[o2] - bgc[0]) + Math.abs(d[o2 + 1] - bgc[1]) + Math.abs(d[o2 + 2] - bgc[2]) < 60 ? 1 : 0; }
+  var out = [], minGap = 3;
+  function trim(r) {
+    var x0 = r[0], y0 = r[1], x1 = r[2], y1 = r[3], fx = W, fy = H, lx = -1, ly = -1;
+    for (var y = y0; y < y1; y++) for (var x = x0; x < x1; x++) if (!bg[y * W + x]) { if (x < fx) fx = x; if (x > lx) lx = x; if (y < fy) fy = y; if (y > ly) ly = y; }
+    return lx < 0 ? null : [fx, fy, lx + 1, ly + 1];
+  }
+  function cut(r, horiz) {   // Streifen finden, die fast nur Hintergrund sind
+    var x0 = r[0], y0 = r[1], x1 = r[2], y1 = r[3], segs = [], run = -1, a = horiz ? y0 : x0, b = horiz ? y1 : x1;
+    for (var p = a; p <= b; p++) {
+      var full = true;
+      if (p < b) { var cnt = 0, tot = 0; if (horiz) { for (var x = x0; x < x1; x++) { cnt += bg[p * W + x]; tot++; } } else { for (var y = y0; y < y1; y++) { cnt += bg[y * W + p]; tot++; } } full = cnt / tot > 0.985; }
+      if (!full && run < 0) run = p;
+      if (full && run >= 0) { segs.push([run, p]); run = -1; }
+    }
+    var merged = []; segs.forEach(function (s) { var l = merged[merged.length - 1]; if (l && s[0] - l[1] < minGap) l[1] = s[1]; else merged.push(s.slice()); });
+    return merged.map(function (s) { return horiz ? [x0, s[0], x1, s[1]] : [s[0], y0, s[1], y1]; });
+  }
+  function rec(r, depth) {
+    r = trim(r); if (!r) return;
+    var rows = cut(r, true);
+    if (rows.length > 1 && depth < 6) { rows.forEach(function (q) { rec(q, depth + 1); }); return; }
+    var cols = cut(r, false);
+    if (cols.length > 1 && depth < 6) { cols.forEach(function (q) { rec(q, depth + 1); }); return; }
+    out.push(r);
+  }
+  rec([0, 0, W, H], 0);
+  var area = W * H;
+  out = out.filter(function (r) { return (r[2] - r[0]) * (r[3] - r[1]) > area * 0.025 && r[2] - r[0] > W * 0.08 && r[3] - r[1] > H * 0.05; });
+  if (!out.length) out = [[0, 0, W, H]];
+  return out.map(function (r) { var px = 2; return { x: Math.max(0, (r[0] - px) / W), y: Math.max(0, (r[1] - px) / H), w: Math.min(1, (r[2] - r[0] + px * 2) / W), h: Math.min(1, (r[3] - r[1] + px * 2) / H), t: '' }; });
+}
+/* ---------- Admin: Text erkennen (kostenlos, läuft im Browser mit Tesseract) ---------- */
+var TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/', TWORKER = null;
+function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { rej(new Error('Laden fehlgeschlagen: ' + src)); }; document.head.appendChild(s); }); }
+async function ocrWorker() {
+  if (TWORKER) return TWORKER;
+  if (!window.Tesseract) await loadScript(TESS + 'tesseract.min.js');
+  TWORKER = await Tesseract.createWorker('deu', 1, { workerPath: TESS + 'worker.min.js', corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1', langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/deu/4.0.0_best_int' });
+  await TWORKER.setParameters({ tessedit_pageseg_mode: '6' });
+  return TWORKER;
+}
+function cleanComicText(lines) {
+  var keep = lines.filter(function (l) {
+    var t = (l.text || '').trim(); if (l.confidence < 55 || t.length < 2) return false;
+    var letters = (t.match(/[A-Za-zÄÖÜäöüß]/g) || []).length;
+    return letters / t.replace(/\s/g, '').length > 0.7 && /[A-Za-zÄÖÜäöüß]{2,}/.test(t);
+  }).map(function (l) { return l.text.trim(); });
+  var t = keep.join('\n').replace(/-\n(?=[a-zäöüß])/gi, '').replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').replace(/\s+([,.!?…])/g, '$1').trim();
+  var up = (t.match(/[A-ZÄÖÜ]/g) || []).length, lo = (t.match(/[a-zäöüß]/g) || []).length;
+  if (up > lo * 2) {   // Comic-Großbuchstaben → normal schreiben, damit es gut vorgelesen wird
+    t = t.toLowerCase().replace(/(^|[.!?…]\s+)([a-zäöü])/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\bich\b/g, 'ich');
+  }
+  return t;
+}
+async function ocrPanelWhole(img, b) {
+  var w = await ocrWorker(), sw = b.w * img.naturalWidth, sh = b.h * img.naturalHeight, k = Math.min(2.5, Math.max(1, 1400 / sw));
+  var c = document.createElement('canvas'); c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+  var g = c.getContext('2d'); g.imageSmoothingQuality = 'high'; g.drawImage(img, b.x * img.naturalWidth, b.y * img.naturalHeight, sw, sh, 0, 0, c.width, c.height);
+  var r = await w.recognize(c);
+  return cleanComicText((r.data && r.data.lines) || []);
+}
+/* Sprechblasen finden: zusammenhängende, fast weiße Flächen im Bild – jede Blase wird einzeln, freigestellt und schwarz-weiß gelesen */
+function findBubbles(img, b) {
+  var IW = img.naturalWidth, IH = img.naturalHeight, sx = b.x * IW, sy = b.y * IH, sw = b.w * IW, sh = b.h * IH;
+  var W = 260, H = Math.max(20, Math.round(sh * W / sw)), c = document.createElement('canvas'); c.width = W; c.height = H;
+  var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+  var d = g.getImageData(0, 0, W, H).data, wh = new Uint8Array(W * H), lab = new Int32Array(W * H), out = [];
+  for (var i = 0; i < W * H; i++) wh[i] = d[i * 4] > 215 && d[i * 4 + 1] > 215 && d[i * 4 + 2] > 215 ? 1 : 0;
+  var id = 0, stack = [];
+  for (var p = 0; p < W * H; p++) {
+    if (!wh[p] || lab[p]) continue;
+    id++; lab[p] = id; stack.push(p);
+    var n = 0, x0 = W, y0 = H, x1 = 0, y1 = 0, rowMin = {}, rowMax = {};
+    while (stack.length) {
+      var q = stack.pop(), x = q % W, y = (q / W) | 0; n++;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      if (rowMin[y] == null || x < rowMin[y]) rowMin[y] = x; if (rowMax[y] == null || x > rowMax[y]) rowMax[y] = x;
+      if (x > 0 && wh[q - 1] && !lab[q - 1]) { lab[q - 1] = id; stack.push(q - 1); }
+      if (x < W - 1 && wh[q + 1] && !lab[q + 1]) { lab[q + 1] = id; stack.push(q + 1); }
+      if (y > 0 && wh[q - W] && !lab[q - W]) { lab[q - W] = id; stack.push(q - W); }
+      if (y < H - 1 && wh[q + W] && !lab[q + W]) { lab[q + W] = id; stack.push(q + W); }
+    }
+    var bw = x1 - x0 + 1, bh = y1 - y0 + 1, A = W * H;
+    // Blase: mittelgroß, nicht der ganze Bildrand, ziemlich „voll“ (Ellipse/Kasten) und mit Schrift darin
+    var touches = (x0 === 0) + (y0 === 0) + (x1 === W - 1) + (y1 === H - 1);
+    if (n < A * 0.008 || bw * bh > A * 0.6 || touches > 1 || bw < 14 || bh < 8) continue;
+    var hull = 0, ink = 0;
+    for (var yy = y0; yy <= y1; yy++) { if (rowMin[yy] == null) continue; hull += rowMax[yy] - rowMin[yy] + 1; for (var xx = rowMin[yy]; xx <= rowMax[yy]; xx++) if (!wh[yy * W + xx]) ink++; }
+    if (n / (bw * bh) < 0.35 || ink < hull * 0.03) continue;
+    out.push({ x0: x0, y0: y0, x1: x1, y1: y1, rowMin: rowMin, rowMax: rowMax, k: sw / W, sx: sx, sy: sy });
+  }
+  out.sort(function (a, b2) { return (a.y0 - b2.y0) || (a.x0 - b2.x0); });
+  return out;
+}
+async function ocrBubble(img, bb) {
+  var w = await ocrWorker(), k = bb.k, X = bb.sx + bb.x0 * k, Y = bb.sy + bb.y0 * k, Wd = (bb.x1 - bb.x0 + 1) * k, Ht = (bb.y1 - bb.y0 + 1) * k;
+  var up = Math.min(3, Math.max(1.2, 900 / Wd)), c = document.createElement('canvas'); c.width = Math.round(Wd * up); c.height = Math.round(Ht * up);
+  var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, X, Y, Wd, Ht, 0, 0, c.width, c.height);
+  var id = g.getImageData(0, 0, c.width, c.height), d = id.data, s = up * k;
+  for (var y = 0; y < c.height; y++) {
+    var ry = bb.y0 + Math.floor(y / s), a = bb.rowMin[ry], b = bb.rowMax[ry];
+    for (var x = 0; x < c.width; x++) {
+      var rx = bb.x0 + x / s, o = (y * c.width + x) * 4, inside = a != null && rx >= a + 0.8 && rx <= b - 0.8;
+      var v = inside ? (d[o] * 0.3 + d[o + 1] * 0.59 + d[o + 2] * 0.11 < 140 ? 0 : 255) : 255;
+      d[o] = d[o + 1] = d[o + 2] = v;
+    }
+  }
+  g.putImageData(id, 0, 0);
+  var r = await w.recognize(c);
+  return cleanComicText((r.data && r.data.lines) || []);
+}
+async function ocrPanel(img, b) {
+  var bubbles = findBubbles(img, b), parts = [];
+  for (var i = 0; i < bubbles.length; i++) { var t = await ocrBubble(img, bubbles[i]); if (t) parts.push(t); }
+  if (parts.length) return parts.join(' ');
+  return ocrPanelWhole(img, b);
+}
+/* ---------- Admin: Editor ---------- */
+var CX = null;
+async function openComicEditor(id) {
+  var it = issueById(id); if (!it) return;
+  var pan = null; try { pan = await DB.get('texts', comicKey(it)); } catch (e) {}
+  CX = { it: it, pan: pan && pan.pages ? pan : { v: 1, pages: {} }, n: 1, sel: -1, dirty: false };
+  var el = document.createElement('div'); el.id = 'cxed'; el.className = 'cxed'; document.body.appendChild(el);
+  cxRender();
+}
+function cxBoxes() { return CX.pan.pages[CX.n] || (CX.pan.pages[CX.n] = []); }
+function cxRender() {
+  var it = CX.it, m = magById(it.magId) || {}, N = it.pageCount, bx = cxBoxes();
+  var h = '<div class="cxhead"><b>Bild für Bild · ' + esc(m.name || '') + ' ' + label(it) + '</b><span id="cxst">' + esc(CX.status || '') + '</span>' +
+    '<button class="ghost" id="cxauto1">Diese Seite erkennen</button><button class="ghost" id="cxautoA">Alle Seiten erkennen</button><button class="go small" id="cxsave">Speichern</button><button class="ghost" id="cxclose">Schließen</button></div>';
+  h += '<div class="cxbody"><div class="cxpages">';
+  for (var n = 1; n <= N; n++) { var c = (CX.pan.pages[n] || []).length; h += '<button class="' + (n === CX.n ? 'on' : '') + '" data-cxp="' + n + '"><img src="' + thumbURL(it, n) + '" alt="" loading="lazy"><span>' + n + (c ? ' · ' + c : '') + '</span></button>'; }
+  h += '</div><div class="cxmain"><div class="cxpage" id="cxpage"><img src="' + pageURL(it, CX.n) + '" alt="" draggable="false" crossorigin="anonymous">';
+  bx.forEach(function (b, i) { h += '<div class="cxbox' + (i === CX.sel ? ' sel' : '') + '" data-cxb="' + i + '" style="left:' + b.x * 100 + '%;top:' + b.y * 100 + '%;width:' + b.w * 100 + '%;height:' + b.h * 100 + '%"><i>' + (i + 1) + '</i><u data-cxr="' + i + '"></u></div>'; });
+  h += '</div><p class="cxhint">Auf freie Fläche ziehen = neues Bild · Bild ziehen = verschieben · Ecke unten rechts = Größe ändern</p></div><div class="cxlist">';
+  if (!bx.length) h += '<p class="cxhint">Noch keine Bilder auf dieser Seite. „Diese Seite erkennen“ oder selbst aufziehen. Ohne Bilder wird die ganze Seite gezeigt.</p>';
+  bx.forEach(function (b, i) {
+    h += '<div class="cxitem' + (i === CX.sel ? ' sel' : '') + '" data-cxi="' + i + '"><div class="cxih"><b>Bild ' + (i + 1) + '</b><button class="ghost" data-cxup="' + i + '" title="früher">↑</button><button class="ghost" data-cxdn="' + i + '" title="später">↓</button><button class="ghost" data-cxocr="' + i + '" title="Text dieses Bilds neu erkennen">Text</button><button class="ghost" data-cxdel="' + i + '" title="Bild entfernen" style="color:#C53030">✕</button></div>' +
+      '<textarea data-cxt="' + i + '" rows="3" placeholder="Text zum Vorlesen (leer = Bild ohne Text)">' + esc(b.t || '') + '</textarea></div>';
+  });
+  h += '</div></div>';
+  var el = $('#cxed'), sc = el.querySelector('.cxpages'), top = sc ? sc.scrollTop : 0;
+  el.innerHTML = h; el.querySelector('.cxpages').scrollTop = top;
+  cxBind();
+}
+function cxStatus(t) { CX.status = t || ''; var s = $('#cxst'); if (s) s.textContent = CX.status; }
+function cxBind() {
+  var el = $('#cxed');
+  $('#cxclose').onclick = function () { if (CX.dirty && !confirm('Änderungen verwerfen?')) return; el.remove(); CX = null; };
+  $('#cxsave').onclick = async function () { cxStatus('Speichere …'); try { await DB.put('texts', CX.pan, comicKey(CX.it)); CX.dirty = false; cxStatus('Gespeichert ✓'); } catch (e) { cxStatus('Fehler: ' + e.message); } };
+  $('#cxauto1').onclick = function () { cxAuto([CX.n]); };
+  $('#cxautoA').onclick = function () { var a = []; for (var n = 1; n <= CX.it.pageCount; n++) a.push(n); if (Object.keys(CX.pan.pages).some(function (k) { return CX.pan.pages[k].length; }) && !confirm('Alle Seiten neu erkennen? Deine bisherigen Rahmen und Texte werden ersetzt.')) return; cxAuto(a); };
+  $$('[data-cxp]', el).forEach(function (b) { b.onclick = function () { CX.n = +b.getAttribute('data-cxp'); CX.sel = -1; cxRender(); }; });
+  $$('[data-cxt]', el).forEach(function (t) { t.oninput = function () { cxBoxes()[+t.getAttribute('data-cxt')].t = t.value; CX.dirty = true; }; t.onfocus = function () { cxSel(+t.getAttribute('data-cxt')); }; });
+  $$('[data-cxdel]', el).forEach(function (b) { b.onclick = function () { cxBoxes().splice(+b.getAttribute('data-cxdel'), 1); CX.sel = -1; CX.dirty = true; cxRender(); }; });
+  $$('[data-cxup]', el).forEach(function (b) { b.onclick = function () { var i = +b.getAttribute('data-cxup'), a = cxBoxes(); if (i > 0) { a.splice(i - 1, 0, a.splice(i, 1)[0]); CX.sel = i - 1; CX.dirty = true; cxRender(); } }; });
+  $$('[data-cxdn]', el).forEach(function (b) { b.onclick = function () { var i = +b.getAttribute('data-cxdn'), a = cxBoxes(); if (i < a.length - 1) { a.splice(i + 1, 0, a.splice(i, 1)[0]); CX.sel = i + 1; CX.dirty = true; cxRender(); } }; });
+  $$('[data-cxocr]', el).forEach(function (b) { b.onclick = async function () { var i = +b.getAttribute('data-cxocr'); b.disabled = true; cxStatus('Lese Text …'); try { var img = await loadImg(pageURL(CX.it, CX.n)); cxBoxes()[i].t = await ocrPanel(img, cxBoxes()[i]); CX.dirty = true; cxStatus(''); cxRender(); } catch (e) { cxStatus('Texterkennung fehlgeschlagen: ' + e.message); b.disabled = false; } }; });
+  var pg = $('#cxpage');
+  pg.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    var R0 = pg.getBoundingClientRect(), fx = function (v) { return Math.max(0, Math.min(1, (v - R0.left) / R0.width)); }, fy = function (v) { return Math.max(0, Math.min(1, (v - R0.top) / R0.height)); };
+    var a = cxBoxes(), rs = e.target.getAttribute('data-cxr'), bxEl = e.target.closest('[data-cxb]'), x0 = fx(e.clientX), y0 = fy(e.clientY), mode, i, o;
+    if (rs != null) { mode = 'size'; i = +rs; } else if (bxEl) { mode = 'move'; i = +bxEl.getAttribute('data-cxb'); } else { mode = 'new'; a.push({ x: x0, y: y0, w: 0, h: 0, t: '' }); i = a.length - 1; }
+    o = Object.assign({}, a[i]); CX.sel = i;
+    var dom = function () { var d = pg.querySelector('[data-cxb="' + i + '"]'), b = a[i]; if (!d) { cxRender(); return; } d.style.left = b.x * 100 + '%'; d.style.top = b.y * 100 + '%'; d.style.width = b.w * 100 + '%'; d.style.height = b.h * 100 + '%'; };
+    if (mode === 'new') cxRender();
+    pg = $('#cxpage'); pg.setPointerCapture && pg.setPointerCapture(e.pointerId);
+    var mv = function (ev) {
+      var x = fx(ev.clientX), y = fy(ev.clientY), b = a[i];
+      if (mode === 'new') { b.x = Math.min(x0, x); b.y = Math.min(y0, y); b.w = Math.abs(x - x0); b.h = Math.abs(y - y0); }
+      else if (mode === 'move') { b.x = Math.max(0, Math.min(1 - b.w, o.x + x - x0)); b.y = Math.max(0, Math.min(1 - b.h, o.y + y - y0)); }
+      else { b.w = Math.max(0.03, Math.min(1 - b.x, o.w + x - x0)); b.h = Math.max(0.03, Math.min(1 - b.y, o.h + y - y0)); }
+      CX.dirty = true; dom();
+    };
+    var up = function () {
+      document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
+      if (mode === 'new' && (a[i].w < 0.03 || a[i].h < 0.03)) { a.splice(i, 1); CX.sel = -1; }
+      cxRender();
+    };
+    document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
+  });
+}
+function cxSel(i) { CX.sel = i; $$('#cxed [data-cxb]').forEach(function (d) { d.classList.toggle('sel', +d.getAttribute('data-cxb') === i); }); $$('#cxed [data-cxi]').forEach(function (d) { d.classList.toggle('sel', +d.getAttribute('data-cxi') === i); }); }
+async function cxAuto(pages) {
+  var bts = $$('#cxed .cxhead button'); bts.forEach(function (b) { b.disabled = true; });
+  try {
+    for (var k = 0; k < pages.length; k++) {
+      var n = pages[k]; cxStatus('Seite ' + n + ' (' + (k + 1) + '/' + pages.length + '): Bilder suchen …');
+      var img = await loadImg(pageURL(CX.it, n)), boxes = detectPanels(img);
+      for (var j = 0; j < boxes.length; j++) {
+        cxStatus('Seite ' + n + ' (' + (k + 1) + '/' + pages.length + '): Text lesen ' + (j + 1) + '/' + boxes.length + (TWORKER ? '' : ' – Texterkennung wird geladen …'));
+        try { boxes[j].t = await ocrPanel(img, boxes[j]); } catch (e) { console.warn(e); }
+      }
+      CX.pan.pages[n] = boxes; CX.dirty = true;
+      if (n === CX.n || pages.length === 1) { CX.n = n; }
+    }
+    await DB.put('texts', CX.pan, comicKey(CX.it)); CX.dirty = false;
+    cxStatus('Fertig und gespeichert ✓ – bitte Rahmen und Texte kurz prüfen');
+  } catch (e) { cxStatus('Fehler: ' + e.message); }
+  cxRender();
+}
 /* ================= Reader: Blättern wie im Buch ================= */
 var R = null;
 var pageURLs = {};
@@ -2624,11 +2984,13 @@ function openReader(issueId, preview, startPage) {
   if (startPage) { var si = leaves.findIndex(function (l) { return l.type === 'img' && l.n === Number(startPage); }); if (si >= 0) start = si; }
   R = { it: it, preview: preview, leaves: leaves, cur: start, fdir: 0, fp: 0, anim: false, txt: null };
   DB.get('texts', it.id).then(function (rec) { if (R && R.it.id === it.id) R.txt = rec || null; });
+  DB.get('texts', comicKey(it)).then(function (p) { if (R && R.it.id === it.id && hasPanels(p)) { R.pan = p; var b = $('#rgvbtn'); if (b) b.hidden = false; } }).catch(function () {});
   if (S.screen !== 'reader') S.back = S.screen;
   S.screen = 'reader'; S.sheet = null; S.menu = false;
   render();
 }
 function closeReader() {
+  if (GV) closeGuided();
   hideTextCard();
   Object.keys(pageURLs).forEach(function (k) { URL.revokeObjectURL(pageURLs[k]); });
   pageURLs = {};
@@ -2639,7 +3001,7 @@ function closeReader() {
 function readerHTML() {
   var it = R.it, m = magById(it.magId);
   var h = '<div class="reader"><div class="rtop"><button class="btn roundbtn" data-act="closereader" aria-label="Reader schließen">' + ICON.close + '</button><button class="btn roundbtn rmarkbtn" id="rmarkbtn" data-act="mark" aria-label="Lesezeichen setzen">' + ICON.mark + '</button>' +
-    '<div class="rtitle"><b>' + esc(m.name) + '</b><span>' + (R.preview ? 'Leseprobe · ' : '') + label(it) + '</span></div><div class="rpage" id="rpage"></div><button class="btn roundbtn" data-act="allpages" aria-label="Alle Seiten auf einen Blick">' + ICON.grid + '</button><button class="btn roundbtn" data-act="lmfromreader" aria-label="Lesemodus" style="font-weight:750;font-size:15px">Aa</button><button class="btn roundbtn zoombtn" id="rzoom" data-act="zoom" aria-label="Lupe: Seite vergrößern" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg></button></div>' +
+    '<div class="rtitle"><b>' + esc(m.name) + '</b><span>' + (R.preview ? 'Leseprobe · ' : '') + label(it) + '</span></div><div class="rpage" id="rpage"></div><button class="btn roundbtn rgvbtn" id="rgvbtn" data-act="guided" aria-label="Bild für Bild lesen"' + (hasPanels(R.pan) ? '' : ' hidden') + '><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg></button><button class="btn roundbtn" data-act="allpages" aria-label="Alle Seiten auf einen Blick">' + ICON.grid + '</button><button class="btn roundbtn" data-act="lmfromreader" aria-label="Lesemodus" style="font-weight:750;font-size:15px">Aa</button><button class="btn roundbtn zoombtn" id="rzoom" data-act="zoom" aria-label="Lupe: Seite vergrößern" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg></button></div>' +
     '<div class="rstage" id="rstage"><div class="book" id="book">';
   R.leaves.forEach(function (l, i) {
     h += '<div class="leaf" data-i="' + i + '"><div class="face front">';
@@ -3286,7 +3648,7 @@ var ACT = {
     else { S.saved.push(id); savePrefs(); toast('In die Bibliothek gelegt'); }
   },
   rackedit: function () { S.rackEdit = !S.rackEdit; render(); },
-  rackreset: function () { shelfSt().pos = {}; savePrefs(); render(); },
+  rackreset: function () { shelfSt()[S.libView === 'kiosk' ? 'posK' : 'pos'] = {}; savePrefs(); render(); },
   libview: function (v) { S.libView = v; S.rackEdit = false; render(); },   // bewusst nicht gespeichert: jeder App-Start beginnt mit dem Raster
   libfilter: function (f) { S.libFilter = f; var sc = $('#kpage') ? $('#kpage').scrollTop : 0; render(); },
   libgroup: function (g) { S.libGroup = g; S.settings.libGroup = g; savePrefs(); render(); },
@@ -3401,6 +3763,7 @@ var ACT = {
   },
   closesheet: function () { S.sheet = null; S.pendingBuy = null; rerender(); },
   closereader: function () { closeReader(); },
+  guided: function () { openGuided(); },
   zoom: function () { if (R) { hideTextCard(); setZoom(!R.zoom); } },
   tcclose: function () { hideTextCard(); },
   tcnav: function (d) { if (TC) { var sp = TC.speaking; if (sp) { TTSRUN++; ttsCancel(); TC.speaking = false; } var n = R.txt.pages[TC.page - 1].length; showTextCard(TC.page, Math.max(0, Math.min(n - 1, TC.k + Number(d)))); if (sp) speakCard(); } },
@@ -3541,6 +3904,7 @@ function renderPanel() {
   h += '<div id="form" style="margin-top:14px;display:none">';
   h += '<div class="pf"><label for="fMag">Magazin</label><select id="fMag">' + mags.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('') + '<option value="__new">+ Neues Magazin anlegen</option></select></div>';
   h += '<div class="newmag" id="newmag"><div class="pf"><label for="fName">Name des Magazins</label><input id="fName" type="text" placeholder="z. B. PC Games"></div>' +
+    '<div class="pf"><label for="fKind">Art</label>' + kindSel('id="fKind"', 'mag') + '<small style="color:#6B6B73">Zeitschriften stehen im Ständer und Kiosk, Bücher und Comics im Regal.</small></div>' +
     '<div class="prow"><div class="pf"><label for="fCat">Kategorie</label><input id="fCat" type="text" list="catlist" placeholder="z. B. Games"></div><div class="pf"><label for="fColor">Farbe</label><input id="fColor" type="color" style="padding:3px"></div></div>' +
     '<div class="pf"><label>Bild / Logo des Magazins (optional)</label>' + imgPick('newlogo', U.newLogoURL || '', '', 'image/*') + '</div>' +
     '<div class="prow"><div class="pf"><label for="fAm">Monatsabo</label><input id="fAm" type="text" value="4,99 € / Monat"></div><div class="pf"><label for="fAy">Jahresabo</label><input id="fAy" type="text" value="49,99 € / Jahr"></div></div></div>';
@@ -3571,14 +3935,14 @@ function renderPanel() {
     h += '<div class="ilist">' + mags.map(function (m) {
       var r = '<div class="imag"><div style="display:flex;align-items:center;gap:8px">' + (S.logos[m.id] ? '<img src="' + S.logos[m.id] + '" alt="" style="width:26px;height:26px;border-radius:13px;object-fit:cover">' : '<i style="width:12px;height:12px;border-radius:6px;background:' + esc(m.color) + ';display:block"></i>') + '<b>' + esc(m.name) + '</b></div>';
       r += '<details class="ed"><summary>Magazin bearbeiten</summary>' +
-        '<div class="pf"><label>Name</label><input type="text" data-m="' + m.id + '" data-k="name" value="' + esc(m.name) + '"></div>' +
+        '<div class="prow"><div class="pf"><label>Name</label><input type="text" data-m="' + m.id + '" data-k="name" value="' + esc(m.name) + '"></div><div class="pf" style="flex:.6"><label>Art</label>' + kindSel('data-m="' + m.id + '" data-k="kind"', m.kind) + '</div></div>' +
         '<div class="prow"><div class="pf"><label>Kategorie</label><input type="text" list="catlist" data-m="' + m.id + '" data-k="cat" value="' + esc(m.cat || '') + '"></div><div class="pf"><label>Farbe</label><input type="color" data-m="' + m.id + '" data-k="color" value="' + esc(m.color || '#888888') + '" style="padding:3px"></div></div>' +
         '<div class="pf"><label>Bild / Logo</label>' + imgPick('logo:' + m.id, S.logos[m.id] || '', '', 'image/*') + '</div>' +
         '<div class="prow"><div class="pf"><label>Monatsabo</label><input type="text" data-m="' + m.id + '" data-k="aboMonth" value="' + esc(m.aboMonth || '') + '"></div><div class="pf"><label>Jahresabo</label><input type="text" data-m="' + m.id + '" data-k="aboYear" value="' + esc(m.aboYear || '') + '"></div></div>' +
         '<button class="go small" data-savemag="' + m.id + '">Speichern</button></details>';
       r += issuesOf(m.id).map(function (it) {
         var sp = samplePagesOf(it);
-        return '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
+        return '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
           '<details class="ed"><summary>Ausgabe bearbeiten</summary>' +
           '<div class="prow"><div class="pf"><label>Einzelpreis</label><input type="text" data-i="' + it.id + '" data-k="price" value="' + esc(it.price) + '"></div><div class="pf"><label>Leseprobe-Seiten</label><input type="text" data-i="' + it.id + '" data-k="sample" value="' + esc(fmtPages(sp).replace(/–/g, '-')) + '"></div></div>' +
           '<div class="pf"><label>Verkauf dieser Ausgabe</label><select data-i="' + it.id + '" data-k="sale"><option value="">Wie beim Magazin (' + SALE[(magById(it.magId) || {}).sale || 'options'] + ')</option>' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + (it.sale === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div>' +
@@ -3659,7 +4023,7 @@ function renderPanel() {
     '<label class="ck">Hintergrund im Hell-Modus<input type="color" id="cBgL" value="' + esc(themeBg('light')) + '"></label>' +
     '<div class="pf" style="margin-top:8px"><label for="cLook">Standard-Darstellung der App</label><select id="cLook">' + [['system', 'Automatisch (wie das Gerät)'], ['light', 'Hell'], ['dark', 'Dunkel']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.look || 'system') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<div class="help">Leser können das im Menü unter „Darstellung“ selbst umstellen.</div>' +
-    '<div class="pf" style="margin-top:8px"><label for="cRack">Zeitschriftenständer in der Bibliothek</label><select id="cRack">' + [['auto', 'Passend zu den App-Farben'], ['wood', 'Holz'], ['metal', 'Metall'], ['dark', 'Dunkel (Anthrazit)']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.rackMat || 'dark') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
+    '<div class="pf" style="margin-top:8px"><label for="cRack">Zeitschriftenständer in der Bibliothek</label><select id="cRack">' + [['auto', 'Passend zu den App-Farben'], ['wood', 'Holz'], ['metal', 'Metall'], ['dark', 'Dunkel (Anthrazit)']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.rackMat || 'wood') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<label class="ck">Akzentfarbe (Buttons, Markierungen)<input type="color" id="cAccent" value="' + esc(S.cfg.accent) + '"></label>' +
     '<label class="ck">Akzent folgt der Farbe des Magazins<input type="checkbox" id="cMagAcc"' + (S.cfg.magAccent ? ' checked' : '') + '></label>' +
     '<div class="help" style="margin-top:4px">Schrift- und Flächenfarben passen sich automatisch an hellen oder dunklen Hintergrund an.</div></div>';
@@ -3931,6 +4295,7 @@ function bindPanel() {
       } catch (e) { st.textContent = 'Das PDF konnte nicht gelesen werden.'; }
     });
   });
+  $$('[data-comic]', panel).forEach(function (b) { b.addEventListener('click', function () { openComicEditor(b.getAttribute('data-comic')); }); });
   $$('[data-mkthumbs]', panel).forEach(function (b) {
     b.addEventListener('click', async function () {
       var it = issueById(b.getAttribute('data-mkthumbs')); if (!it || b.disabled) return;
@@ -4064,7 +4429,7 @@ function restoreForm() {
 }
 function rememberForm() {
   U.form = {};
-  ['fMag', 'fName', 'fCat', 'fColor', 'fAm', 'fAy', 'fMonth', 'fYear', 'fPrice', 'fLim', 'fSample', 'fTeaser'].forEach(function (id) {
+  ['fMag', 'fName', 'fKind', 'fCat', 'fColor', 'fAm', 'fAy', 'fMonth', 'fYear', 'fPrice', 'fLim', 'fSample', 'fTeaser'].forEach(function (id) {
     var el = $('#' + id, panel); if (!el) return;
     U.form[id] = el.value;
     el.addEventListener('input', function () { U.form[id] = el.value; });
@@ -4087,7 +4452,7 @@ async function processUpload() {
     if (!name) { alert('Bitte einen Namen für das Magazin eingeben.'); $('#fName', panel).focus(); return; }
     var id = slug(name), n2 = 2;
     while (magById(id)) id = slug(name) + n2++;
-    mag = { id: id, name: name, cat: $('#fCat', panel).value.trim(), color: $('#fColor', panel).value, aboMonth: $('#fAm', panel).value.trim(), aboYear: $('#fAy', panel).value.trim(), created: Date.now() };
+    mag = { id: id, name: name, cat: $('#fCat', panel).value.trim(), kind: ($('#fKind', panel) || {}).value || 'mag', color: $('#fColor', panel).value, aboMonth: $('#fAm', panel).value.trim(), aboYear: $('#fAy', panel).value.trim(), created: Date.now() };
     if (U.newLogo) { mag.logo = U.newLogo; mag.logoAspect = U.newLogoAspect || 1; mag.logoBg = U.newLogoBg || '#FFFFFF'; }
   } else mag = magById(selV);
   var issueId = mag.id + '-' + year + '-' + pad(month);
