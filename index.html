@@ -357,6 +357,14 @@ details.imag[open] > .imsum::before{transform:rotate(90deg)}
 .admnav::-webkit-scrollbar{display:none}
 .admnav button{flex:none;border:1px solid #E2E2E6;background:#fff;border-radius:16px;height:30px;padding:0 12px;font:600 12.5px system-ui,-apple-system,sans-serif;color:#3A3A40;cursor:pointer;white-space:nowrap}
 .admnav button:hover{border-color:#2B6CB0;color:#2B6CB0}
+.psec.fold>h2{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.psec.fold>h2::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid #9A9AA2;border-bottom:2px solid #9A9AA2;transform:rotate(45deg);transition:transform .15s}
+.psec.fold.closed>h2::after{transform:rotate(-45deg)}
+.psec.fold.closed>*:not(h2){display:none!important}
+.psec.fold.closed{padding-bottom:4px}
+.imove{display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-size:12px;color:#6B6B73;font-weight:600}
+.imove select{flex:1;min-width:0;height:32px;font-size:13px;padding:0 8px;border-radius:8px}
+.inew{background:#F6F6F8;border-radius:10px;padding:10px;margin:6px 0}
 .lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
 .lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
@@ -849,7 +857,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '24.11.2026 11:53';
+var APP_BUILD = '24.11.2026 12:06';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1701,7 +1709,7 @@ function spineHTML(it, extra, style) {
 function kindOf(it) { var m = magById(it.magId); return (m && m.kind) || 'mag'; }
 function isBookish(it) { var k = kindOf(it); return k === 'book' || k === 'comic'; }
 var KINDS = [['mag', 'Zeitschrift'], ['book', 'Buch'], ['comic', 'Comic']];
-var ADMOPEN = {};
+var ADMOPEN = {}, PSOPEN = {};
 function kindSel(attrs, val) { return '<select ' + attrs + '>' + KINDS.map(function (k) { return '<option value="' + k[0] + '"' + ((val || 'mag') === k[0] ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>'; }
 function libShelfHTML(lib) {
   var st = shelfSt(), list0 = lib.filter(libMatch), G = S.libGroup || 'year';
@@ -3934,6 +3942,21 @@ function bindLogin() {
     catch (err) { $('#aErr', panel).textContent = err.message; b.disabled = false; b.textContent = 'Anmelden'; }
   });
 }
+
+/* Ausgabe direkt einem Titel zuordnen (oder neuen Titel anlegen) – sichtbar an jeder Ausgabe */
+function moveRowHTML(it) {
+  var all = (S.allMags || S.mags).slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); });
+  var KL = { mag: 'Zeitschrift', book: 'Buch', comic: 'Comic' };
+  return '<div class="imove"><span>Gehört zu</span><select data-move="' + esc(it.id) + '">' + all.map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + ' (' + KL[mm.kind || 'mag'] + (mm.cat ? ' · ' + esc(mm.cat) : '') + ')</option>'; }).join('') + '<option value="__new">+ Neuen Titel anlegen …</option></select></div>' +
+    '<div class="inew" id="inew-' + esc(it.id) + '" hidden><div class="prow"><div class="pf"><label>Name des neuen Titels</label><input type="text" data-nn="' + esc(it.id) + '" placeholder="z. B. Absolute Batman"></div></div>' +
+    '<div class="prow"><div class="pf"><label>Bereich</label>' + kindSel('data-nk="' + esc(it.id) + '"', S.admKind || 'mag') + '</div><div class="pf"><label>Kategorie (optional)</label><input type="text" list="catlist" data-nc="' + esc(it.id) + '" placeholder="z. B. Action"></div></div>' +
+    '<div class="prow2"><button class="go small" data-nmake="' + esc(it.id) + '">Anlegen &amp; Ausgabe verschieben</button><button class="ghost" data-ncancel="' + esc(it.id) + '">Abbrechen</button></div></div>';
+}
+async function moveIssueTo(it, mag) {
+  it.magId = mag.id; await DB.put('issues', it); await loadData();
+  S.admKind = mag.kind || 'mag'; ADMOPEN[mag.id] = true; rerender(); renderPanel();
+  toast(label(it) + ' → ' + mag.name);
+}
 function renderPanel() {
   var mags = S.mags;
   var brand = S.ads.brand || {};
@@ -3994,9 +4017,8 @@ function renderPanel() {
         '<button class="go small" data-savemag="' + m.id + '">Speichern</button></details>';
       r += issuesOf(m.id).map(function (it) {
         var sp = samplePagesOf(it);
-        return '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
+        return moveRowHTML(it) + '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
           '<details class="ed"><summary>Ausgabe bearbeiten</summary>' +
-          '<div class="pf"><label>Gehört zu</label><select data-i="' + it.id + '" data-k="magId">' + (S.allMags || S.mags).slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); }).map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + ' · ' + ({ mag: 'Zeitschrift', book: 'Buch', comic: 'Comic' })[mm.kind || 'mag'] + (mm.cat ? ' · ' + esc(mm.cat) : '') + '</option>'; }).join('') + '</select></div>' +
           '<div class="prow"><div class="pf"><label>Einzelpreis</label><input type="text" data-i="' + it.id + '" data-k="price" value="' + esc(it.price) + '"></div><div class="pf"><label>Leseprobe-Seiten</label><input type="text" data-i="' + it.id + '" data-k="sample" value="' + esc(fmtPages(sp).replace(/–/g, '-')) + '"></div></div>' +
           '<div class="pf"><label>Verkauf dieser Ausgabe</label><select data-i="' + it.id + '" data-k="sale"><option value="">Wie beim Magazin (' + SALE[(magById(it.magId) || {}).sale || 'options'] + ')</option>' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + (it.sale === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div>' +
           '<div class="pf"><label>Kurzbeschreibung</label><textarea data-i="' + it.id + '" data-k="teaser">' + esc(it.teaser || '') + '</textarea></div>' +
@@ -4110,11 +4132,18 @@ function renderPanel() {
   h += '<div class="psec"><h2>Speicher</h2><div class="prow2"><button class="ghost red" id="cWipe">Alle Magazine löschen</button></div><div class="store">Daten liegen in Supabase: ' + esc(SBURL.replace(/^https?:\/\//, '')) + '</div></div>';
   var st = panel.scrollTop;
   panel.innerHTML = h;
+  // Abschnitte zum Auf- und Zuklappen – nur „Neue Ausgabe“ und „Magazine & Ausgaben“ sind anfangs offen
+  $$('.psec > h2', panel).forEach(function (h2) {
+    var key = h2.textContent.trim(), sec = h2.parentNode;
+    if (PSOPEN[key] == null) PSOPEN[key] = /Neue Ausgabe|Magazine/.test(key);
+    sec.classList.add('fold'); sec.classList.toggle('closed', !PSOPEN[key]);
+    h2.addEventListener('click', function () { PSOPEN[key] = sec.classList.contains('closed'); sec.classList.toggle('closed', !PSOPEN[key]); });
+  });
   // Sprungleiste zu allen Bereichen – oben angeheftet, damit man nicht endlos scrollt
   (function () {
     var hs = $$('.psec > h2', panel); if (hs.length < 3) return;
     var nav = document.createElement('div'); nav.className = 'admnav';
-    hs.forEach(function (h2, i) { h2.id = 'adm-s' + i; var b = document.createElement('button'); b.textContent = h2.textContent.replace(/\s*\(optional\)/i, ''); b.onclick = function () { h2.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; nav.appendChild(b); });
+    hs.forEach(function (h2, i) { h2.id = 'adm-s' + i; var b = document.createElement('button'); b.textContent = h2.textContent.replace(/\s*\(optional\)/i, ''); b.onclick = function () { var sec = h2.parentNode, key = h2.textContent.trim(); PSOPEN[key] = true; sec.classList.remove('closed'); h2.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; nav.appendChild(b); });
     var first = hs[0].parentNode; first.parentNode.insertBefore(nav, first);
   })();
   panel.scrollTop = st;
@@ -4321,6 +4350,25 @@ function bindPanel() {
   $('#bTitle', panel).addEventListener('change', function (e) { saveAd('brand', { title: e.target.value.trim() || null }); });
 
   /* Magazin / Ausgabe bearbeiten */
+  $$('[data-move]', panel).forEach(function (sel) {
+    sel.addEventListener('change', async function () {
+      var id = sel.getAttribute('data-move'), it = issueById(id), v = sel.value, box = $('#inew-' + id, panel);
+      if (v === '__new') { box.hidden = false; var n = box.querySelector('[data-nn]'); n.focus(); return; }
+      box.hidden = true;
+      var mag = (S.allMags || S.mags).filter(function (x) { return x.id === v; })[0];
+      if (it && mag && mag.id !== it.magId) await moveIssueTo(it, mag);
+    });
+  });
+  $$('[data-ncancel]', panel).forEach(function (b) { b.addEventListener('click', function () { var id = b.getAttribute('data-ncancel'), it = issueById(id); $('#inew-' + id, panel).hidden = true; $('[data-move="' + id + '"]', panel).value = it.magId; }); });
+  $$('[data-nmake]', panel).forEach(function (b) {
+    b.addEventListener('click', async function () {
+      var id = b.getAttribute('data-nmake'), it = issueById(id), name = $('[data-nn="' + id + '"]', panel).value.trim();
+      if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+      var all = S.allMags || S.mags, mid = slug(name), n2 = 2; while (all.some(function (x) { return x.id === mid; })) mid = slug(name) + n2++;
+      var mag = { id: mid, name: name, kind: $('[data-nk="' + id + '"]', panel).value, cat: $('[data-nc="' + id + '"]', panel).value.trim(), color: PALETTE[all.length % PALETTE.length], created: Date.now() };
+      b.disabled = true; await DB.put('mags', mag); await moveIssueTo(it, mag);
+    });
+  });
   $$('[data-admkind]', panel).forEach(function (b) { b.addEventListener('click', function () { S.admKind = b.getAttribute('data-admkind'); renderPanel(); }); });
   $$('details.imag', panel).forEach(function (d) { d.addEventListener('toggle', function () { ADMOPEN[d.getAttribute('data-mid')] = d.open; }); });
   var fnd = $('#admFind', panel), applyFind = function () { var q = (fnd.value || '').trim().toLowerCase(); S.admFind = fnd.value; $$('details.imag', panel).forEach(function (d) { var t = (d.querySelector('.imname b') || {}).textContent || ''; d.style.display = !q || t.toLowerCase().indexOf(q) >= 0 ? '' : 'none'; }); };
@@ -4351,8 +4399,7 @@ function bindPanel() {
       it.freePages = it.samplePages.length;
       it.teaser = get('teaser');
       it.sale = get('sale');
-      var nm = get('magId'), moved = nm && nm !== it.magId && (S.allMags || S.mags).filter(function (x) { return x.id === nm; })[0];
-      if (moved) it.magId = nm;
+      var moved = false;
       await DB.put('issues', it); await loadData(); rerender(); renderPanel(); toast(moved ? 'Ausgabe verschoben zu ' + moved.name : 'Ausgabe gespeichert');
     });
   });
