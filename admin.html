@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Magazin-Kiosk · Redaktion</title>
+<title>Pixel-Mania · Admin</title>
 <style>
 :root{--accent:#FF7A45;--bg:#121214;--surf:#1C1C20;--surf2:#232328;--line:#2A2A31;--muted:#A3A3AD;--muted2:#8A8A95;--text:#F3F2EF}
 *{box-sizing:border-box}
@@ -222,6 +222,11 @@ body.full .lgsel select{font-size:13.5px!important;height:30px}
   box-shadow:0 0 0 .5px rgba(0,0,0,.4),2px 0 3px rgba(0,0,0,.25);transition:transform .22s cubic-bezier(.2,.8,.2,1);touch-action:pan-y;user-select:none;-webkit-user-select:none;color:var(--ink)}
 .lsp::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.25);border-radius:2px 2px 0 0}
 .lsp .t{position:absolute;inset:28px 0 24px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.lsp.k-book{border-radius:3px 3px 1px 1px;box-shadow:inset 3px 0 0 rgba(255,255,255,.12),inset -3px 0 0 rgba(0,0,0,.18)}
+.lsp.k-book::after{content:"";position:absolute;left:0;right:0;top:14px;height:3px;background:rgba(255,255,255,.35);box-shadow:0 calc(var(--sh) - 34px) 0 rgba(255,255,255,.35);pointer-events:none}
+.lsp.k-book .t{inset:22px 0 22px;font-size:12px;font-weight:750;letter-spacing:.06em}
+.lsp.k-book .lg,.lsp.k-comic .lg{top:auto;bottom:8px;height:auto;aspect-ratio:1;max-height:calc(var(--sw) - 6px)}
+.lsp.k-comic .t{inset:10px 0 26px;font-size:8px}
 .lsp .t i{font-style:normal;font-weight:600;letter-spacing:.04em;opacity:.85;margin-top:8px}
 .lsp .lg{position:absolute;top:7px;left:50%;width:calc(var(--sw) - 5px);height:15px;transform:translateX(-50%);border-radius:2px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:5.5px;font-weight:900;color:var(--sc);overflow:hidden}
 .lsp .lg img{width:100%;height:100%;object-fit:contain;background:#fff}
@@ -299,6 +304,56 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .gvcap{position:absolute;left:14px;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));padding:10px 14px;border-radius:14px;background:rgba(20,20,24,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:15px;line-height:1.4;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;max-height:30vh;overflow:hidden}
 .gvcap.on{opacity:1;transform:none}
 .rgvbtn[hidden]{display:none}
+.rtocbtn[hidden]{display:none}
+.tochot{position:absolute;z-index:2;border-radius:4px;background:rgba(255,122,69,.10);box-shadow:inset 0 -2px 0 rgba(255,122,69,.55);pointer-events:none;animation:tochot 2.4s ease}
+@keyframes tochot{0%,40%{background:rgba(255,122,69,.28)}}
+.rtoc{position:absolute;inset:0;z-index:80;display:flex;justify-content:flex-end;align-items:stretch}
+.rtocscrim{position:absolute;inset:0;background:rgba(0,0,0,.5);width:100%;height:100%;animation:fade .25s ease}
+.rtocp{position:relative;width:min(400px,90%);height:100%;background:var(--surf);color:var(--text);display:flex;flex-direction:column;animation:rtocin .3s cubic-bezier(.2,.8,.25,1);box-shadow:-16px 0 40px rgba(0,0,0,.35)}
+.rtoc.out .rtocp{transform:translateX(40px);opacity:0;transition:transform .2s,opacity .2s}.rtoc.out .rtocscrim{opacity:0;transition:opacity .2s}
+@keyframes rtocin{from{transform:translateX(40px);opacity:0}}
+.tgrab{display:none}
+.tchead{display:flex;gap:14px;align-items:flex-start;padding:max(18px,env(safe-area-inset-top)) 16px 16px 20px;border-bottom:1px solid var(--line)}
+.tccov{width:62px;height:84px;object-fit:cover;border-radius:5px;box-shadow:0 6px 16px rgba(0,0,0,.35);flex:none;background:var(--chip)}
+.tcmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tcmeta small{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.tcmeta b{font-size:19px;line-height:1.2;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcmeta>span{font-size:13px;color:var(--muted)}
+.tcprog{height:4px;border-radius:2px;background:var(--chip);margin-top:9px;overflow:hidden}.tcprog i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.tcmeta .tcpos{font-size:11.5px;margin-top:3px}
+.tcx{flex:none;width:36px;height:36px}
+.tcsearch{padding:12px 16px 4px}
+.tcsearch input{width:100%;height:40px;border-radius:12px;border:0;background:var(--chip);color:var(--text);padding:0 14px;font-size:16px}
+.rtocl{flex:1;overflow:auto;padding:8px 10px max(24px,env(safe-area-inset-bottom))}
+.tci{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:10px 10px;border-radius:14px;color:var(--text);position:relative;transition:background .15s}
+.tci:active{background:var(--chip)}
+.tci[hidden]{display:none}
+.tcth{position:relative;width:44px;height:60px;flex:none;border-radius:4px;overflow:hidden;background:var(--chip);box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.tcth img{width:100%;height:100%;object-fit:cover;display:block}
+.tcth em{position:absolute;left:0;bottom:0;font-style:normal;font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);padding:1px 5px;border-top-right-radius:4px}
+.tct{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tct b{font-size:15.5px;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tct small{font-size:11.5px;color:var(--muted);font-weight:600}
+.tct small.here{color:var(--accent)}
+.tcp{flex:none;display:flex;align-items:center;gap:4px;min-width:38px;justify-content:center;height:26px;padding:0 9px;border-radius:13px;background:var(--chip);font-size:12.5px;font-weight:700;color:var(--text2,var(--text));font-variant-numeric:tabular-nums}
+.tcp svg{width:11px;height:11px}
+.tci.sub{padding:7px 10px 7px 22px;gap:12px}
+.tci.sub .tcl{width:2px;align-self:stretch;background:var(--line);border-radius:1px;margin:0 20px 0 10px}
+.tci.sub .tct b{font-size:14px;font-weight:500;color:var(--text2,var(--text))}
+.tci.sub .tcp{background:none;color:var(--muted);height:22px}
+.tci.on{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.tci.on::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--accent)}
+.tci.on .tcp{background:var(--accent);color:var(--onaccent,#fff)}
+.tci.lock{opacity:.55}
+.tcempty{text-align:center;color:var(--muted);padding:30px 0;font-size:14px}
+@media (max-width:600px) and (orientation:portrait){
+  .rtoc{align-items:flex-end}
+  .rtocp{width:100%;height:86%;border-radius:22px 22px 0 0;animation:rtocup .32s cubic-bezier(.2,.8,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.35)}
+  .rtoc.out .rtocp{transform:translateY(60px)}
+  .tgrab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0}
+  .tchead{padding-top:12px}
+}
+@keyframes rtocup{from{transform:translateY(80px);opacity:0}}
 .cxed{position:fixed;inset:0;z-index:2000;background:#F4F4F6;display:flex;flex-direction:column;font:14px/1.4 system-ui,-apple-system,sans-serif;color:#1B1B1F}
 .cxhead{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #E2E2E6;background:#fff;flex-wrap:wrap}
 .cxhead b{font-size:15px}.cxhead #cxst{flex:1;color:#2B6CB0;font-size:12.5px;min-width:120px}
@@ -325,6 +380,16 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .cxitem textarea{width:100%;box-sizing:border-box;font:14px/1.4 system-ui;border:1px solid #DADADF;border-radius:6px;padding:6px;resize:vertical}
 .kseg{display:inline-flex;margin-left:auto;background:#EEEEF1;border-radius:8px;padding:2px;gap:2px;flex:none;order:9}
 .kseg button{border:0;background:none;font:600 11.5px system-ui,-apple-system,sans-serif;color:#55555D;padding:4px 9px;border-radius:6px;cursor:pointer;height:auto;width:auto}
+.bookl .bk{border:1px solid #E4E3DF;border-radius:12px;padding:10px 12px 4px;margin-bottom:10px;background:#fff}
+.updtab{margin-top:10px}.updrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #EEEDEA;font-size:13px}
+.updrow .fn{flex:0 0 34%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.updrow select{flex:0 0 34%;min-width:0}
+.updrow .st{flex:1;color:#6B6B73}.updrow .st.ok{color:#1E6B3A}.updrow .st.err{color:#B42318}
+.tocrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #EEEDEA}
+.tocrow img{width:32px;height:44px;object-fit:cover;border-radius:3px;background:#EEE;flex:none}
+.tocrow>input{flex:1;min-width:0}
+.tocrow label{display:flex;flex-direction:column;width:68px;flex:none;margin:0}.tocrow label small{font-size:10px;color:#8A8A92}.tocrow label input{width:100%}
+.tocoff{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;flex-wrap:wrap}.tocoff input{width:70px}
+.dupwarn{background:#FFF6DC;border:1px solid #F1D58A;color:#6B4E00;border-radius:10px;padding:9px 12px;margin:10px 0;font-size:13px;line-height:1.4}.dupwarn div+div{margin-top:4px}
 .kseg button.on{background:#fff;color:#1B1B1F;box-shadow:0 1px 3px rgba(0,0,0,.14)}
 .ksec{margin-top:14px}.ksec h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#6B6B73;margin:0 0 6px;display:flex;gap:6px;align-items:center}
 .ksec h3 span{background:#EEEEF1;border-radius:9px;padding:0 7px;font-size:11px;letter-spacing:0}
@@ -355,8 +420,83 @@ details.imag[open] > .imsum::before{transform:rotate(90deg)}
 .psec.fold.closed>*:not(h2){display:none!important}
 .psec.fold.closed{padding-bottom:4px}
 .imove{display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-size:12px;color:#6B6B73;font-weight:600}
-.imove select{flex:1;min-width:0;height:32px;font-size:13px;padding:0 8px;border-radius:8px}
+.imove select,.imove input{flex:1;min-width:0;height:32px;font-size:13px;padding:0 8px;border-radius:8px}
 .inew{background:#F6F6F8;border-radius:10px;padding:10px;margin:6px 0}
+/* ===== Admin-Oberfläche (Pixel-Mania) ===== */
+body.adm{background:#F3F4F7;color:#1B2333;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body.adm .stage{display:grid;grid-template-columns:260px minmax(0,1fr) 360px;gap:0;padding:0;height:100vh;align-items:stretch;justify-content:stretch}
+body.adm.nologin .stage{grid-template-columns:1fr;place-items:center}
+body.adm.nologin #admside,body.adm.nologin #admprev{display:none}
+body.adm.nologin .psec{border:0;padding:0;margin:14px 0 0;box-shadow:none}
+body.adm.nologin .panel{grid-column:1;margin:auto;width:420px;max-width:92vw;max-height:none;height:auto;border-radius:18px;box-shadow:0 20px 50px rgba(15,27,51,.12);padding:30px 28px;background:#fff}
+.lbrand{display:flex;align-items:center;gap:10px;color:#1F6FEB;margin-bottom:6px}.lbrand span{font-size:22px;color:#0F1B33}.lbrand b{font-weight:800}
+#admside{background:#0F1B33;color:#C9D2E3;display:flex;flex-direction:column;overflow-y:auto}
+.sbrand{display:flex;align-items:center;gap:10px;padding:22px 22px 20px;border-bottom:1px solid rgba(255,255,255,.08);color:#4C8DFF}
+.sbrand span{color:#fff;font-size:19px;font-weight:500;letter-spacing:-.01em;white-space:nowrap}.sbrand b{font-weight:800}
+.snav{padding:14px 12px;display:flex;flex-direction:column;gap:2px;flex:1}
+.sitem{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border:0;border-radius:10px;background:none;color:#C9D2E3;font-size:14.5px;font-weight:550;cursor:pointer;text-align:left;width:100%}
+.sitem:hover{background:rgba(255,255,255,.06);color:#fff}
+.sitem.on{background:#1F6FEB;color:#fff;box-shadow:0 6px 16px rgba(31,111,235,.35)}
+.sitem span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sitem .chev{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-top:-3px}
+.ssub{display:flex;flex-direction:column;gap:2px;margin:4px 0 8px 18px;padding-left:10px;border-left:1px solid rgba(255,255,255,.1)}
+.ssub button{border:0;background:none;color:#AEB8CC;text-align:left;font-size:14px;padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.ssub button::before{content:"";width:5px;height:5px;border-radius:3px;background:currentColor;opacity:.6}
+.ssub button.on{background:rgba(255,255,255,.08);color:#fff}.ssub button.on::before{background:#4C8DFF;opacity:1}
+.sfoot{display:flex;align-items:center;gap:10px;padding:14px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.sfoot .av{width:38px;height:38px;border-radius:19px;background:#5B6CF0;color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.sfoot .who{flex:1;min-width:0;display:flex;flex-direction:column}.sfoot .who b{color:#fff;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sfoot small{font-size:12px;color:#8C97AD}
+.slog{border:1px solid rgba(255,255,255,.18);background:none;color:#C9D2E3;border-radius:8px;height:30px;padding:0 10px;font-size:12px;cursor:pointer}
+body.adm:not(.nologin) .panel{grid-column:2;width:auto;max-height:100vh;height:100vh;border-radius:0;box-shadow:none;background:#F3F4F7;padding:0 28px 60px;overflow-y:auto}
+body.adm .panel > .lead,body.adm .admhdr{display:none}
+#admtop{position:sticky;top:0;z-index:30;background:#F3F4F7;padding:22px 0 14px}
+.atitle{display:flex;align-items:center;gap:14px;color:#1B2333}.atitle h1{margin:0;font-size:30px;font-weight:750;letter-spacing:-.02em}
+.atabs{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.atabs button{display:flex;align-items:center;gap:10px;height:48px;padding:0 22px;border:0;border-radius:10px;background:#E6E9EF;color:#3A4356;font-size:15px;font-weight:600;cursor:pointer}
+.atabs button:hover{background:#DCE1EA}
+.atabs button.on{background:#1F6FEB;color:#fff;box-shadow:0 6px 16px rgba(31,111,235,.3)}
+body.adm .psec{background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:24px 26px;margin:10px 0 18px;max-width:1040px;box-shadow:0 1px 2px rgba(15,27,51,.04)}
+body.adm .psec[hidden]{display:none}
+body.adm .psec > h2{font-size:22px;font-weight:700;letter-spacing:-.01em;text-transform:none;color:#1B2333;margin:0 0 16px}
+body.adm .psec > h2::after{display:none}
+body.adm .go{background:#1F6FEB}
+#admprev{grid-column:3;padding:20px 22px 20px 0;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.pvcard{background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:18px 18px 20px}
+.pvhead{display:flex;align-items:center;gap:10px;color:#3A4356;margin-bottom:10px}.pvhead b{font-size:19px;font-weight:650;color:#1B2333}
+#pvdev .devsw{margin:0 0 12px}
+.pvbox{display:flex;justify-content:center}
+body.adm .phone{box-shadow:0 18px 40px rgba(0,0,0,.22),inset 0 0 0 2px #2C2C30}
+#admqa{display:flex;flex-direction:column;border:1px solid #E3E6EC;border-radius:10px;overflow:hidden}
+#admqa button{display:flex;align-items:center;gap:12px;height:48px;padding:0 14px;border:0;border-top:1px solid #EEF0F4;background:#fff;color:#1F6FEB;font-size:14.5px;font-weight:600;cursor:pointer;text-align:left}
+#admqa button:first-child{border-top:0}#admqa button svg{color:#5A6478}#admqa button span{flex:1}#admqa button:hover{background:#F6F8FC}
+.chev.r{width:7px;height:7px;border-right:2px solid #5A6478;border-bottom:2px solid #5A6478;transform:rotate(-45deg)}
+.dgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-width:1040px;margin:10px 0 18px}
+.dcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;background:#fff;border:1px solid #E3E6EC;border-radius:14px;padding:18px 20px;cursor:pointer;text-align:left}
+.dcard small{font-size:13px;color:#5A6478;font-weight:600}.dcard b{font-size:34px;font-weight:750;color:#1B2333;line-height:1.1}.dcard span{font-size:13px;color:#5A6478}
+.dcard.accent{background:#1F6FEB;border-color:#1F6FEB}.dcard.accent *{color:#fff}
+.dlatest{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:16px}
+.dl img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:block;margin-bottom:8px}
+.dl b{display:block;font-size:13px}.dl small{font-size:12px;color:#5A6478}
+@media (max-width:1280px){body.adm .stage{grid-template-columns:230px minmax(0,1fr) 300px}}
+@media (max-width:1000px){body.adm .stage{grid-template-columns:200px minmax(0,1fr)}#admprev{display:none}}
+/* Kiosk kompakter: Text und Knöpfe kleiner, damit das Heft im Karussell größer wird (iPhone) */
+body:not(.tablet) .kinds{padding:10px 16px 0;gap:5px}
+body:not(.tablet) .kinds button{height:30px;padding:0 14px;font-size:13px;border-radius:15px}
+body:not(.tablet) .cat{height:50px}
+body:not(.tablet) .info{gap:3px;padding-top:0}
+body:not(.tablet) .info .kick{font-size:10px}
+body:not(.tablet) .info h2{font-size:21px}
+body:not(.tablet) .info .teaser{-webkit-line-clamp:1;font-size:12.5px;line-height:1.35}
+body:not(.tablet) .info p{font-size:12.5px}
+body:not(.tablet) .cta{margin-top:5px;gap:8px}
+body:not(.tablet) .cta .pbtn,body:not(.tablet) .cta .sbtn{height:40px;font-size:14px}
+body:not(.tablet) .cta .roundbtn,body:not(.tablet) .cta .savebtn{width:40px;height:40px;flex:0 0 40px}
+.ksec.flat details.imag>summary{display:none}
+.ksec.flat .imbody>details.ed:first-child{display:none}
+.ksec.flat details.imag{border:0;padding:0;margin:0}
+.ksec.flat .imbody{padding-top:0}
+.ksec.flat .imove:first-child{margin-top:18px;padding-top:14px;border-top:1px solid #ECEEF2}
+.gchip{font-size:14px}
 .lfly{position:absolute;left:0;top:0;transform-origin:0 0;border-radius:2px 5px 5px 2px;background-size:cover;background-position:center;box-shadow:0 26px 50px rgba(0,0,0,.45);will-change:transform}
 .lfly::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,rgba(0,0,0,.3),rgba(255,255,255,.12) 3%,rgba(255,255,255,0) 8%)}
 .lovl{position:absolute;inset:0;z-index:60;pointer-events:none}
@@ -860,7 +1000,7 @@ var PDF_WORKER_B64 = "LyoqCiAqIEBsaWNzdGFydCBUaGUgZm9sbG93aW5nIGlzIHRoZSBlbnRpcm
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '24.11.2026 12:06';
+var APP_BUILD = '26.11.2026 10:37';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1174,16 +1314,38 @@ async function logoFrom(file) {
   catch (e) { return { blob: blob, aspect: 1, bg: '#FFFFFF' }; }
 }
 function catKey(name) { return name ? slug(name) : ''; }
-function magsOfKind() { var k = S.kind || 'all'; return k === 'all' ? S.mags : S.mags.filter(function (m) { return (m.kind || 'mag') === k; }); }
+function kindsHere() { return ['mag', 'comic', 'book'].filter(function (k) { return S.mags.some(function (m) { return (m.kind || 'mag') === k; }); }); }
+function fixKind() { var ks = kindsHere(); if (ks.indexOf(S.kind) < 0) S.kind = ks[0] || 'mag'; }
+function magsOfKind() { fixKind(); var k = S.kind; return S.mags.filter(function (m) { return (m.kind || 'mag') === k; }); }
+function isBookKind(k) { return k === 'book' || k === 'comic'; }
+function genreOf(it) { var m = magById(it.magId) || {}; return it.genre || m.cat || ''; }
 function catList() {
-  var out = [], seen = {};
-  magsOfKind().forEach(function (m) { var k = catKey(m.cat); if (k && !seen[k]) { seen[k] = 1; out.push({ key: k, name: m.cat }); } });
+  // Kategorien, die nur den Bereich wiederholen („Comics“ unter Comics), zählen nicht
+  var same = { zeitschrift: 1, zeitschriften: 1, magazin: 1, magazine: 1, buch: 1, bucher: 1, buecher: 1, comic: 1, comics: 1 };
+  var out = [], seen = {}, add = function (n) { var k = catKey(n); if (k && !seen[k] && !same[k.replace(/-/g, '')]) { seen[k] = 1; out.push({ key: k, name: n }); } };
+  if (titleMode()) return magsOfKind().filter(function (m) { return issuesOf(m.id).length; }).map(function (m) { return { key: m.id, name: m.name, mag: m }; });   // Zeitschriften/Comics: nach Titel bzw. Reihe
+  magsOfKind().forEach(function (m) { issuesOf(m.id).forEach(function (it) { add(genreOf(it)); }); });   // Bücher: nach Genre
   return out;
 }
+function catListAll() {
+  var out = [], seen = {}, add = function (n) { var k = catKey(n); if (k && !seen[k]) { seen[k] = 1; out.push({ key: k, name: n }); } };
+  S.mags.forEach(function (m) { if (isBookKind(m.kind)) issuesOf(m.id).forEach(function (it) { add(genreOf(it)); }); else add(m.cat); });
+  return out;
+}
+function titleMode() { return S.kind === 'mag' || S.kind === 'comic'; }   // Zeitschriften: Filter nach Titel, Comics: nach Reihe (z. B. Batman, Superman)
+function genreOk(it) { if (S.cat === 'all') return true; if (titleMode()) return it.magId === S.cat; return catKey(genreOf(it)) === S.cat; }
+function bookPool() { return S.issues.filter(function (it) { var m = magById(it.magId); return m && m.kind === 'book'; }).sort(function (a, b) { return (b.added || 0) - (a.added || 0); }); }
+function kindPool() {
+  if (S.kind === 'book') return bookPool();
+  var k = S.kind;
+  return S.issues.filter(function (it) { var m = magById(it.magId); return m && (m.kind || 'mag') === k; })
+    .sort(function (a, b) { return b.year - a.year || b.month - a.month || (b.added || 0) - (a.added || 0); });
+}
+function kList() { var p = kindPool(), f = p.filter(genreOk); return f.length ? f : p; }   // alle Bereiche: erst alle zusammen, dann filtern
 function magsInCat() {
   var base = magsOfKind();
-  if ((S.kind || 'all') === 'all' || S.cat === 'all') return base;
-  var f = base.filter(function (m) { return catKey(m.cat) === S.cat; });
+  if (S.cat === 'all') return base;
+  var f = titleMode() ? base.filter(function (m) { return m.id === S.cat; }) : base.filter(function (m) { return issuesOf(m.id).some(function (it) { return catKey(genreOf(it)) === S.cat; }); });
   return f.length ? f : base;
 }
 var SALE = { options: 'Kaufoptionen (Einzelkauf + Abos)', single: 'Nur Einzelkauf (Preis anzeigen)', free: 'Gratis' };
@@ -1220,8 +1382,8 @@ function nextIssueText(magId) {
 }
 function saved(it) { return (S.saved || []).indexOf(it.id) >= 0; }
 function inLib(it) { return (saleMode(it) !== 'free' && bought(it)) || saved(it); }
-function label(it) { return MONTHS[it.month - 1] + ' ' + it.year; }
-function num(it) { return 'Ausgabe ' + pad(it.month) + '/' + it.year; }
+function label(it) { var m = magById(it.magId); if (m && m.kind === 'book') return it.title || m.name; return MONTHS[it.month - 1] + ' ' + it.year; }
+function num(it) { var m = magById(it.magId) || {}; if (isBookKind(m.kind)) return genreOf(it) || (m.kind === 'book' ? 'Buch' : 'Comic'); return 'Ausgabe ' + pad(it.month) + '/' + it.year; }
 function cover(it) { return S.covers[it.id] || ''; }
 
 async function loadData() {
@@ -1251,6 +1413,7 @@ async function loadData() {
   S.slides = Object.keys(ADS).filter(function (k) { return k.indexOf('bslide:') === 0; }).map(function (k) {
     var b = Object.assign({}, ADS[k], { key: k });
     if (b.media) b.mediaURL = fileURL(b.media);
+    if (b.poster) b.posterURL = fileURL(b.poster);
     return b;
   }).filter(function (b) { return b.mediaURL; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0) || (a.created || 0) - (b.created || 0); });
   for (var ak of ['banner', 'native', 'page', 'brand']) {
@@ -1410,7 +1573,7 @@ function adBanner() {
     S.bIndex = Math.min(S.bIndex, sl.length - 1);
     return '<div class="banner" style="' + bh + '"><div class="adlabel">Anzeige</div><div class="bslides" id="bslides"><div class="btrack noscroll" id="btrack">' + sl.map(function (b, i) {
       var media = b.kind === 'video'
-        ? '<span class="bvid" data-vkey="' + esc(b.key) + '" data-src="' + esc(b.mediaURL) + '"></span>'
+        ? '<span class="bvid" data-vkey="' + esc(b.key) + '" data-src="' + esc(b.mediaURL) + '" data-poster="' + esc(b.posterURL || '') + '"' + (b.posterURL ? ' style="background:#000 url(\'' + esc(b.posterURL) + '\') center/cover"' : '') + '></span>'
         : '<img src="' + esc(b.mediaURL) + '" alt="" draggable="false">';
       return '<button class="bslide" data-act="slidelink" data-arg="' + esc(b.key) + '" aria-label="Anzeige ' + (i + 1) + ' von ' + sl.length + '">' + media + '</button>';
     }).join('') + '</div>' + (sl.length > 1 ? '<div class="bdots" id="bdots">' + sl.map(function (b, i) { return '<span' + (i === S.bIndex ? ' class="on"' : '') + '></span>'; }).join('') + '</div>' : '') + '</div></div>';
@@ -1433,7 +1596,7 @@ function setupBanner() {
   var showDots = function () { $$('#bdots span').forEach(function (d, i) { d.classList.toggle('on', i === S.bIndex); }); };
   // Video-Elemente überleben Neuaufbauten der Seite: kein Neuladen, kein Neustart bei jedem Antippen
   Object.keys(VCACHE).forEach(function (k) { if (!sl.some(function (b) { return b.key === k; })) { try { VCACHE[k].pause(); VCACHE[k].removeAttribute('src'); VCACHE[k].load(); } catch (e) {} delete VCACHE[k]; } });
-  $$('.bvid', tr).forEach(function (ph) { var v = bannerVideo(ph.getAttribute('data-vkey'), ph.getAttribute('data-src'), sl.length === 1); ph.appendChild(v); });
+  $$('.bvid', tr).forEach(function (ph) { var v = bannerVideo(ph.getAttribute('data-vkey'), ph.getAttribute('data-src'), sl.length === 1); var po = ph.getAttribute('data-poster'); if (po && v.getAttribute('poster') !== po) v.setAttribute('poster', po); ph.appendChild(v); });
   var lastIdx = BR.playIdx;
   var playCur = function (restart) {
     $$('.bslide', tr).forEach(function (sd, i) {
@@ -1475,6 +1638,47 @@ function setupBanner() {
   startVideoWatch();
 }
 /* ---- Banner-Videos robust abspielen ---- */
+/* MP4 „schnellstartfähig“ machen: Inhaltsverzeichnis (moov) vor die Videodaten (mdat) legen.
+   Sonst muss das Handy erst das ganze Video laden, bevor es startet. Läuft komplett im Browser. */
+function mp4Faststart(buf) {
+  var dv = new DataView(buf), n = buf.byteLength, boxes = [], off = 0, tp = function (d, o) { return String.fromCharCode(d.getUint8(o), d.getUint8(o + 1), d.getUint8(o + 2), d.getUint8(o + 3)); };
+  while (off + 8 <= n) {
+    var sz = dv.getUint32(off), t = tp(dv, off + 4);
+    if (sz === 1) sz = Number(dv.getBigUint64(off + 8)); else if (sz === 0) sz = n - off;
+    if (sz < 8 || off + sz > n) return null;
+    boxes.push({ t: t, o: off, s: sz }); off += sz;
+  }
+  var mi = boxes.findIndex(function (b) { return b.t === 'moov'; }), di = boxes.findIndex(function (b) { return b.t === 'mdat'; });
+  if (mi < 0 || di < 0 || mi < di) return null;   // schon in Ordnung (oder kein MP4)
+  var moov = new Uint8Array(buf.slice(boxes[mi].o, boxes[mi].o + boxes[mi].s)), md = new DataView(moov.buffer), shift = boxes[mi].s;
+  var CONT = { moov: 1, trak: 1, mdia: 1, minf: 1, stbl: 1, edts: 1, dinf: 1, mvex: 1 };
+  function walk(p, end) {
+    while (p + 8 <= end) {
+      var s = md.getUint32(p), t = tp(md, p + 4); if (s < 8) return false;
+      if (CONT[t]) { if (walk(p + 8, p + s) === false) return false; }
+      else if (t === 'stco') { var c = md.getUint32(p + 12); for (var i = 0; i < c; i++) { var v = md.getUint32(p + 16 + i * 4) + shift; if (v > 0xFFFFFFFF) return false; md.setUint32(p + 16 + i * 4, v); } }
+      else if (t === 'co64') { var c2 = md.getUint32(p + 12); for (var j = 0; j < c2; j++) md.setBigUint64(p + 16 + j * 8, md.getBigUint64(p + 16 + j * 8) + BigInt(shift)); }
+      p += s;
+    }
+  }
+  if (walk(8, moov.length) === false) return null;
+  var parts = [];
+  boxes.forEach(function (b, i) { if (i === di) parts.push(moov); if (i !== mi) parts.push(new Uint8Array(buf, b.o, b.s)); });
+  return new Blob(parts, { type: 'video/mp4' });
+}
+/* erstes Bild des Videos als Vorschaubild – wird sofort gezeigt, bis das Video läuft */
+function videoPoster(blob) {
+  return new Promise(function (res) {
+    var v = document.createElement('video'), url = URL.createObjectURL(blob), done = function (b) { URL.revokeObjectURL(url); res(b); };
+    v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+    var to = setTimeout(function () { done(null); }, 8000);
+    v.addEventListener('loadeddata', function () { try { v.currentTime = Math.min(0.1, (v.duration || 1) / 2); } catch (e) {} });
+    v.addEventListener('seeked', function () {
+      try { var w = Math.min(1200, v.videoWidth), c = document.createElement('canvas'); c.width = w; c.height = Math.round(v.videoHeight * w / v.videoWidth); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); c.toBlob(function (b) { clearTimeout(to); done(b); }, 'image/jpeg', 0.8); } catch (e) { clearTimeout(to); done(null); }
+    }, { once: true });
+    v.addEventListener('error', function () { clearTimeout(to); done(null); });
+  });
+}
 var VCACHE = {};
 function bannerVideo(key, src, loop) {
   var v = VCACHE[key];
@@ -1600,22 +1804,24 @@ function kioskHTML() {
   h += header('__brand', S.mags.length + (S.mags.length === 1 ? ' Magazin' : ' Magazine') + ' · ' + nIss + (nIss === 1 ? ' Ausgabe' : ' Ausgaben'));
   h += adBanner();
   // Bereiche: Alle · Magazine · Bücher · Comics (nur die, die es gibt) – Kategorien erst innerhalb eines Bereichs
-  var kindsHere = ['mag', 'book', 'comic'].filter(function (k) { return S.mags.some(function (m) { return (m.kind || 'mag') === k; }); });
-  if (kindsHere.length > 1) h += '<div class="kinds noscroll" role="tablist" aria-label="Bereich">' + [['all', 'Alle']].concat(kindsHere.map(function (k) { return [k, { mag: 'Magazine', book: 'Bücher', comic: 'Comics' }[k]]; })).map(function (k) { var on = (S.kind || 'all') === k[0]; return '<button class="bare' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" data-act="kind" data-arg="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div>';
-  var cats = (S.kind || 'all') === 'all' && kindsHere.length > 1 ? [] : catList();
-  if (cats.length > 1) {
-    var tile = function (key, name, url) {
-      return '<button class="bare cat' + (url ? ' img' : '') + (S.cat === key ? ' on' : '') + '" data-act="cat" data-arg="' + esc(key) + '" aria-pressed="' + (S.cat === key) + '">' +
-        (url ? '<img src="' + url + '" alt=""><span class="sh"></span>' : (key === 'all' ? '<span class="ic">' + ICON.grid + '</span>' : '')) + '<b>' + esc(name) + '</b></button>';
-    };
-    h += '<div class="cats noscroll" role="group" aria-label="Kategorien">' + tile('all', 'Alle', S.catImg.all || '') + cats.map(function (c) { return tile(c.key, c.name, S.catImg[c.key] || ''); }).join('') + '</div>';
+  var kh = kindsHere(); fixKind();
+  if (kh.length > 1) h += '<div class="kinds noscroll" role="tablist" aria-label="Bereich">' + kh.map(function (k) { return [k, { mag: 'Zeitschriften', book: 'Bücher', comic: 'Comics' }[k]]; }).map(function (k) { var on = S.kind === k[0]; return '<button class="bare' + (on ? ' on' : '') + '" role="tab" aria-selected="' + on + '" data-act="kind" data-arg="' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</div>';
+  var cats = catList();
+  if (cats.length || S.kind === 'book') {
+    var allOn = S.cat === 'all';
+    h += '<div class="chips noscroll" role="group" aria-label="' + { mag: 'Zeitschrift', comic: 'Comic-Reihe', book: 'Genre' }[S.kind] + '">' +
+      '<button class="btn chip gchip' + (allOn ? ' on' : '') + '" data-act="cat" data-arg="all" aria-pressed="' + allOn + '">Alle</button>' +
+      cats.map(function (c) {
+        var on = S.cat === c.key;
+        if (c.mag) return magChipHTML(c.mag, on, true);
+        return '<button class="btn chip gchip' + (on ? ' on' : '') + '" data-act="cat" data-arg="' + esc(c.key) + '" aria-pressed="' + on + '">' + esc(c.name) + '</button>';
+      }).join('') + '</div>';
   }
-  h += '<div class="chips noscroll">' + magsInCat().map(function (m) { return magChipHTML(m, m.id === S.magId, true); }).join('') + '</div>';
   var ys = yearsOf(S.magId);
   var yi = Math.max(0, ys.indexOf(S.year));
   var yCount = function (y) { var c = issuesOf(S.magId, y).length; return c + (c === 1 ? ' Ausgabe' : ' Ausgaben'); };
   h += '<div class="bar"><div class="ywrap">' +
-    (ys.length > 1
+    (S.kind /* keine Jahrgang-Auswahl mehr: alle Ausgaben zusammen */ ? '' : ys.length > 1
       ? '<button class="bare ybtn' + (S.yearMenu ? ' open' : '') + '" data-act="ymenu" aria-haspopup="listbox" aria-expanded="' + !!S.yearMenu + '" aria-label="Jahrgang ' + S.year + ' – anderen Jahrgang wählen"><b>' + S.year + '</b></button>'
       : '<div class="ybtn static"><b>' + S.year + '</b></div>') +
     (S.yearMenu ? '<button class="yscrim" data-act="ymenu" aria-label="Schließen"></button><div class="ypop" role="listbox" aria-label="Jahrgang wählen">' + ys.map(function (y) {
@@ -1625,23 +1831,27 @@ function kioskHTML() {
     '<div style="flex:1"></div>' +
     '<div class="views" role="group" aria-label="Ansicht"><button class="bare' + (S.view === 'swipe' ? ' on' : '') + '" data-act="view" data-arg="swipe" aria-label="Wischen" aria-pressed="' + (S.view === 'swipe') + '">' + ICON.swipe + '</button>' +
     '<button class="bare' + (S.view === 'grid' ? ' on' : '') + '" data-act="view" data-arg="grid" aria-label="Alle Ausgaben des Jahres" aria-pressed="' + (S.view === 'grid') + '">' + ICON.grid + '</button></div>' + (S.chat ? chatHTML() : '') + '</div>';
-  var list = issuesOf(S.magId, S.year);
+  var list = kList();
   S.kIndex = Math.max(0, Math.min(list.length - 1, S.kIndex));
+  if (list[S.kIndex]) S.magId = list[S.kIndex].magId;
   h += '<div id="kbody" class="' + (S.kIn ? 'in' : '') + (S.view === 'swipe' ? ' kswipe' : '') + '">';
   S.kIn = false;
   if (S.view === 'swipe') {
     h += '<div class="kleft"><div class="kscroll noscroll" id="kscroll"><div class="spacer"></div>' + list.map(function (it, i) {
-      return '<button class="bare card" data-act="card" data-arg="' + i + '" aria-label="' + esc(mag.name + ', ' + label(it)) + '"><img src="' + cover(it) + '" alt="" draggable="false"></button>';
+      return '<button class="bare card" data-act="card" data-arg="' + i + '" aria-label="' + esc((magById(it.magId) || {}).name + ', ' + label(it)) + '"><img src="' + cover(it) + '" alt="" draggable="false"></button>';
     }).join('') + '<div class="spacer"></div></div>';
     h += '<div class="dots" id="kdots">' + list.map(function (it, i) {
       return '<button class="bare' + (i === S.kIndex ? ' on' : '') + '" data-act="dot" data-arg="' + i + '" aria-label="Zu ' + esc(label(it)) + '"><span></span></button>';
     }).join('') + '</div></div>';
     h += '<div class="info" id="kinfo">' + infoHTML(list[S.kIndex]) + '</div>';
   } else {
-    h += '<div class="gridwrap"><div class="ghead"><h2>Alle Ausgaben ' + S.year + '</h2><div class="sub">' + esc(mag.name) + ' · ' + list.length + (list.length === 1 ? ' Ausgabe' : ' Ausgaben') + '</div></div><div class="grid3">' +
+    var kn = { mag: ['Ausgabe', 'Ausgaben', 'Zeitschriften'], comic: ['Comic', 'Comics', 'Comics'], book: ['Buch', 'Bücher', 'Bücher'] }[S.kind];
+    var fName = S.cat !== 'all' ? (catList().filter(function (c) { return c.key === S.cat; })[0] || {}).name || '' : '';
+    var mixed = titleMode() && S.cat === 'all';
+    h += '<div class="gridwrap"><div class="ghead"><h2>Alle ' + kn[2] + '</h2><div class="sub">' + (fName ? esc(fName) + ' · ' : '') + list.length + ' ' + (list.length === 1 ? kn[0] : kn[1]) + '</div></div><div class="grid3">' +
       list.map(function (it, i) {
-        var o = owns(it);
-        return '<button class="bare gitem" data-act="gpick" data-arg="' + i + '" aria-label="' + esc(mag.name + ' ' + label(it)) + '"><div class="gcover"><img src="' + cover(it) + '" alt=""></div><b>' + MONTHS[it.month - 1] + '</b><small class="' + (o ? 'own' : '') + '">' + (saleMode(it) === 'free' ? 'Gratis' : magSubscribed(mag) ? 'Im Abo' : o ? 'Gekauft' : esc(it.price)) + '</small></button>';
+        var o = owns(it), gm = magById(it.magId) || {};
+        return '<button class="bare gitem" data-act="gpick" data-arg="' + i + '" aria-label="' + esc(gm.name + ' ' + label(it)) + '"><div class="gcover"><img src="' + cover(it) + '" alt=""></div><b>' + (mixed ? esc(gm.name) : MONTHS[it.month - 1]) + '</b><small class="' + (o ? 'own' : '') + '">' + (mixed ? MSH[it.month - 1] + ' ' + it.year + ' · ' : '') + (saleMode(it) === 'free' ? 'Gratis' : magSubscribed(gm) ? 'Im Abo' : o ? 'Gekauft' : esc(it.price)) + '</small></button>';
       }).join('') + '</div></div>';
   }
   h += '</div>';
@@ -1653,7 +1863,7 @@ function infoHTML(it) {
   var mag = magById(it.magId);
   var o = owns(it), mode = saleMode(it);
   var buy = mode === 'options' ? 'Kaufoptionen' : 'Kaufen · ' + esc(it.price);
-  if (mode === 'free') return '<div class="kick">' + esc(mag.name) + ' · ' + num(it) + ' · Gratis</div><h2>' + label(it) + '</h2>' + (it.teaser ? '<p class="teaser" data-act="lmteaser" data-arg="' + it.id + '" role="button" tabindex="0" title="Im Lesemodus lesen">' + esc(it.teaser) + '</p>' : '<p>' + it.pageCount + ' Seiten' + (mag.cat ? ' · ' + esc(mag.cat) : '') + '</p>') +
+  if (mode === 'free') return '<div class="kick">' + (mag.kind === 'book' ? esc(num(it)) : esc(mag.name) + ' · ' + num(it)) + ' · Gratis</div><h2>' + label(it) + '</h2>' + (it.teaser ? '<p class="teaser" data-act="lmteaser" data-arg="' + it.id + '" role="button" tabindex="0" title="Im Lesemodus lesen">' + esc(it.teaser) + '</p>' : '<p>' + it.pageCount + ' Seiten' + (mag.cat ? ' · ' + esc(mag.cat) : '') + '</p>') +
     '<div class="cta"><button class="btn pbtn" data-act="read" data-arg="' + it.id + '">Gratis lesen</button>' + saveBtn(it) + '</div>';
   var sb = subOf(it);
   if (sb) {
@@ -1661,14 +1871,14 @@ function infoHTML(it) {
       : sb.type === 'flat' ? 'In deiner Kiosk-Flatrate · verlängert sich am ' + fmtDate(sb.until)
       : sb.type === 'jahr' ? 'In deinem Jahresabo · läuft bis ' + fmtDate(sb.until)
       : 'In deinem Monatsabo · verlängert sich am ' + fmtDate(sb.until);
-    return '<div class="kick">' + esc(mag.name) + ' · ' + num(it) + '</div><h2>' + label(it) + '</h2>' +
+    return '<div class="kick">' + (mag.kind === 'book' ? esc(num(it)) : esc(mag.name) + ' · ' + num(it)) + '</div><h2>' + label(it) + '</h2>' +
       '<div class="subline">' + ICON.check16 + '<span>' + line + '</span></div>' +
       (sb.type !== 'single' ? '<div class="subnext">' + nextIssueText(it.magId) + '</div>' : '') +
       '<div class="cta"><button class="btn pbtn" data-act="read" data-arg="' + it.id + '">Jetzt lesen</button>' +
       '<button class="btn savebtn" data-act="lmopen" data-arg="' + it.id + '" aria-label="Lesemodus" style="font-weight:750;font-size:15px">Aa</button>' +
       '<button class="btn savebtn" data-act="lmspeak" data-arg="' + it.id + '" aria-label="Vorlesen">' + ICON.speak + '</button></div>';
   }
-  return '<div class="kick">' + esc(mag.name) + ' · ' + num(it) + '</div><h2>' + label(it) + '</h2>' + (it.teaser ? '<p class="teaser" data-act="lmteaser" data-arg="' + it.id + '" role="button" tabindex="0" title="Im Lesemodus lesen">' + esc(it.teaser) + '</p>' : '<p>' + it.pageCount + ' Seiten' + (mag.cat ? ' · ' + esc(mag.cat) : '') + '</p>') +
+  return '<div class="kick">' + (mag.kind === 'book' ? esc(num(it)) : esc(mag.name) + ' · ' + num(it)) + '</div><h2>' + label(it) + '</h2>' + (it.teaser ? '<p class="teaser" data-act="lmteaser" data-arg="' + it.id + '" role="button" tabindex="0" title="Im Lesemodus lesen">' + esc(it.teaser) + '</p>' : '<p>' + it.pageCount + ' Seiten' + (mag.cat ? ' · ' + esc(mag.cat) : '') + '</p>') +
     (o ? '<div class="cta"><button class="btn pbtn" data-act="read" data-arg="' + it.id + '">Jetzt lesen</button>' + (bought(it) ? '' : saveBtn(it)) + '</div>'
        : '<div class="cta"><button class="btn sbtn" data-act="preview" data-arg="' + it.id + '">Leseprobe</button><button class="btn pbtn" data-act="buy" data-arg="' + it.id + '">' + buy + '</button>' + saveBtn(it) + '</div>');
 }
@@ -1707,6 +1917,7 @@ function spineCol(it) {
 function magShort(m) { var n = (m && m.name || '?').replace(/[^A-Za-z0-9ÄÖÜäöü& ]/g, ''); var p = n.split(/\s+/).filter(Boolean); return (p.length > 1 ? p.map(function (x) { return x[0]; }).join('') : n.slice(0, 3)).toUpperCase().slice(0, 4); }
 function spineHTML(it, extra, style) {
   var m = magById(it.magId) || {}, c = spineCol(it), logo = S.logos && S.logos[it.magId];
+  if ((m.kind || 'mag') !== 'mag') return '<span class="t">' + esc(m.kind === 'book' ? label(it) : (m.name || '')) + '</span>' + (logo ? '<span class="lg"><img src="' + logo + '" alt=""></span>' : '');
   return '<span class="lg">' + (logo ? '<img src="' + logo + '" alt="">' : esc(magShort(m))) + '</span><span class="t">' + esc(m.name || '') + '<i>' + MSH[it.month - 1] + ' ' + String(it.year).slice(2) + '</i></span><span class="no">' + ('0' + it.month).slice(-2) + '</span><span class="nd" aria-hidden="true"></span>';
 }
 function kindOf(it) { var m = magById(it.magId); return (m && m.kind) || 'mag'; }
@@ -1729,16 +1940,18 @@ function libShelfHTML(lib) {
     var list = groups[k];
     list.sort(function (a, b) { return G === 'year' ? (String(a.magId).localeCompare(String(b.magId)) || b.month - a.month) : (b.year - a.year || b.month - a.month); });
     var rows = [[]], w = 0;
-    list.forEach(function (it) { var pc = it.totalPages || it.pageCount || 100; it._sw = Math.max(12, Math.min(22, Math.round(13 + (pc - 70) / 9))); if (w + it._sw + 1 > maxW && rows[rows.length - 1].length) { rows.push([]); w = 0; } rows[rows.length - 1].push(it); w += it._sw + 1; });
-    h += '<div class="lshelf" id="lg' + gi + '"><div class="lab">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Heft' : ' Hefte') + '</span></div>';
+    list.forEach(function (it) { var pc = it.totalPages || it.pageCount || 100, kd = kindOf(it);
+      // Buch: dick und kleiner · Comic: groß und dünn · Heft wie bisher
+      it._sw = kd === 'book' ? Math.max(26, Math.min(44, Math.round(22 + pc / 18))) : kd === 'comic' ? Math.max(9, Math.min(16, Math.round(8 + pc / 20))) : Math.max(12, Math.min(22, Math.round(13 + (pc - 70) / 9))); if (w + it._sw + 1 > maxW && rows[rows.length - 1].length) { rows.push([]); w = 0; } rows[rows.length - 1].push(it); w += it._sw + 1; });
+    h += '<div class="lshelf" id="lg' + gi + '"><div class="lab">' + esc(k) + ' <span>· ' + list.length + (list.length === 1 ? ' Titel' : ' Titel') + '</span></div>';
     rows.forEach(function (row, ri) {
       var last = ri === rows.length - 1, rw = row.reduce(function (a, it) { return a + it._sw + 1; }, 0);
       h += '<div class="lrow">';
       row.forEach(function (it, idx) {
-        var c = spineCol(it), sh = (document.body.classList.contains('tablet') ? 222 : 186) + (it.month % 3) * 3;
+        var c = spineCol(it), kd = kindOf(it), sh = Math.round((document.body.classList.contains('tablet') ? 222 : 186) * (kd === 'book' ? 0.78 : kd === 'comic' ? 1.06 : 1)) + (it.month % 3) * 3;
         var lean = last && idx === row.length - 1 && row.length > 1 && rw < maxW - 30;
         var m = magById(it.magId) || {};
-        h += '<button class="lsp' + (lean ? ' lean' : '') + (marksOf(it).length ? ' mark' : '') + (isReadIt(it) ? '' : ' unread') + '" data-spine="' + esc(it.id) + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + ' aus dem Regal nehmen" style="--sw:' + it._sw + 'px;--sh:' + sh + 'px;--sc:' + c.bg + ';--ink:' + c.ink + '">' + spineHTML(it) + '</button>';
+        h += '<button class="lsp k-' + kd + (lean ? ' lean' : '') + (marksOf(it).length ? ' mark' : '') + (isReadIt(it) ? '' : ' unread') + '" data-spine="' + esc(it.id) + '" aria-label="' + esc(m.name || '') + ' ' + label(it) + ' aus dem Regal nehmen" style="--sw:' + it._sw + 'px;--sh:' + sh + 'px;--sc:' + c.bg + ';--ink:' + c.ink + '">' + spineHTML(it) + '</button>';
       });
       h += (last ? '<div class="lbookend"></div>' : '') + '</div><div class="lboard"></div>';
     });
@@ -1761,7 +1974,7 @@ function libBarHTML(lib, keys) {
   return libBarRest(h, vsw, keys, G);
 }
 function vswHTML() {
-  return '<div class="lsw" role="radiogroup" aria-label="Ansicht">' + [['grid', 'Raster'], ['shelf', 'Regal'], ['rack', 'Ständer'], ['kiosk', 'Kiosk']].map(function (v) { return '<button class="bare' + ((S.libView || 'grid') === v[0] ? ' on' : '') + '" data-act="libview" data-arg="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>';
+  return '<div class="lsw" role="radiogroup" aria-label="Ansicht">' + [['grid', 'Raster'], ['shelf', 'Regal'], ['kiosk', 'Kiosk']].map(function (v) { return '<button class="bare' + ((S.libView || 'grid') === v[0] ? ' on' : '') + '" data-act="libview" data-arg="' + v[0] + '">' + v[1] + '</button>'; }).join('') + '</div>';
 }
 function libBarRest(h, vsw, keys, G) {
   var spatial = S.libView === 'shelf' || S.libView === 'rack';
@@ -1835,7 +2048,7 @@ function bindShelf() {
 }
 function libDetailHTML(it) {
   var m = magById(it.magId) || {}, full = owns(it), mk = marksOf(it), sub = full ? '' : ' (Leseprobe)';
-  return '<button class="bare x" data-act="putback" aria-label="Zurück ins Regal">' + ICON.close + '</button><div class="k">' + esc(m.name || '') + ' · ' + num(it) + '</div><h2>' + label(it) + '</h2>' +
+  return '<button class="bare x" data-act="putback" aria-label="Zurück ins Regal">' + ICON.close + '</button><div class="k">' + (m.kind === 'book' ? esc(num(it)) : esc(m.name || '') + ' · ' + num(it)) + '</div><h2>' + label(it) + '</h2>' +
     '<p>' + (full ? (it.totalPages || it.pageCount) + ' Seiten' : 'Leseprobe · ' + samplePagesOf(it).length + ' Seiten') + (mk.length ? ' · Lesezeichen: S. ' + mk.join(', ') : '') + '</p>' +
     libOrgHTML(it) +
     '<div class="acts">' + (mk.length && full
@@ -2088,11 +2301,11 @@ function libraryHTML() {
   var lib = S.issues.filter(inLib).sort(function (a, b) { return b.year - a.year || b.month - a.month; });
   var h = '<div class="page noscroll" id="kpage" style="animation:fade .25s ease">';
   h += header('Bibliothek', lib.length === 1 ? '1 Ausgabe' : lib.length + ' Ausgaben');
-  S.libView = S.libView || 'grid'; S.libGroup = S.libGroup || S.settings.libGroup || 'year';
+  S.libView = S.libView || 'grid'; if (S.libView === 'rack') S.libView = 'kiosk';   // Ständer und Kiosk zusammengelegt S.libGroup = S.libGroup || S.settings.libGroup || 'year';
   if (lib.length) {
     // Regal = Bücher & Comics, Ständer/Kiosk = Zeitschriften, Raster = alles
     var vl = S.libView === 'shelf' ? lib.filter(isBookish) : (S.libView === 'rack' || S.libView === 'kiosk') ? lib.filter(function (it) { return !isBookish(it); }) : lib;
-    if (vl !== lib && !vl.length) return h + libBarHTML(vl, []) + '<div class="lempty">' + (S.libView === 'shelf' ? 'Im Regal stehen deine Bücher und Comics.<br>Du hast noch keine.' : 'Hier stehen deine Zeitschriften.<br>Du hast noch keine.') + '</div></div>';
+    if (vl !== lib && !vl.length) return h + libBarHTML(vl, []) + '<div class="lempty">' + (S.libView === 'shelf' ? 'Im Regal stehen deine Bücher und Comics.<br>Du hast noch keine.' : 'Im Kiosk stehen deine Zeitschriften.<br>Du hast noch keine.') + '</div></div>';
     var sh = S.libView === 'shelf' ? libShelfHTML(vl) : S.libView === 'rack' ? libRackHTML(vl) : S.libView === 'kiosk' ? libRackHTML(vl, true) : null;
     h += libBarHTML(vl, sh && sh.keys);
     if (sh) return h + sh.html + '</div>';
@@ -2186,7 +2399,7 @@ function helpHTML() {
   }
   return h;
 }
-function activeIssue() { var l = issuesOf(S.magId, S.year); return l[S.kIndex] || l[0]; }
+function activeIssue() { var l = kList(); return l[S.kIndex] || l[0]; }
 function botName() { return S.cfg.botName || 'Wolly'; }
 function chatHTML() {
   var h = '<button class="wscrim" data-act="chat" aria-label="Chat schließen"></button>';
@@ -2225,7 +2438,7 @@ function botReply(q) {
   }
   if (/alt|älter|archiv|jahr|früher|letzte|vorher/.test(t)) {
     var ys = yearsOf(m.id);
-    return { text: ys.length > 1 ? 'Von ' + m.name + ' gibt es Ausgaben aus ' + ys.join(', ') + '. Tippe oben auf die Jahreszahl, um den Jahrgang zu wechseln.' : 'Von ' + m.name + ' gibt es bisher nur Ausgaben aus ' + ys[0] + '.', acts: [['Alle Ausgaben ' + S.year + ' zeigen', 'view|grid']] };
+    return { text: ys.length > 1 ? 'Von ' + m.name + ' gibt es Ausgaben aus ' + ys.join(', ') + '. Tippe oben auf „' + m.name + '“, um nur diese Ausgaben zu sehen.' : 'Von ' + m.name + ' gibt es bisher nur Ausgaben aus ' + ys[0] + '.', acts: [['Alle als Raster zeigen', 'view|grid']] };
   }
   if (/kontakt|hilfe|support|mail|problem|fehler|telefon|anruf/.test(t)) {
     return { text: 'Unser Support hilft dir gern weiter' + (S.cfg.mail ? ': ' + S.cfg.mail : '.') + (S.cfg.hours ? ' (' + S.cfg.hours + ')' : ''), acts: [['Hilfe & Kontakt öffnen', 'help|']] };
@@ -2315,21 +2528,490 @@ function textFromItems(items, vp) {
     }
   });
   boxes = boxes.map(function (b) { return b.map(function (v) { return Math.round(v * 1000) / 1000; }); });
-  return { paras: paras, boxes: boxes };
+  return { paras: paras, boxes: boxes, lines: lines.map(function (l) { return { t: l.t.replace(/\s+/g, ' ').trim(), b: l.b.map(function (v) { return Math.round(v * 1000) / 1000; }) }; }) };
 }
 async function extractTexts(pdf, N, onStep) {
-  var pages = [], boxes = [];
+  var pages = [], boxes = [], lines = [];
   for (var p = 1; p <= N; p++) {
     try {
       var page = await pdf.getPage(p); var tc = await page.getTextContent();
       var r = textFromItems(tc.items, page.getViewport({ scale: 1 }));
-      pages.push(r.paras); boxes.push(r.boxes); page.cleanup();
-    } catch (e) { pages.push([]); boxes.push([]); }
+      pages.push(r.paras); boxes.push(r.boxes); lines.push(p <= 16 ? r.lines : []); page.cleanup();
+    } catch (e) { pages.push([]); boxes.push([]); lines.push([]); }
     onStep && onStep(p);
   }
-  return { v: 2, pages: pages, boxes: boxes };
+  return { v: 2, pages: pages, boxes: boxes, lines: lines };
 }
 function textPages(rec) { return !rec ? null : Array.isArray(rec) ? rec : rec.pages; }
+
+/* ===== Inhaltsverzeichnis: erkennen, Seiten verknüpfen, im Reader anspringen =====
+   gespeichert als texts/toc-<id>.json:
+   { v:1, how, offset, edited, entries:[{ t, printed, p, lvl, src:{ pg, b } }], links:[{ pg, b, p }] }
+   p = Seite im Reader (PDF-Seite), printed = gedruckte Seitenzahl, src = Stelle auf der Inhaltsseite (antippbar),
+   links = fertige Sprungmarken aus PDF/EPUB (Verweise im Dokument). b = [x0, x1, y0, y1] in Anteilen der Seite. */
+function r3(v) { return Math.round(v * 1000) / 1000; }
+function tocNorm(s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, ' ').trim(); }
+function tocCore(s) { return tocNorm(s).replace(/^(kapitel|chapter|teil|part|flagge)\s+/, '').replace(/^([0-9]{1,3}|[ivxlc]{1,6})\s+/, '').trim(); }
+function tocWords(s) { return tocNorm(s).split(' ').filter(function (w) { return w.length >= 4 && !/^\d+$/.test(w); }); }
+function tocPageText(rec, n) { var a = textPages(rec); return a && a[n - 1] ? ' ' + tocNorm(a[n - 1].join(' ')) + ' ' : ' '; }
+var TOCWORD = /\b(inhalt|inhaltsverzeichnis|contents|in diesem heft|in dieser ausgabe|themen dieser ausgabe)\b/i;
+/* eine Zeile als Eintrag lesen: „Titel …… 30“ oder „30 Titel“ */
+function tocParseLine(t, maxP) {
+  t = String(t || '').replace(/\s+/g, ' ').trim();
+  var m = /^(.*?[A-Za-zÄÖÜäöüß].*?)[\s.·…_–—-]*\s(\d{1,3})$/.exec(t), title, n;
+  if (m) { title = m[1]; n = +m[2]; }
+  else if ((m = /^(?:S\.?\s*|Seite\s+)?(\d{1,3})\s*[|·:–—-]?\s+(.*[A-Za-zÄÖÜäöüß].*)$/.exec(t))) { n = +m[1]; title = m[2]; }
+  else return null;
+  title = title.replace(/[\s.·…_–—-]+$/, '').replace(/^[\s.·…_–—|:-]+/, '').trim();
+  if (n < 1 || n > maxP + 40) return null;
+  if (title.replace(/[^A-Za-zÄÖÜäöüß]/g, '').length < 3 || title.length > 160) return null;
+  if (/(€|EUR|Euro|%|Uhr|Tel\.?|Fax)\s*$/i.test(title)) return null;
+  return { t: title, printed: n };
+}
+/* Seiten mit gedruckten Seitenzahlen finden (klassisch oder Magazin-Layout) */
+function tocSplitPara(t, b, maxP) {
+  var tok = String(t || '').replace(/\s+/g, ' ').trim().split(' '), isN = function (w) { return /^\d{1,3}$/.test(w) && +w >= 1 && +w <= maxP + 40; };
+  var after = [], before = [], buf = [], cur = null;
+  tok.forEach(function (w) { if (isN(w) && buf.length) { after.push({ t: buf.join(' '), printed: +w }); buf = []; } else buf.push(w); });
+  tok.forEach(function (w) { if (isN(w)) { if (cur && cur.w.length) before.push({ printed: cur.n, t: cur.w.join(' ') }); cur = { n: +w, w: [] }; } else if (cur) cur.w.push(w); });
+  if (cur && cur.w.length) before.push({ printed: cur.n, t: cur.w.join(' ') });
+  var clean = function (arr) { return arr.map(function (e) { return { t: e.t.replace(/[\s.·…_–—-]+$/, '').replace(/^[\s.·…_–—|:-]+/, '').trim(), printed: e.printed }; }).filter(function (e) { return e.t.replace(/[^A-Za-zÄÖÜäöüß]/g, '').length >= 3 && e.t.length <= 160; }); };
+  after = clean(after); before = clean(before);
+  var res = after.length >= before.length ? after : before;
+  if (res.length < 2) return null;
+  return res.map(function (e, i) { var h = b ? (b[3] - b[2]) / res.length : 0; return { t: e.t, printed: e.printed, b: b ? [b[0], b[1], r3(b[2] + h * i), r3(b[2] + h * (i + 1))] : null }; });
+}
+function tocDetect(rec, N) {
+  if (!rec) return null;
+  var pages = textPages(rec) || [], boxes = rec.boxes || [], lines = rec.lines || [], found = [];
+  for (var pg = 1; pg <= Math.min(N, 14); pg++) {
+    var L = (lines[pg - 1] && lines[pg - 1].length) ? lines[pg - 1] : (pages[pg - 1] || []).map(function (t, i) { return { t: t, b: (boxes[pg - 1] || [])[i] || null }; });
+    if (!L.length) continue;
+    var ent = [], used = {};
+    var fromParas = !(lines[pg - 1] && lines[pg - 1].length);
+    L.forEach(function (l, i) {
+      var e = tocParseLine(l.t, N);
+      if (e) { ent.push({ t: e.t, printed: e.printed, src: l.b ? { pg: pg, b: l.b } : null }); used[i] = 1; return; }
+      var sp = fromParas && String(l.t).length > 30 ? tocSplitPara(l.t, l.b, N) : null;   // mehrere Einträge in einem Absatz
+      if (sp) { sp.forEach(function (x) { ent.push({ t: x.t, printed: x.printed, src: x.b ? { pg: pg, b: x.b } : null }); }); used[i] = 1; }
+    });
+    // Magazin-Layout: Seitenzahl allein, Titel daneben oder darunter
+    L.forEach(function (l, i) {
+      var s = String(l.t).trim();
+      if (used[i] || !l.b || !/^\d{1,3}$/.test(s)) return;
+      var n = +s; if (n < 1 || n > N + 40) return;
+      var bj = -1, bd = 9;
+      L.forEach(function (o, j) {
+        var os = String(o.t).trim();
+        if (j === i || used[j] || !o.b || /^\d{1,3}$/.test(os) || os.replace(/[^A-Za-zÄÖÜäöüß]/g, '').length < 3) return;
+        var sameRow = Math.abs(o.b[2] - l.b[2]) < 0.02 && o.b[0] >= l.b[0] - 0.01 && o.b[0] - l.b[1] < 0.2;
+        var below = o.b[2] >= l.b[2] - 0.005 && o.b[2] - l.b[3] < 0.035 && Math.abs(o.b[0] - l.b[0]) < 0.12;
+        if (!sameRow && !below) return;
+        var d = Math.abs(o.b[2] - l.b[2]) + Math.abs(o.b[0] - l.b[0]) * 0.5;
+        if (d < bd) { bd = d; bj = j; }
+      });
+      if (bj < 0) return;
+      var o = L[bj]; used[i] = used[bj] = 1;
+      ent.push({ t: String(o.t).trim().slice(0, 160), printed: n, src: { pg: pg, b: [Math.min(l.b[0], o.b[0]), Math.max(l.b[1], o.b[1]), Math.min(l.b[2], o.b[2]), Math.max(l.b[3], o.b[3])] } });
+    });
+    var kw = TOCWORD.test(L.map(function (l) { return l.t; }).join(' '));
+    if (ent.length >= 3 && (kw || ent.length / L.length >= 0.2)) found.push({ pg: pg, kw: kw, entries: ent, score: ent.length + (kw ? 4 : 0) });
+  }
+  if (!found.length) return null;
+  var best = found.slice().sort(function (a, b) { return b.score - a.score; })[0];
+  var use = found.filter(function (f) { return Math.abs(f.pg - best.pg) <= 1; });
+  var entries = [], seen = {};
+  use.forEach(function (f) { f.entries.forEach(function (e) { var k = e.printed + '|' + tocNorm(e.t); if (!seen[k]) { seen[k] = 1; entries.push(e); } }); });
+  entries.sort(function (a, b) { return a.printed - b.printed; });
+  return { pages: use.map(function (f) { return f.pg; }), entries: entries };
+}
+/* gedruckte Seite → PDF-Seite: Versatz über die Titel auf den Zielseiten bestimmen */
+function tocOffset(rec, entries, N, skip) {
+  var best = 0, bestS = -1;
+  for (var d = -4; d <= 16; d++) {
+    var s = 0;
+    entries.forEach(function (e) {
+      if (e.printed == null) return;
+      var p = e.printed + d; if (p < 1 || p > N || (skip && skip.indexOf(p) >= 0)) return;
+      var ws = tocWords(e.t); if (!ws.length) return;
+      var pt = tocPageText(rec, p), hit = ws.filter(function (w) { return pt.indexOf(' ' + w) >= 0; }).length;
+      if (hit / ws.length >= 0.5) s++;
+    });
+    if (s > bestS || (s === bestS && Math.abs(d) < Math.abs(best))) { bestS = s; best = d; }
+  }
+  return bestS > 0 ? best : 0;
+}
+/* ohne Seitenzahlen (z. B. E-Book): Einträge der Inhaltsseite über die Überschriften im Text finden */
+function tocByHeadings(rec, N) {
+  var pages = textPages(rec) || [], boxes = rec.boxes || [], out = [], tocPgs = [];
+  var find = function (t, from) {
+    var c = tocCore(t); if (c.length < 4) return 0;
+    for (var q = from; q <= N; q++) {
+      var Q = pages[q - 1] || [];
+      for (var k = 0; k < Q.length; k++) {
+        if (Q[k].length > 220) continue;
+        var u = tocCore(Q[k]);
+        if (u === c || (c.length >= 15 && u.indexOf(c) === 0) || (u.length >= 15 && c.indexOf(u) === 0)) return q;
+      }
+    }
+    return 0;
+  };
+  for (var pg = 1; pg <= Math.min(N, 14); pg++) {
+    var P = pages[pg - 1] || [];
+    if (!P.length) continue;
+    if (!tocPgs.length && !TOCWORD.test(P.join(' ').slice(0, 300))) continue;
+    if (tocPgs.length && pg !== tocPgs[tocPgs.length - 1] + 1) break;
+    var ent = [];
+    P.forEach(function (t, i) {
+      var nt = tocNorm(t); if (nt.length < 4 || t.length > 200 || /^(inhalt|inhaltsverzeichnis|contents)$/.test(nt)) return;
+      var q = find(t, pg + 1);
+      if (q) ent.push({ t: t.replace(/\s+/g, ' ').trim(), printed: null, p: q, src: (boxes[pg - 1] || [])[i] ? { pg: pg, b: boxes[pg - 1][i] } : null });
+    });
+    if (ent.length < (tocPgs.length ? 1 : 2)) { if (tocPgs.length) break; continue; }
+    tocPgs.push(pg); out = out.concat(ent);
+  }
+  return out.length ? { pages: tocPgs, entries: out } : null;
+}
+/* alles zusammen: Lesezeichen/Verzeichnis aus der Datei > gedruckte Seitenzahlen > Überschriften */
+function tocBuild(rec, N, extra) {
+  extra = extra || {};
+  var clamp = function (p) { return Math.max(1, Math.min(N, p)); };
+  var entries = [], links = (extra.links || []).filter(function (l) { return l.p >= 1 && l.p <= N && l.pg <= N; }), offset = 0, how = '';
+  var det = rec ? tocDetect(rec, N) : null;
+  var xe = (extra.entries || []).filter(function (e) { return e.p >= 1 && e.p <= N; });
+  if (xe.length >= 2) {
+    entries = xe.map(function (e) { return { t: e.t, printed: e.printed != null ? e.printed : null, p: clamp(e.p), lvl: e.lvl || 0 }; });
+    how = extra.how || 'Verzeichnis in der Datei';
+    if (det) {
+      offset = tocOffset(rec, det.entries, N, det.pages);
+      entries.forEach(function (e) { if (e.printed == null && e.p - offset >= 1) e.printed = e.p - offset; });   // gedruckte Seitenzahl wie im Heft anzeigen
+      var nat = {}; links.forEach(function (l) { nat[l.pg] = 1; });
+      det.entries.forEach(function (e) { if (e.src && !nat[e.src.pg]) links.push({ pg: e.src.pg, b: e.src.b, p: clamp(e.printed + offset) }); });
+    }
+  } else if (det) {
+    offset = tocOffset(rec, det.entries, N, det.pages);
+    entries = det.entries.map(function (e) { return { t: e.t, printed: e.printed, p: clamp(e.printed + offset), src: e.src }; });
+    how = 'Seitenzahlen im Inhaltsverzeichnis';
+  } else if (rec) {
+    var hd = tocByHeadings(rec, N);
+    if (hd) { entries = hd.entries; how = 'Überschriften im Text'; }
+  }
+  if (!entries.length && !links.length) return null;
+  return { v: 1, how: how, offset: offset, entries: entries, links: links, at: Date.now() };
+}
+/* PDF: eingebaute Lesezeichen und Verweise (z. B. aus InDesign exportiert) */
+async function pdfTocExtra(pdf, N) {
+  var out = { entries: [], links: [], how: 'Lesezeichen im PDF' };
+  var pageOf = async function (dest) {
+    try {
+      if (typeof dest === 'string') dest = await pdf.getDestination(dest);
+      if (!dest || dest[0] == null) return 0;
+      if (typeof dest[0] === 'number') return dest[0] + 1;
+      return (await pdf.getPageIndex(dest[0])) + 1;
+    } catch (e) { return 0; }
+  };
+  try {
+    var walk = async function (items, lvl) {
+      for (var o of items || []) {
+        var p = o.dest ? await pageOf(o.dest) : 0;
+        if (p >= 1 && p <= N && o.title && o.title.trim()) out.entries.push({ t: o.title.replace(/\s+/g, ' ').trim(), p: p, printed: null, lvl: lvl });
+        if (lvl < 1 && o.items && o.items.length) await walk(o.items, lvl + 1);
+      }
+    };
+    await walk(await pdf.getOutline(), 0);
+  } catch (e) {}
+  for (var pg = 1; pg <= Math.min(N, 16); pg++) {
+    try {
+      var page = await pdf.getPage(pg), vp = page.getViewport({ scale: 1 }), an = await page.getAnnotations();
+      for (var a of an) {
+        if (a.subtype !== 'Link' || !a.dest) continue;
+        var p = await pageOf(a.dest); if (p < 1 || p > N || p === pg) continue;
+        var c1 = vp.convertToViewportPoint(a.rect[0], a.rect[1]), c2 = vp.convertToViewportPoint(a.rect[2], a.rect[3]);
+        out.links.push({ pg: pg, p: p, b: [Math.min(c1[0], c2[0]) / vp.width, Math.max(c1[0], c2[0]) / vp.width, Math.min(c1[1], c2[1]) / vp.height, Math.max(c1[1], c2[1]) / vp.height].map(r3) });
+      }
+      page.cleanup();
+    } catch (e) {}
+  }
+  return out;
+}
+/* EPUB: Inhaltsverzeichnis aus nav.xhtml bzw. toc.ncx */
+function tocTarget(base, h) { var i = h.indexOf('#'), f = i >= 0 ? h.slice(i + 1) : '', p = i >= 0 ? h.slice(0, i) : h; return (p ? zipPath(base, p) : base) + (f ? '#' + f : ''); }
+async function epubNavToc(opf, opfPath, txt) {
+  var items = Array.prototype.slice.call(opf.getElementsByTagName('item')), out = [];
+  var nav = items.filter(function (i) { return /\bnav\b/.test(i.getAttribute('properties') || ''); })[0];
+  if (nav) {
+    var href = zipPath(opfPath, nav.getAttribute('href')), d = new DOMParser().parseFromString(await txt(href), 'application/xhtml+xml');
+    var navs = Array.prototype.slice.call(d.getElementsByTagName('nav'));
+    var tn = navs.filter(function (n) { return /toc/.test(n.getAttribute('epub:type') || n.getAttribute('role') || ''); })[0] || navs[0];
+    if (tn) Array.prototype.slice.call(tn.getElementsByTagName('a')).forEach(function (a) {
+      var h = a.getAttribute('href'), t = (a.textContent || '').replace(/\s+/g, ' ').trim(); if (!h || !t) return;
+      var lvl = 0, p = a.parentNode; while (p && p !== tn) { if (String(p.nodeName).toLowerCase() === 'ol') lvl++; p = p.parentNode; }
+      out.push({ t: t, target: tocTarget(href, h), lvl: Math.max(0, lvl - 1) });
+    });
+  }
+  if (!out.length) {
+    var ncx = items.filter(function (i) { return /ncx/.test(i.getAttribute('media-type') || ''); })[0];
+    if (ncx) {
+      var nh = zipPath(opfPath, ncx.getAttribute('href')), nd = new DOMParser().parseFromString(await txt(nh), 'application/xml');
+      Array.prototype.slice.call(nd.getElementsByTagName('navPoint')).forEach(function (np) {
+        var lab = np.getElementsByTagName('text')[0], c = np.getElementsByTagName('content')[0]; if (!lab || !c) return;
+        var lvl = 0, p = np.parentNode; while (p && String(p.nodeName) === 'navPoint') { lvl++; p = p.parentNode; }
+        out.push({ t: lab.textContent.replace(/\s+/g, ' ').trim(), target: tocTarget(nh, c.getAttribute('src') || ''), lvl: lvl });
+      });
+    }
+  }
+  return out;
+}
+
+/* ----- Reader: Inhalt-Knopf und antippbare Stellen ----- */
+function tocHas(t) { return !!(t && ((t.entries || []).length || (t.links || []).length)); }
+function tocHots(n) {
+  var t = R && R.toc, out = []; if (!t) return out;
+  (t.entries || []).forEach(function (e) { if (e.src && e.src.pg === n && e.p && e.src.b) out.push({ b: e.src.b, p: e.p }); });
+  (t.links || []).forEach(function (l) { if (l.pg === n && l.b) out.push({ b: l.b, p: l.p }); });
+  return out;
+}
+function paintTocHot() {
+  if (!R) return;
+  $$('#book .leaf').forEach(function (lf) {
+    var l = R.leaves[Number(lf.getAttribute('data-i'))], fr = lf.querySelector('.face.front'); if (!fr || !l || l.type !== 'img') return;
+    $$('.tochot', fr).forEach(function (x) { x.remove(); });
+    tocHots(l.n).forEach(function (h) {
+      var d = document.createElement('i'); d.className = 'tochot';
+      d.style.cssText = 'left:' + (h.b[0] * 100) + '%;top:' + (h.b[2] * 100) + '%;width:' + ((h.b[1] - h.b[0]) * 100) + '%;height:' + ((h.b[3] - h.b[2]) * 100) + '%';
+      fr.appendChild(d);
+    });
+  });
+}
+function tocHit(n, fx, fy) {
+  var pad = 0.008;
+  return tocHots(n).filter(function (h) { return fx >= h.b[0] - pad && fx <= h.b[1] + pad && fy >= h.b[2] - pad && fy <= h.b[3] + pad; })[0] || null;
+}
+function tocJump(p) {
+  if (!R) return;
+  p = Number(p);
+  var i = R.leaves.findIndex(function (l) { return l.type === 'img' && l.n === p; });
+  if (i < 0) { toast(R.preview ? 'Seite ' + p + ' gibt es in der ganzen Ausgabe' : 'Seite ' + p + ' ist nicht verfügbar'); return; }
+  closeTocSheet(); goLeaf(i);
+}
+function closeTocSheet() { var d = $('#rtoc'); if (!d) return; d.classList.add('out'); setTimeout(function () { d.remove(); }, 220); }
+function openTocSheet() {
+  if (!R || !R.toc) return;
+  var old = $('#rtoc'); if (old) old.remove();
+  var it = R.it, m = magById(it.magId) || {}, cl = R.leaves[R.cur] || {}, cur = cl.type === 'img' ? cl.n : 0, on = -1, E = R.toc.entries;
+  E.forEach(function (e, i) { if (e.p <= cur && (on < 0 || e.p >= E[on].p)) on = i; });
+  var total = it.totalPages || it.pageCount || 1, pct = Math.max(2, Math.min(100, Math.round(cur / total * 100)));
+  var main = 0, rows = E.map(function (e, i) {
+    var ok = R.leaves.some(function (l) { return l.type === 'img' && l.n === e.p; }), pg = e.printed != null ? e.printed : e.p, sub = !!e.lvl;
+    if (!sub) main++;
+    return '<button class="bare tci' + (sub ? ' sub' : '') + (i === on ? ' on' : '') + (ok ? '' : ' lock') + '" data-act="rtocgo" data-arg="' + e.p + '" data-q="' + esc(String(e.t).toLowerCase()) + '">' +
+      (sub ? '<i class="tcl"></i>' : '<span class="tcth"><img src="' + thumbURL(it, e.p) + '" alt="" loading="lazy"><em>' + (main < 10 ? '0' : '') + main + '</em></span>') +
+      '<span class="tct"><b>' + esc(e.t) + '</b>' + (i === on ? '<small class="here">Du bist hier</small>' : (ok ? '' : '<small>In der ganzen Ausgabe</small>')) + '</span>' +
+      '<span class="tcp">' + (ok ? '' : ICON.lock) + pg + '</span></button>';
+  }).join('');
+  var d = document.createElement('div'); d.className = 'rtoc'; d.id = 'rtoc';
+  d.innerHTML = '<button class="bare rtocscrim" data-act="rtocclose" aria-label="Inhalt schließen"></button>' +
+    '<div class="rtocp" role="dialog" aria-label="Inhaltsverzeichnis"><i class="tgrab"></i>' +
+    '<div class="tchead"><img class="tccov" src="' + cover(it) + '" alt=""><div class="tcmeta"><small>Inhalt</small><b>' + esc(m.kind === 'book' ? label(it) : m.name || '') + '</b><span>' + (m.kind === 'book' ? esc(num(it)) : label(it)) + ' · ' + E.length + ' Kapitel</span>' +
+    '<div class="tcprog"><i style="width:' + pct + '%"></i></div><span class="tcpos">Seite ' + (cur || 1) + ' von ' + total + '</span></div>' +
+    '<button class="btn roundbtn tcx" data-act="rtocclose" aria-label="Schließen">' + ICON.close + '</button></div>' +
+    (E.length > 12 ? '<div class="tcsearch"><input type="search" id="tcq" placeholder="Im Inhalt suchen …" autocomplete="off"></div>' : '') +
+    '<div class="rtocl">' + rows + '<div class="tcempty" hidden>Nichts gefunden</div></div></div>';
+  var rd = $('.reader'); if (rd) rd.appendChild(d);
+  var q = $('#tcq', d); if (q) q.addEventListener('input', function () { var v = q.value.trim().toLowerCase(), n = 0; $$('.tci', d).forEach(function (b) { var hit = !v || b.getAttribute('data-q').indexOf(v) >= 0; b.hidden = !hit; if (hit) n++; }); $('.tcempty', d).hidden = n > 0; });
+  var o = $('.tci.on', d); if (o) o.scrollIntoView({ block: 'center' });
+}
+
+/* ----- Bestehende Ausgaben nachrüsten (ohne neu hochzuladen) ----- */
+/* Original-Datei nur lesen: Text, Inhaltsverzeichnis, Lesezeichen, Verweise – Seiten, Cover, Preise bleiben unverändert */
+async function refreshFromFile(it, file, onStep) {
+  var isEpub = /\.epub$/i.test(file.name) || file.type === 'application/epub+zip';
+  var buf = await file.arrayBuffer(), N = it.pageCount, texts, extra = null, warn = '';
+  if (isEpub) {
+    onStep && onStep('E-Book wird gelesen …');
+    var d = await openUploadDoc(buf, true);
+    if (d.numPages !== it.pageCount) warn = 'Seitenzahl weicht ab (' + d.numPages + ' statt ' + it.pageCount + ') – bitte Sprungziele prüfen';
+    texts = await d.texts(N); try { extra = d.toc ? await d.toc(N) : null; } catch (e) {}
+    await d.destroy();
+  } else {
+    var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    if (pdf.numPages < it.pageCount) warn = 'PDF hat weniger Seiten (' + pdf.numPages + ' statt ' + it.pageCount + ') – richtige Datei?';
+    N = Math.min(N, pdf.numPages);
+    texts = await extractTexts(pdf, N, function (p) { onStep && onStep('Seite ' + p + ' von ' + N + ' …'); });
+    onStep && onStep('Inhaltsverzeichnis wird gesucht …');
+    try { extra = await pdfTocExtra(pdf, N); } catch (e) {}
+    await pdf.destroy();
+  }
+  var tp = textPages(texts) || [];
+  if (tp.some(function (a) { return a && a.length; })) await DB.put('texts', texts, it.id);
+  var old = null; try { old = await DB.get('texts', 'toc-' + it.id); } catch (e) {}
+  var tr = tocBuild(texts, N, extra), keep = !!(old && old.edited);
+  if (tr && !keep) await DB.put('texts', tr, 'toc-' + it.id);
+  return { n: tr ? tr.entries.length : 0, hot: tr ? tr.entries.filter(function (e) { return e.src; }).length + tr.links.length : 0, keep: keep, found: !!tr, warn: warn };
+}
+async function makeThumbs(it, onStep) {
+  for (var n = 1; n <= it.pageCount; n++) {
+    onStep && onStep(n);
+    var res = await fetch(pageURL(it, n)); if (!res.ok) throw new Error('Seite ' + n + ' nicht gefunden');
+    var bmp = await createImageBitmap(await res.blob());
+    var c = document.createElement('canvas'); c.width = 160; c.height = Math.round(160 * bmp.height / bmp.width);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); if (bmp.close) bmp.close();
+    await DB.put('pages', await new Promise(function (r) { c.toBlob(r, 'image/jpeg', 0.75); }), it.id + ':t' + pad3(n));
+  }
+  it.thumbs = 1; await DB.put('issues', it);
+}
+function issueName(it) { var m = magById(it.magId) || {}; return m.kind === 'book' ? label(it) : (m.name || '') + ' · ' + label(it); }
+/* Datei → passende Ausgabe (über Dateiname: Titel, Monat, Jahr) */
+function matchIssue(f) {
+  var g = guessFromName(f.name.replace(/\.epub$/i, '')) || {}, nm = slug(f.name.replace(/\.(pdf|epub)$/i, '')), isEpub = /\.epub$/i.test(f.name);
+  var c = S.issues.map(function (it) {
+    var m = magById(it.magId) || {}, s = 0;
+    if (m.kind === 'book') { var t = slug(it.title || ''); if (t && t !== 'magazin' && nm.indexOf(t) >= 0) s = 10; }
+    else {
+      var mn = slug(m.name);
+      if (mn && (nm.indexOf(mn) >= 0 || (g.title && slug(g.title) === mn))) {
+        s = 5; if (g.year && g.year === it.year) s += 2; if (g.month && g.month === it.month) s += 2;
+        if (g.month && g.month !== it.month) s -= 3;
+      }
+    }
+    if (s && isEpub !== (m.kind === 'book' || m.kind === 'comic')) s -= 1;
+    return { id: it.id, s: s };
+  }).filter(function (x) { return x.s > 0; }).sort(function (a, b) { return b.s - a.s; });
+  return c[0] && (!c[1] || c[1].s < c[0].s) ? c[0].id : '';
+}
+var UPDF = [];
+function updMatchRender() {
+  var box = $('#updMatch', panel); if (!box) return;
+  if (!UPDF.length) { box.innerHTML = ''; return; }
+  var opts = function (sel) {
+    var K = { mag: 'Zeitschriften', comic: 'Comics', book: 'Bücher' };
+    return '<option value="">– nicht zuordnen –</option>' + ['mag', 'comic', 'book'].map(function (k) {
+      var its = S.issues.filter(function (it) { return ((magById(it.magId) || {}).kind || 'mag') === k; }).sort(function (a, b) { return issueName(a).localeCompare(issueName(b), 'de'); });
+      return its.length ? '<optgroup label="' + K[k] + '">' + its.map(function (it) { return '<option value="' + esc(it.id) + '"' + (it.id === sel ? ' selected' : '') + '>' + esc(issueName(it)) + '</option>'; }).join('') + '</optgroup>' : '';
+    }).join('');
+  };
+  var n = UPDF.filter(function (u) { return u.id; }).length;
+  box.innerHTML = '<div class="updtab">' + UPDF.map(function (u, i) {
+    return '<div class="updrow"><span class="fn" title="' + esc(u.f.name) + '">' + esc(u.f.name) + '</span><select data-updsel="' + i + '"' + (u.done ? ' disabled' : '') + '>' + opts(u.id) + '</select><span class="st' + (u.err ? ' err' : u.done ? ' ok' : '') + '">' + esc(u.st || (u.id ? (u.auto ? 'automatisch zugeordnet' : '') : 'bitte zuordnen')) + '</span></div>';
+  }).join('') + '</div><button class="go small" id="updGo"' + (n ? '' : ' disabled') + '>' + n + (n === 1 ? ' Ausgabe' : ' Ausgaben') + ' nachrüsten</button>';
+  $$('[data-updsel]', box).forEach(function (s) { s.addEventListener('change', function () { var u = UPDF[+s.getAttribute('data-updsel')]; u.id = s.value; u.auto = false; updMatchRender(); }); });
+  var go = $('#updGo', box); if (go) go.addEventListener('click', async function () {
+    go.disabled = true; $$('[data-updsel]', box).forEach(function (s) { s.disabled = true; });
+    for (var u of UPDF) {
+      if (!u.id || u.done) continue;
+      var it = issueById(u.id); if (!it) continue;
+      var stEl = function () { return $$('.updrow .st', box)[UPDF.indexOf(u)]; };
+      try {
+        var r = await refreshFromFile(it, u.f, function (t) { var e = stEl(); if (e) e.textContent = t; });
+        u.done = true;
+        u.st = (r.keep ? 'Text aktualisiert · Inhalt von Hand bearbeitet, bleibt' : r.found ? 'Inhalt: ' + r.n + ' Einträge' + (r.hot ? ' · ' + r.hot + ' antippbare Stellen' : '') : 'Text aktualisiert · kein Inhaltsverzeichnis gefunden') + (r.warn ? ' · ⚠ ' + r.warn : '');
+      } catch (e) { u.err = true; u.st = 'Fehler: ' + (e.message || e); }
+      var e2 = stEl(); if (e2) { e2.textContent = u.st; e2.className = 'st' + (u.err ? ' err' : ' ok'); }
+    }
+    go.textContent = 'Fertig'; toast('Ausgaben nachgerüstet');
+  });
+}
+async function updAllRun(btn) {
+  var log = $('#updLog', panel), thumbs = $('#updThumbs', panel).checked, redo = $('#updRedo', panel).checked, its = S.issues.slice();
+  btn.disabled = true; log.innerHTML = '';
+  var cnt = { toc: 0, th: 0, none: 0 };
+  for (var k = 0; k < its.length; k++) {
+    var it = its[k], msgs = [];
+    btn.textContent = (k + 1) + ' / ' + its.length + ' …';
+    try {
+      var old = null; try { old = await DB.get('texts', 'toc-' + it.id); } catch (e) {}
+      if (old && old.edited) msgs.push('Inhalt von Hand bearbeitet – bleibt');
+      else if (old && (old.entries || []).length && !redo) msgs.push('Inhalt schon da (' + old.entries.length + ')');
+      else {
+        var rec = null; try { rec = await DB.get('texts', it.id); } catch (e) {}
+        if (!rec) { msgs.push('kein Text gespeichert → Original-Datei nachreichen'); cnt.none++; }
+        else {
+          var tr = tocBuild(rec, it.pageCount, { links: (old && old.links) || [] });
+          if (tr && tr.entries.length) { await DB.put('texts', tr, 'toc-' + it.id); msgs.push('Inhalt: ' + tr.entries.length + ' Einträge'); cnt.toc++; }
+          else { msgs.push('kein Inhaltsverzeichnis im Text → Original-Datei nachreichen'); cnt.none++; }
+        }
+      }
+      if (thumbs && !it.thumbs) { await makeThumbs(it, function (n) { btn.textContent = (k + 1) + ' / ' + its.length + ' · Vorschau ' + n + '/' + it.pageCount; }); msgs.push('Vorschaubilder erzeugt'); cnt.th++; }
+    } catch (e) { msgs.push('Fehler: ' + (e.message || e)); }
+    log.insertAdjacentHTML('beforeend', '<div class="updrow"><span class="fn">' + esc(issueName(it)) + '</span><span class="st">' + esc(msgs.join(' · ')) + '</span></div>');
+  }
+  await loadData(); rerender();
+  btn.disabled = false; btn.textContent = 'Nochmal ausführen';
+  toast('Fertig: ' + cnt.toc + ' Inhaltsverzeichnisse' + (cnt.th ? ', ' + cnt.th + '× Vorschaubilder' : ''));
+}
+
+/* ----- Admin: Inhaltsverzeichnis prüfen und bearbeiten ----- */
+var TOCED = {};
+async function tocEditorOpen(id) {
+  var box = $('#tocb-' + id, panel); if (!box) return;
+  var rec = null; try { rec = await DB.get('texts', 'toc-' + id); } catch (e) {}
+  TOCED[id] = rec && rec.entries ? JSON.parse(JSON.stringify(rec)) : { v: 1, offset: 0, entries: [], links: [] };
+  tocEditorRender(id);
+}
+function tocEditorRender(id) {
+  var it = issueById(id), box = $('#tocb-' + id, panel), T = TOCED[id]; if (!it || !box || !T) return;
+  var isBook = (magById(it.magId) || {}).kind === 'book', N = it.pageCount;
+  var pgs = {}; T.entries.forEach(function (e) { if (e.src) pgs[e.src.pg] = 1; }); (T.links || []).forEach(function (l) { pgs[l.pg] = 1; });
+  var hot = T.entries.filter(function (e) { return e.src; }).length + (T.links || []).length, pl = Object.keys(pgs).map(Number).sort(function (a, b) { return a - b; });
+  var h = '<div class="help" style="margin-top:0">' + (T.entries.length ? '<b>' + T.entries.length + ' Einträge</b>' + (T.how ? ' · erkannt über ' + esc(T.how) : '') + (T.edited ? ' · von Hand bearbeitet' : '') : 'Noch kein Inhaltsverzeichnis.') +
+    (hot ? ' · ' + hot + ' antippbare Stellen auf Seite ' + pl.join(', ') : '') + '</div>';
+  if (T.dirty) h += '<div class="dupwarn">Noch nicht gespeichert – bitte prüfen und „Speichern“ drücken.</div>';
+  h += '<div class="prow2" style="flex-wrap:wrap"><button class="ghost" data-tocauto>Automatisch erkennen</button>' + '<label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer">' + (isBook ? 'Aus EPUB neu einlesen' : 'Aus PDF neu einlesen') + '<input type="file" accept="' + (isBook ? 'application/epub+zip,.epub,' : '') + 'application/pdf,.pdf" hidden data-tocpdf></label>' + '<span class="help" data-tocst style="margin:0;align-self:center"></span></div>';
+  if (!isBook && T.entries.some(function (e) { return e.printed != null; })) h += '<div class="tocoff"><span>PDF-Seite = gedruckte Seite +</span><input type="number" data-tocoff value="' + (T.offset || 0) + '"><button class="ghost" data-tocoffgo>Auf alle anwenden</button></div>';
+  h += '<div class="toclist">' + T.entries.map(function (e, i) {
+    return '<div class="tocrow"><img src="' + (e.p ? thumbURL(it, e.p) : '') + '" alt="" loading="lazy">' +
+      '<input type="text" data-tocf="' + i + '|t" value="' + esc(e.t) + '" placeholder="Titel des Artikels">' +
+      (isBook ? '' : '<label><small>gedruckt</small><input type="number" min="1" data-tocf="' + i + '|printed" value="' + (e.printed != null ? e.printed : '') + '"></label>') +
+      '<label><small>' + (isBook ? 'Seite' : 'PDF-Seite') + '</small><input type="number" min="1" max="' + N + '" data-tocf="' + i + '|p" value="' + (e.p || '') + '"></label>' +
+      '<button class="del" data-tocdel="' + i + '" title="Eintrag entfernen" aria-label="Eintrag entfernen">✕</button></div>';
+  }).join('') + '</div>';
+  h += '<div class="prow2"><button class="ghost" data-tocadd>+ Eintrag</button><button class="go small" data-tocsave>Speichern</button>' + (tocHas(T) ? '<button class="ghost red" data-tocclear>Alles löschen</button>' : '') + '</div>';
+  h += '<div class="help">Im Reader öffnet der Knopf „Inhalt“ diese Liste. Erkannte Einträge sind zusätzlich direkt auf der Inhaltsseite antippbar.</div>';
+  box.innerHTML = h;
+  var q = function (s) { return box.querySelector(s); }, st = function (t) { var e = q('[data-tocst]'); if (e) e.textContent = t; };
+  var clamp = function (p) { return Math.max(1, Math.min(N, p)); };
+  var dirty = function () { T.dirty = true; tocEditorRender(id); };
+  $$('[data-tocf]', box).forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var a = inp.getAttribute('data-tocf').split('|'), e = T.entries[+a[0]], v = inp.value.trim(); if (!e) return;
+      if (a[1] === 't') e.t = v;
+      else if (a[1] === 'printed') { e.printed = v ? Number(v) : null; if (e.printed != null) e.p = clamp(e.printed + (T.offset || 0)); }
+      else if (v) e.p = clamp(Number(v));
+      dirty();
+    });
+  });
+  $$('[data-tocdel]', box).forEach(function (b) { b.addEventListener('click', function () { T.entries.splice(+b.getAttribute('data-tocdel'), 1); dirty(); }); });
+  q('[data-tocadd]').addEventListener('click', function () { T.entries.push({ t: '', printed: null, p: 1 }); dirty(); var ins = $$('[data-tocf$="|t"]', box); if (ins.length) ins[ins.length - 1].focus(); });
+  var og = q('[data-tocoffgo]'); if (og) og.addEventListener('click', function () { T.offset = Number(q('[data-tocoff]').value) || 0; T.entries.forEach(function (e) { if (e.printed != null) e.p = clamp(e.printed + T.offset); }); dirty(); });
+  q('[data-tocsave]').addEventListener('click', async function () {
+    T.entries = T.entries.filter(function (e) { return e.t && e.t.trim() && e.p; }).sort(function (a, b) { return a.p - b.p; });
+    delete T.dirty; T.edited = true;
+    await DB.put('texts', T, 'toc-' + id); tocEditorRender(id); toast('Inhaltsverzeichnis gespeichert');
+  });
+  var clr = q('[data-tocclear]'); if (clr) clr.addEventListener('click', async function () {
+    if (!confirm('Inhaltsverzeichnis und alle Sprungmarken dieser Ausgabe löschen?')) return;
+    TOCED[id] = T = { v: 1, offset: 0, entries: [], links: [], edited: true };
+    await DB.put('texts', T, 'toc-' + id); tocEditorRender(id); toast('Inhaltsverzeichnis gelöscht');
+  });
+  q('[data-tocauto]').addEventListener('click', async function () {
+    st('Wird gesucht …');
+    var rec = null; try { rec = await DB.get('texts', id); } catch (e) {}
+    if (!rec) { st(isBook ? 'Für dieses Buch ist kein Text gespeichert – bitte das Buch neu hochladen.' : 'Für diese Ausgabe ist kein Text gespeichert – nutze „Aus PDF neu einlesen“.'); return; }
+    var r = tocBuild(rec, N, { links: T.links || [] });
+    if (!r || !r.entries.length) { st(isBook ? 'Im gespeicherten Text ist kein Inhaltsverzeichnis zu finden. Nutze „Aus EPUB neu einlesen“ – dann wird es exakt übernommen, ohne das Buch neu hochzuladen.' : 'Kein Inhaltsverzeichnis gefunden. Tipp: „Aus PDF neu einlesen“ liest auch Lesezeichen und Verweise aus dem PDF.'); return; }
+    r.dirty = true; TOCED[id] = T = r; tocEditorRender(id);
+  });
+  var fp = q('[data-tocpdf]'); if (fp) fp.addEventListener('change', async function () {
+    var f = fp.files[0]; if (!f) return;
+    try {
+      var r = await refreshFromFile(it, f, st);
+      var rec = null; try { rec = await DB.get('texts', 'toc-' + id); } catch (e) {}
+      if (rec && rec.entries) TOCED[id] = T = rec;
+      tocEditorRender(id);
+      st(r.keep ? 'Text aktualisiert – dein bearbeitetes Inhaltsverzeichnis bleibt.' : r.found ? 'Inhaltsverzeichnis: ' + r.n + ' Einträge' + (r.warn ? ' · ⚠ ' + r.warn : '') : 'Kein Inhaltsverzeichnis gefunden – du kannst die Einträge von Hand anlegen.');
+    } catch (e) { st('Die Datei konnte nicht gelesen werden.'); }
+  });
+}
 
 /* ===== Lesemodus ===== */
 var LM = null;
@@ -2366,7 +3048,7 @@ function lmHTML() {
     '<button class="btn lmb" data-act="lmsize" data-arg="-2" aria-label="Schrift kleiner" style="font-size:12px">A</button>' +
     '<button class="btn lmb" data-act="lmsize" data-arg="2" aria-label="Schrift größer" style="font-size:18px">A</button>' +
     '<button class="btn lmb" data-act="lmtheme" aria-label="Farbe wechseln: hell, Sepia, dunkel">' + (th === 'dark' ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>') + '</button></div>' +
-    '<div class="lmbody" id="lmbody"><h1>' + esc(m.name) + '</h1><div class="meta">' + label(it) + ' · ' + num(it) + '</div>';
+    '<div class="lmbody" id="lmbody"><h1>' + esc(m.kind === 'book' ? label(it) : m.name) + '</h1><div class="meta">' + (m.kind === 'book' ? esc(num(it)) : label(it) + ' · ' + num(it)) + '</div>';
   if (!LM.hasText) {
     h += '<div class="lmempty">Für diese Ausgabe ist noch kein Text gespeichert.<br>In der Redaktion unter „Ausgabe bearbeiten“ → „Text aus PDF übernehmen“ das PDF noch einmal auswählen – danach funktionieren Lesemodus und Vorlesen.</div>';
   } else if (!LM.paras.length) {
@@ -2528,7 +3210,7 @@ function sheetHTML() {
     var opts = buyOptions(it);
     var plan = opts.some(function (o) { return o.id === S.plan; }) ? S.plan : 'single';
     var chosen = opts.filter(function (o) { return o.id === plan; })[0];
-    h += '<div class="shead"><div class="scover"><img src="' + cover(it) + '" alt=""></div><div><small>' + esc(m.name) + ' · ' + num(it) + '</small><b>' + label(it) + '</b><span>' + it.pageCount + ' Seiten</span></div></div>';
+    h += '<div class="shead"><div class="scover"><img src="' + cover(it) + '" alt=""></div><div><small>' + (m.kind === 'book' ? esc(num(it)) : esc(m.name) + ' · ' + num(it)) + '</small><b>' + label(it) + '</b><span>' + it.pageCount + ' Seiten</span></div></div>';
     if (opts.length > 1) h += '<h2>Kaufoptionen</h2>';
     h += opts.map(function (o) {
       return '<button class="bare opt' + (o.id === plan ? ' on' : '') + '" data-act="plan" data-arg="' + o.id + '"><span class="radio" aria-hidden="true"></span><span class="t"><b>' + esc(o.title) + '</b><small>' + esc(o.desc) + '</small></span><span class="p">' + esc(String(o.price).replace(' / ', '\n/ ')) + '</span></button>';
@@ -2594,7 +3276,7 @@ function setupCarousel() {
 function fitCards(el) {
   var page = $('#kpage'), info = $('#kinfo');
   if (!el || !page || !info) return;
-  var list = issuesOf(S.magId, S.year);
+  var list = kList();
   // Höhe der Info für die höchste Ausgabe reservieren, damit beim Wischen nichts springt
   page.classList.remove('tight');
   var r = fitCardsOnce(el, page, info, list);
@@ -2617,7 +3299,7 @@ function fitCardsOnce(el, page, info, list) {
   var over = bottom - page.clientHeight;
   var want = ch - over;
   var tab = document.body.classList.contains('tablet'), gap = tab ? 28 : 16;
-  ch = Math.round(Math.max(120, Math.min(tab ? 540 : 300, want)));
+  ch = Math.round(Math.max(120, Math.min(tab ? 540 : 340, want)));
   var cw = Math.round(ch * 170 / 241);
   page.style.setProperty('--ch', ch + 'px'); page.style.setProperty('--cw', cw + 'px');
   STEP = cw + gap;
@@ -2670,7 +3352,8 @@ function updateCards() {
   var idx = Math.max(0, Math.min(cards.length - 1, Math.round(x / STEP)));
   if (idx !== S.kIndex) {
     S.kIndex = idx;
-    var list = issuesOf(S.magId, S.year);
+    var list = kList();
+    if (list[idx] && list[idx].magId !== S.magId) { S.magId = list[idx].magId; if (S.cfg.magAccent) applyTheme(); }
     var info = $('#kinfo'); if (info) info.innerHTML = infoHTML(list[idx]);
     $$('#kdots button').forEach(function (b, i) { b.classList.toggle('on', i === idx); });
   }
@@ -3034,12 +3717,14 @@ function openReader(issueId, preview, startPage) {
   if (startPage) { var si = leaves.findIndex(function (l) { return l.type === 'img' && l.n === Number(startPage); }); if (si >= 0) start = si; }
   R = { it: it, preview: preview, leaves: leaves, cur: start, fdir: 0, fp: 0, anim: false, txt: null };
   DB.get('texts', it.id).then(function (rec) { if (R && R.it.id === it.id) R.txt = rec || null; });
+  DB.get('texts', 'toc-' + it.id).then(function (t) { if (R && R.it.id === it.id && tocHas(t)) { R.toc = t; var b = $('#rtocbtn'); if (b) b.hidden = !(t.entries || []).length; paintTocHot(); } }).catch(function () {});
   DB.get('texts', comicKey(it)).then(function (p) { if (R && R.it.id === it.id && hasPanels(p)) { R.pan = p; var b = $('#rgvbtn'); if (b) b.hidden = false; } }).catch(function () {});
   if (S.screen !== 'reader') S.back = S.screen;
   S.screen = 'reader'; S.sheet = null; S.menu = false;
   render();
 }
 function closeReader() {
+  closeTocSheet();
   if (GV) closeGuided();
   hideTextCard();
   Object.keys(pageURLs).forEach(function (k) { URL.revokeObjectURL(pageURLs[k]); });
@@ -3051,7 +3736,7 @@ function closeReader() {
 function readerHTML() {
   var it = R.it, m = magById(it.magId);
   var h = '<div class="reader"><div class="rtop"><button class="btn roundbtn" data-act="closereader" aria-label="Reader schließen">' + ICON.close + '</button><button class="btn roundbtn rmarkbtn" id="rmarkbtn" data-act="mark" aria-label="Lesezeichen setzen">' + ICON.mark + '</button>' +
-    '<div class="rtitle"><b>' + esc(m.name) + '</b><span>' + (R.preview ? 'Leseprobe · ' : '') + label(it) + '</span></div><div class="rpage" id="rpage"></div><button class="btn roundbtn rgvbtn" id="rgvbtn" data-act="guided" aria-label="Bild für Bild lesen"' + (hasPanels(R.pan) ? '' : ' hidden') + '><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg></button><button class="btn roundbtn" data-act="allpages" aria-label="Alle Seiten auf einen Blick">' + ICON.grid + '</button><button class="btn roundbtn" data-act="lmfromreader" aria-label="Lesemodus" style="font-weight:750;font-size:15px">Aa</button><button class="btn roundbtn zoombtn" id="rzoom" data-act="zoom" aria-label="Lupe: Seite vergrößern" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg></button></div>' +
+    '<div class="rtitle"><b>' + esc(m.name) + '</b><span>' + (R.preview ? 'Leseprobe · ' : '') + label(it) + '</span></div><div class="rpage" id="rpage"></div><button class="btn roundbtn rtocbtn" id="rtocbtn" data-act="rtoc" aria-label="Inhaltsverzeichnis"' + (R.toc && R.toc.entries && R.toc.entries.length ? '' : ' hidden') + '><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button><button class="btn roundbtn rgvbtn" id="rgvbtn" data-act="guided" aria-label="Bild für Bild lesen"' + (hasPanels(R.pan) ? '' : ' hidden') + '><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg></button><button class="btn roundbtn" data-act="allpages" aria-label="Alle Seiten auf einen Blick">' + ICON.grid + '</button><button class="btn roundbtn" data-act="lmfromreader" aria-label="Lesemodus" style="font-weight:750;font-size:15px">Aa</button><button class="btn roundbtn zoombtn" id="rzoom" data-act="zoom" aria-label="Lupe: Seite vergrößern" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/></svg></button></div>' +
     '<div class="rstage" id="rstage"><div class="book" id="book">';
   R.leaves.forEach(function (l, i) {
     h += '<div class="leaf" data-i="' + i + '"><div class="face front">';
@@ -3221,6 +3906,7 @@ function goLeaf(i) {
   updateBook();
 }
 function setupBook() {
+  setTimeout(paintTocHot, 0);
   var stage = $('#rstage'), book = $('#book');
   var W = stage.clientWidth, H = stage.clientHeight;
   var ar = R.it.aspect || 1.414;
@@ -3411,6 +4097,8 @@ function tapPage(fx, fy, li, off) {
   off = off || 0;
   var l = R.leaves[li == null ? R.cur : li];
   if (!l || l.type !== 'img') return;
+  var th = tocHit(l.n, fx, fy);
+  if (th) { tocJump(th.p); return; }   // Eintrag im Inhaltsverzeichnis angetippt
   var rec = R.txt, boxes = rec && !Array.isArray(rec) ? rec.boxes[l.n - 1] : null, paras = rec && !Array.isArray(rec) ? rec.pages[l.n - 1] : null;
   if (boxes && boxes.length) {
     var best = -1, bestD = 1e9;
@@ -3681,7 +4369,7 @@ var ACT = {
   menu: function () { S.menu = true; S.anim = true; rerender(); },
   closemenu: function () { S.menu = false; rerender(); },
   kind: function (k) {
-    if ((S.kind || 'all') === k) return;
+    if (S.kind === k) return;
     S.kind = k; S.cat = 'all';
     var list = magsInCat(), id = list.some(function (m) { return m.id === S.magId; }) ? S.magId : (list[0] && list[0].id);
     switchKiosk({ magId: id, year: yearsOf(id)[0], kIndex: 0 });
@@ -3689,13 +4377,14 @@ var ACT = {
   cat: function (k) {
     if (k === S.cat) return;
     S.cat = k;
-    var list = magsInCat();
-    var keep = list.some(function (m) { return m.id === S.magId; });
-    var id = keep ? S.magId : (list[0] && list[0].id);
-    switchKiosk({ magId: id, year: yearsOf(id)[0], kIndex: 0 });
+    switchKiosk({ kIndex: 0 });   // alle Bereiche: eine Liste, nur gefiltert
   },
   mag: function (id) {
-    S.yearMenu = false; S.chat = null; if (id !== S.magId) { var ys = yearsOf(id); switchKiosk({ magId: id, year: ys[0], kIndex: 0 }); } },
+    S.yearMenu = false; S.chat = null;
+    var m = magById(id); if (!m) return;
+    var k = m.kind || 'mag';
+    var c = k === 'book' || (S.kind === k && S.cat === id) ? 'all' : id;   // Titel/Reihe antippen filtert, nochmal antippen zeigt wieder alle
+    S.kind = k; S.cat = c; switchKiosk({ magId: id, kIndex: 0 }); },
   year: function (y) { y = Number(y); S.yearMenu = false; if (y !== S.year) switchKiosk({ year: y, kIndex: 0 }); else rerender(); },
   save: function (id) {
     S.saved = S.saved || [];
@@ -3793,7 +4482,7 @@ var ACT = {
     if (K.justDragged) return;
     i = Number(i);
     if (i !== S.kIndex) { goTo(i); return; }
-    var it = issuesOf(S.magId, S.year)[i];
+    var it = kList()[i];
     openReader(it.id, !owns(it));
   },
   dot: function (i) { goTo(Number(i)); },
@@ -3828,6 +4517,9 @@ var ACT = {
   tcexpand: function () { if (!TC) return; TC.expanded = !TC.expanded; showTextCard(TC.page, TC.k, TC.off); },
   tclm: function () { if (!TC || !R) return; var f = { page: TC.page, k: TC.k }, id = R.it.id, pv = R.preview; hideTextCard(); openLM(id, pv, false, f); },
   goleaf: function (i) { goLeaf(Number(i)); },
+  rtoc: function () { if ($('#rtoc')) closeTocSheet(); else openTocSheet(); },
+  rtocclose: function () { closeTocSheet(); },
+  rtocgo: function (p) { tocJump(p); },
   allpages: function () { openAllPages(); },
   allclose: function () { closeAllPages(); },
   allgo: function (i) { closeAllPages(); goLeaf(Number(i)); },
@@ -3948,36 +4640,128 @@ function bindLogin() {
 
 /* Ausgabe direkt einem Titel zuordnen (oder neuen Titel anlegen) – sichtbar an jeder Ausgabe */
 function moveRowHTML(it) {
-  var all = (S.allMags || S.mags).slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); });
-  var KL = { mag: 'Zeitschrift', book: 'Buch', comic: 'Comic' };
-  return '<div class="imove"><span>Gehört zu</span><select data-move="' + esc(it.id) + '">' + all.map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + ' (' + KL[mm.kind || 'mag'] + (mm.cat ? ' · ' + esc(mm.cat) : '') + ')</option>'; }).join('') + '<option value="__new">+ Neuen Titel anlegen …</option></select></div>' +
-    '<div class="inew" id="inew-' + esc(it.id) + '" hidden><div class="prow"><div class="pf"><label>Name des neuen Titels</label><input type="text" data-nn="' + esc(it.id) + '" placeholder="z. B. Absolute Batman"></div></div>' +
-    '<div class="prow"><div class="pf"><label>Bereich</label>' + kindSel('data-nk="' + esc(it.id) + '"', S.admKind || 'mag') + '</div><div class="pf"><label>Kategorie (optional)</label><input type="text" list="catlist" data-nc="' + esc(it.id) + '" placeholder="z. B. Action"></div></div>' +
+  var mk = magById(it.magId) || {};
+  if (mk.kind === 'book') return '<div class="imove"><span>Buchtitel</span><input type="text" data-btitle="' + esc(it.id) + '" value="' + esc(it.title || mk.name || '') + '"></div>' +
+    '<div class="imove"><span>Genre</span><input type="text" list="genrelist" data-genre="' + esc(it.id) + '" value="' + esc(it.genre || '') + '" placeholder="z. B. Sachbuch, Krimi, Drama"></div>';
+  var kd = mk.kind || 'mag', nm = kd === 'comic' ? 'Reihe' : 'Zeitschrift';
+  var all = (S.allMags || S.mags).filter(function (mm) { return (mm.kind || 'mag') === kd; }).sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); });
+  return '<div class="imove"><span>' + nm + '</span><select data-move="' + esc(it.id) + '">' + all.map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + '</option>'; }).join('') + '<option value="__new">+ Neue ' + nm + ' anlegen …</option></select></div>' +
+    '<div class="inew" id="inew-' + esc(it.id) + '" hidden><div class="prow"><div class="pf"><label>Name der neuen ' + nm + '</label><input type="text" data-nn="' + esc(it.id) + '" placeholder="' + (kd === 'comic' ? 'z. B. Absolute Batman' : 'z. B. PC Games') + '"></div></div>' +
     '<div class="prow2"><button class="go small" data-nmake="' + esc(it.id) + '">Anlegen &amp; Ausgabe verschieben</button><button class="ghost" data-ncancel="' + esc(it.id) + '">Abbrechen</button></div></div>';
 }
 async function moveIssueTo(it, mag) {
   it.magId = mag.id; await DB.put('issues', it); await loadData();
-  S.admKind = mag.kind || 'mag'; ADMOPEN[mag.id] = true; rerender(); renderPanel();
+  ADMSTATE.tab_issues = AREATAB[mag.kind || 'mag']; admSave(); ADMOPEN[mag.id] = true; rerender(); renderPanel();
   toast(label(it) + ' → ' + mag.name);
+}
+/* ===== Admin-Oberfläche: Seitenleiste · Arbeitsbereich · Vorschau (Pixel-Mania) ===== */
+var ADMI = {
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  book: '<path d="M2 5c3-1.5 6-1.5 10 1 4-2.5 7-2.5 10-1v14c-3-1.5-6-1.5-10 1-4-2.5-7-2.5-10-1z"/><path d="M12 6v14"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
+  news: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>',
+  ad: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15l2.5-6 2.5 6M7.8 13h3.4M15 9v6h1.5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2z"/>',
+  brush: '<path d="M14 4l6 6-9 9H5v-6z"/><path d="M12 6l6 6"/>',
+  cart: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l3 12h11l2-8H6"/>',
+  chat: '<path d="M4 4h16v12H8l-4 4z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  up: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  logo: '<path d="M12 2l10 5-10 5L2 7z" fill="currentColor" opacity=".95"/><path d="M2 12l10 5 10-5" /><path d="M2 17l10 5 10-5"/>'
+};
+function admIc(k, s) { return '<svg width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + ADMI[k] + '</svg>'; }
+var ADMPAGES = [
+  { id: 'dash', t: 'Dashboard', ic: 'home', secs: [] },
+  { id: 'issues', t: 'Inhalte', ic: 'book', secs: [['Neue Ausgabe', 'Hochladen', 'up'], ['Zeitschriften', 'Zeitschriften', 'news'], ['Comics', 'Comics', 'bolt'], ['Bücher', 'Bücher', 'book'], ['Bestehende Ausgaben aktualisieren', 'Aktualisieren', 'gear']] },
+  { id: 'news', t: 'News', ic: 'news', secs: [['News', 'News', 'news']] },
+  { id: 'ads', t: 'Werbung', ic: 'ad', secs: [['Werbung', 'Werbung', 'ad']] },
+  { id: 'design', t: 'Design', ic: 'brush', secs: [['App-Kopf', 'App-Kopf', 'brush'], ['Farben', 'Farben', 'brush']] },
+  { id: 'sales', t: 'Verkauf & Abos', ic: 'cart', secs: [['Kauf & Demo', 'Kauf & Demo', 'cart']] },
+  { id: 'service', t: 'Chatbot & Hilfe', ic: 'chat', secs: [['Chatbot', 'Chatbot', 'chat'], ['Hilfe & Kontakt', 'Hilfe & Kontakt', 'chat']] },
+  { id: 'settings', t: 'Einstellungen', ic: 'gear', secs: [['Speicher', 'Speicher', 'gear']] }
+];
+var AREATAB = { mag: 1, comic: 2, book: 3 };   // Reiter unter „Inhalte“
+var ADMSTATE = (function () { try { return JSON.parse(localStorage.getItem('pmAdm') || '{}'); } catch (e) { return {}; } })();
+function admSave() { try { localStorage.setItem('pmAdm', JSON.stringify(ADMSTATE)); } catch (e) {} }
+function admGo(page, tab) { ADMSTATE.page = page; if (tab != null) ADMSTATE['tab_' + page] = tab; admSave(); admLayout(); var pn = $('#panel'); if (pn) pn.scrollTop = 0; }
+function admLayout() {
+  if (!IS_ADMIN) return;
+  document.body.classList.add('adm');
+  var stage = $('.stage'), side = $('#admside'), prev = $('#admprev');
+  document.body.classList.toggle('nologin', !AUTH);
+  if (!side) { side = document.createElement('nav'); side.id = 'admside'; stage.insertBefore(side, stage.firstChild); }
+  if (!prev) {
+    prev = document.createElement('aside'); prev.id = 'admprev';
+    prev.innerHTML = '<div class="pvcard"><div class="pvhead">' + admIc('eye', 22) + '<b>Vorschau</b></div><div id="pvdev"></div><div class="pvbox" id="pvbox"></div></div><div class="pvcard qa"><div class="pvhead">' + admIc('bolt', 20) + '<b>Schnellaktionen</b></div><div id="admqa"></div></div>';
+    stage.appendChild(prev); $('#pvbox').appendChild($('#phone'));
+  }
+  if (!AUTH) { side.innerHTML = ''; if (!$('#panel .lbrand')) { var lb = document.createElement('div'); lb.className = 'lbrand'; lb.innerHTML = admIc('logo', 30) + '<span><b>Pixel-Mania</b> Admin</span>'; $('#panel').insertBefore(lb, $('#panel').firstChild); } return; }
+  var page = ADMSTATE.page || 'issues', P = ADMPAGES.filter(function (p) { return p.id === page; })[0] || ADMPAGES[1];
+  // Seitenleiste
+  var nav = '<div class="sbrand">' + admIc('logo', 28) + '<span><b>Pixel-Mania</b> Admin</span></div><div class="snav">';
+  ADMPAGES.forEach(function (p) {
+    var on = p.id === P.id;
+    nav += '<button class="sitem' + (on ? ' on' : '') + '" data-admgo="' + p.id + '">' + admIc(p.ic) + '<span>' + esc(p.t) + '</span>' + (p.secs.length > 1 ? '<i class="chev"></i>' : '') + '</button>';
+    if (on && p.secs.length > 1) nav += '<div class="ssub">' + p.secs.map(function (s, i) { return '<button class="' + ((ADMSTATE['tab_' + p.id] || 0) === i ? 'on' : '') + '" data-admgo="' + p.id + '" data-admtab="' + i + '">' + esc(s[1]) + '</button>'; }).join('') + '</div>';
+  });
+  var em = AUTH.email || '', ini = (em.replace(/@.*/, '').split(/[._-]/).map(function (x) { return x.charAt(0); }).join('').slice(0, 2) || 'A').toUpperCase();
+  nav += '</div><div class="sfoot"><span class="av">' + esc(ini) + '</span><span class="who"><b>' + esc(em.replace(/@.*/, '')) + '</b><small>Admin</small></span><button class="slog" data-admlogout title="Abmelden">Abmelden</button></div>';
+  side.innerHTML = nav;
+  $$('[data-admgo]', side).forEach(function (b) { b.onclick = function () { admGo(b.getAttribute('data-admgo'), b.hasAttribute('data-admtab') ? +b.getAttribute('data-admtab') : null); }; });
+  $('[data-admlogout]', side).onclick = function () { var lo = $('#aLogout'); if (lo) lo.click(); };
+  var lo0 = $('#aLogout'); if (lo0 && lo0.parentNode) lo0.parentNode.style.display = 'none';
+  // Vorschau-Umschalter in die rechte Spalte holen
+  var dv = $('#panel .devsw'); if (dv) { var pd = $('#pvdev'); pd.innerHTML = ''; pd.appendChild(dv); }
+  // Arbeitsbereich: nur die Abschnitte der aktuellen Seite, als Karten mit Reitern
+  var pn = $('#panel'), secs = $$('#panel > .psec'), known = {};
+  ADMPAGES.forEach(function (p) { p.secs.forEach(function (s) { known[s[0]] = p.id; }); });
+  var tab = Math.min(ADMSTATE['tab_' + P.id] || 0, Math.max(0, P.secs.length - 1)), want = P.secs[tab] ? P.secs[tab][0] : null;
+  secs.forEach(function (sec) {
+    var h2 = sec.querySelector(':scope > h2'), t = h2 ? h2.textContent.trim() : '';
+    var pg = known[t] || 'settings';
+    sec.hidden = !(P.id === pg && (P.id === 'settings' ? true : t === want));
+    sec.classList.remove('closed');
+  });
+  var top = $('#admtop'); if (top) top.remove(); var dash = $('#admdash'); if (dash) dash.remove();
+  top = document.createElement('div'); top.id = 'admtop';
+  top.innerHTML = '<div class="atitle">' + admIc(P.ic, 30) + '<h1>' + esc(P.t) + '</h1></div>' + (P.secs.length > 1 ? '<div class="atabs">' + P.secs.map(function (s, i) { return '<button class="' + (i === tab ? 'on' : '') + '" data-admgo="' + P.id + '" data-admtab="' + i + '">' + admIc(s[2], 18) + esc(s[1]) + '</button>'; }).join('') + '</div>' : '');
+  pn.insertBefore(top, pn.firstChild);
+  $$('[data-admgo]', top).forEach(function (b) { b.onclick = function () { admGo(b.getAttribute('data-admgo'), +b.getAttribute('data-admtab')); }; });
+  if (P.id === 'dash') { dash = document.createElement('div'); dash.id = 'admdash'; dash.innerHTML = admDashHTML(); top.after(dash); $$('[data-admgo]', dash).forEach(function (b) { b.onclick = function () { admGo(b.getAttribute('data-admgo'), b.hasAttribute('data-admtab') ? +b.getAttribute('data-admtab') : null); }; }); }
+  // Schnellaktionen
+  $('#admqa').innerHTML = [['issues', 0, 'up', 'Neue Ausgabe hochladen'], ['issues', 1, 'news', 'Zeitschriften'], ['issues', 2, 'bolt', 'Comics'], ['issues', 3, 'book', 'Bücher'], ['ads', 0, 'ad', 'Werbung verwalten'], ['sales', 0, 'cart', 'Preise & Abos']].map(function (q) { return '<button data-admgo="' + q[0] + '" data-admtab="' + q[1] + '">' + admIc(q[2], 18) + '<span>' + q[3] + '</span><i class="chev r"></i></button>'; }).join('');
+  $$('#admqa [data-admgo]').forEach(function (b) { b.onclick = function () { admGo(b.getAttribute('data-admgo'), +b.getAttribute('data-admtab')); }; });
+  fit();
+}
+function admDashHTML() {
+  var all = S.allMags || S.mags, K = { mag: 'Zeitschriften', comic: 'Comics', book: 'Bücher' };
+  var card = function (k) { var ms = S.mags.filter(function (m) { return (m.kind || 'mag') === k; }), n = S.issues.filter(function (it) { var m = magById(it.magId); return m && (m.kind || 'mag') === k; }).length; return '<button class="dcard" data-admgo="issues" data-admtab="' + AREATAB[k] + '"><small>' + K[k] + '</small><b>' + ms.length + '</b><span>' + (ms.length === 1 ? 'Titel' : 'Titel') + ' · ' + n + (n === 1 ? ' Ausgabe' : ' Ausgaben') + '</span></button>'; };
+  var latest = S.issues.slice().sort(function (a, b) { return (b.added || 0) - (a.added || 0); }).slice(0, 6);
+  return '<div class="dgrid">' + card('mag') + card('comic') + card('book') + '<button class="dcard accent" data-admgo="issues" data-admtab="0"><small>Neu</small><b>' + admIc('up', 26) + '</b><span>Ausgabe hochladen</span></button></div>' +
+    '<div class="psec"><h2>Zuletzt hochgeladen</h2><div class="dlatest">' + (latest.length ? latest.map(function (it) { var m = magById(it.magId) || {}; return '<div class="dl"><img src="' + cover(it) + '" alt=""><b>' + esc(m.name || '') + '</b><small>' + label(it) + '</small></div>'; }).join('') : '<p class="help">Noch nichts hochgeladen.</p>') + '</div></div>';
 }
 function renderPanel() {
   var mags = S.mags;
   var brand = S.ads.brand || {};
-  if (!AUTH) { panel.innerHTML = loginHTML(); bindLogin(); return; }
+  if (!AUTH) { panel.innerHTML = loginHTML(); bindLogin(); admLayout(); return; }
   var h = '<div style="display:flex;align-items:center;gap:10px"><h1 style="flex:1">Redaktion</h1><span style="font-size:12px;color:#6B6B73">' + esc(AUTH.email || '') + '</span><button class="ghost" id="aLogout" style="height:32px">Abmelden</button></div><p class="lead">Magazine als PDF hochladen und die App gestalten. Alles wird in Supabase gespeichert und erscheint sofort in der App – links siehst du die Vorschau.</p>';
 
   h += '<div class="devsw" role="radiogroup" aria-label="Vorschau">' + [['phone', 'Vorschau iPhone'], ['ipad', 'Vorschau iPad']].map(function (o) { return '<button data-dev="' + o[0] + '" class="' + ((S.preview || 'phone') === o[0] ? 'on' : '') + '">' + o[1] + '</button>'; }).join('') + '</div>';
-  h += '<datalist id="catlist">' + catList().map(function (c) { return '<option value="' + esc(c.name) + '">'; }).join('') + '</datalist>';
+  h += '<datalist id="genrelist">' + S.issues.map(function (it) { return it.genre; }).filter(function (g, i, a) { return g && a.indexOf(g) === i; }).concat(['Krimi', 'Thriller', 'Drama', 'Action', 'Fantasy', 'Science-Fiction', 'Romantik', 'Humor', 'Horror', 'Sachbuch', 'Kinder & Jugend', 'Superhelden', 'Manga'].filter(function (g) { return !S.issues.some(function (it) { return it.genre === g; }); })).map(function (g) { return '<option value="' + esc(g) + '">'; }).join('') + '</datalist>';
+  h += '<datalist id="catlist">' + catListAll().map(function (c) { return '<option value="' + esc(c.name) + '">'; }).join('') + '</datalist>';
   /* Neue Ausgabe */
   h += '<div class="psec" style="border-top:0;padding-top:8px;margin-top:16px"><h2>Neue Ausgabe</h2>';
   h += '<div class="dz" id="dz" role="button" tabindex="0"><div style="color:#8A8A92;margin-bottom:6px">' + ICON.upload + '</div><b>PDF oder EPUB hierher ziehen</b>oder klicken zum Auswählen<input type="file" id="fin" accept="application/pdf,.pdf,application/epub+zip,.epub" hidden></div>';
   h += '<div class="file" id="finfo" style="display:none"></div>';
   h += '<div id="form" style="margin-top:14px;display:none">';
-  h += '<div class="pf"><label for="fMag">Magazin</label><select id="fMag">' + mags.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('') + '<option value="__new">+ Neues Magazin anlegen</option></select></div>';
-  h += '<div class="newmag" id="newmag"><div class="pf"><label for="fName">Name des Magazins</label><input id="fName" type="text" placeholder="z. B. PC Games"></div>' +
-    '<div class="pf"><label for="fKind">Bereich</label>' + kindSel('id="fKind"', 'mag') + '</div>' +
-    '<div class="prow"><div class="pf"><label for="fCat">Kategorie</label><input id="fCat" type="text" list="catlist" placeholder="z. B. Games"></div><div class="pf"><label for="fColor">Farbe</label><input id="fColor" type="color" style="padding:3px"></div></div>' +
-    '<div class="pf"><label>Bild / Logo des Magazins (optional)</label>' + imgPick('newlogo', U.newLogoURL || '', '', 'image/*') + '</div>' +
+  h += '<div class="pf"><label for="fArea">Bereich</label><select id="fArea"><option value="mag">Zeitschrift</option><option value="comic">Comic</option><option value="book">Buch</option></select></div>';
+  h += '<div class="pf" id="fMagRow"><label for="fMag" id="fMagLbl">Zeitschrift</label><select id="fMag"></select></div>';
+  h += '<div class="newmag" id="newbook"><div class="prow"><div class="pf"><label for="fBTitle">Buchtitel</label><input id="fBTitle" type="text" placeholder="z. B. Staatenlos"></div><div class="pf"><label for="fGenre">Genre</label><input id="fGenre" type="text" list="genrelist" placeholder="z. B. Sachbuch, Krimi"></div></div><div class="help">Bücher werden im Kiosk nach Genre gefiltert.</div></div>';
+  h += '<div class="newmag" id="newmag"><div class="pf"><label for="fName" id="fNameLbl">Name der Zeitschrift</label><input id="fName" type="text" placeholder="z. B. PC Games"></div><div class="help dupwarn" id="fDup" style="display:none"></div>' +
+    '<div class="prow"><div class="pf" style="flex:0 0 110px"><label for="fColor">Farbe</label><input id="fColor" type="color" style="padding:3px"></div></div>' +
+    '<div class="pf"><label>Logo (optional)</label>' + imgPick('newlogo', U.newLogoURL || '', '', 'image/*') + '</div>' +
     '<div class="prow"><div class="pf"><label for="fAm">Monatsabo</label><input id="fAm" type="text" value="4,99 € / Monat"></div><div class="pf"><label for="fAy">Jahresabo</label><input id="fAy" type="text" value="49,99 € / Jahr"></div></div></div>';
   h += '<div class="prow"><div class="pf"><label for="fMonth">Monat</label><select id="fMonth">' + MONTHS.map(function (n, i) { return '<option value="' + (i + 1) + '">' + n + '</option>'; }).join('') + '</select></div>' +
     '<div class="pf"><label for="fYear">Jahr</label><input id="fYear" type="number" min="1990" max="2100"></div></div>';
@@ -3986,64 +4770,77 @@ function renderPanel() {
   h += '<div class="pf"><label for="fTeaser">Kurzbeschreibung der Ausgabe (optional)</label><textarea id="fTeaser" placeholder="Worum geht es in dieser Ausgabe? Erscheint im Kiosk und auf der ersten Seite der Leseprobe."></textarea></div>';
   h += '<button class="go" id="fGo">Hochladen &amp; verarbeiten</button><div class="prog" id="prog"><div class="track"><div id="pbar"></div></div><small id="ptxt"></small></div></div></div>';
 
-  /* Magazin-Leiste */
-  if (mags.length) {
-    h += '<div class="psec"><h2>Magazin-Leiste oben im Kiosk</h2><div class="help" style="margin-top:0">Für jedes Magazin ein eigenes Bild statt des Farbpunkts: ein quadratisches Icon (wird rund, mit Namen daneben) oder ein breiter Schriftzug (ersetzt den Namen).</div>';
-    h += mags.map(function (m) {
-      return '<div class="adblock"><div class="chipprev">' + magChipHTML(m, false, false) + '</div>' +
-        (isWide(m) ? '<div class="pf"><label>Kachelfarbe hinter dem Logo</label><div style="display:flex;gap:8px;align-items:center"><input type="color" data-tbg="' + m.id + '" value="' + esc(m.logoBg || '#FFFFFF') + '" style="width:56px;padding:3px"><span class="help" style="margin:0">automatisch aus dem Logo erkannt</span></div></div>' : '') +
-        '<div class="pf"><label>Name</label><input type="text" data-quickname="' + m.id + '" value="' + esc(m.name) + '"></div>' +
-        imgPick('logo:' + m.id, S.logos[m.id] || '', (m.logoAspect || 1) > 1.6 ? 'wide' : '', 'image/*') +
-        '<div class="pf"><label>Verkauf</label><select data-sale="' + m.id + '">' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + ((m.sale || (S.cfg.abos === false ? 'single' : 'options')) === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div></div>';
-    }).join('');
-    h += '</div>';
-  }
-
-  /* Magazine & Ausgaben */
-  h += '<div class="psec"><h2>Magazine &amp; Ausgaben</h2>';
-  if (!S.issues.length) h += '<div class="pempty">Noch keine Ausgaben hochgeladen.</div>';
-  else {
-    var KN = { mag: 'Zeitschriften', book: 'Bücher', comic: 'Comics' };
-    var AK = S.admKind || 'mag', cntK = function (kd) { return mags.filter(function (m) { return (m.kind || 'mag') === kd; }).length; };
-    h += '<div class="ktabs" role="tablist">' + ['mag', 'book', 'comic'].map(function (kd) { return '<button role="tab" class="' + (AK === kd ? 'on' : '') + '" data-admkind="' + kd + '">' + KN[kd] + ' <span>' + cntK(kd) + '</span></button>'; }).join('') + '</div>';
-    h += '<div class="ktools"><input type="search" id="admFind" placeholder="Titel suchen …" value="' + esc(S.admFind || '') + '"><button class="ghost" id="admAll">Alle aufklappen</button></div>';
-    h += [AK].map(function (kd) {
-      var list = mags.filter(function (m) { return (m.kind || 'mag') === kd; });
-      return '<div class="ksec">' + (list.length ? '' : '<div class="ksec-empty">Noch nichts in „' + KN[kd] + '“. Über den Umschalter bei einem Titel verschiebst du ihn hierher.</div>') + '<div class="ilist">' + list.map(function (m) {
-      var nI = issuesOf(m.id).length;
-      var r = '<details class="imag" data-mid="' + esc(m.id) + '"' + (ADMOPEN[m.id] ? ' open' : '') + '><summary class="imsum">' + (S.logos[m.id] ? '<img src="' + S.logos[m.id] + '" alt="" style="width:28px;height:28px;border-radius:14px;object-fit:cover;flex:none">' : '<i style="width:12px;height:12px;border-radius:6px;background:' + esc(m.color) + ';display:block;flex:none"></i>') + '<span class="imname"><b>' + esc(m.name) + '</b><small>' + nI + (nI === 1 ? ' Ausgabe' : ' Ausgaben') + (m.cat ? ' · ' + esc(m.cat) : '') + '</small></span>' + '<span class="kseg" role="group" aria-label="Bereich">' + KINDS.map(function (k) { return '<button class="' + ((m.kind || 'mag') === k[0] ? 'on' : '') + '" data-setkind="' + esc(m.id) + '|' + k[0] + '">' + k[1] + '</button>'; }).join('') + '</span></summary><div class="imbody">';
-      r += '<details class="ed"><summary>Magazin bearbeiten</summary>' +
-        '<div class="prow"><div class="pf"><label>Name</label><input type="text" data-m="' + m.id + '" data-k="name" value="' + esc(m.name) + '"></div><div class="pf" style="flex:.6"><label>Art</label>' + kindSel('data-m="' + m.id + '" data-k="kind"', m.kind) + '</div></div>' +
-        '<div class="prow"><div class="pf"><label>Kategorie</label><input type="text" list="catlist" data-m="' + m.id + '" data-k="cat" value="' + esc(m.cat || '') + '"></div><div class="pf"><label>Farbe</label><input type="color" data-m="' + m.id + '" data-k="color" value="' + esc(m.color || '#888888') + '" style="padding:3px"></div></div>' +
-        '<div class="pf"><label>Bild / Logo</label>' + imgPick('logo:' + m.id, S.logos[m.id] || '', '', 'image/*') + '</div>' +
-        '<div class="prow"><div class="pf"><label>Monatsabo</label><input type="text" data-m="' + m.id + '" data-k="aboMonth" value="' + esc(m.aboMonth || '') + '"></div><div class="pf"><label>Jahresabo</label><input type="text" data-m="' + m.id + '" data-k="aboYear" value="' + esc(m.aboYear || '') + '"></div></div>' +
-        '<button class="go small" data-savemag="' + m.id + '">Speichern</button></details>';
-      r += issuesOf(m.id).map(function (it) {
+  /* Inhalte: jeder Bereich hat seinen eigenen Abschnitt – Zeitschriften · Comics · Bücher */
+  var KN = { mag: 'Zeitschriften', comic: 'Comics', book: 'Bücher' }, K1 = { mag: 'Zeitschrift', comic: 'Reihe', book: 'Buch' };
+  var allM = S.allMags || mags, kindOf = function (m) { return m.kind || 'mag'; };
+  var issueRowHTML = function (it) {
         var sp = samplePagesOf(it);
-        return moveRowHTML(it) + '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
+        return moveRowHTML(it) + '<div class="irow"><img src="' + cover(it) + '" alt=""><div><span>' + label(it) + '</span><small>' + it.pageCount + ' Seiten' + (it.totalPages > it.pageCount ? ' von ' + it.totalPages : '') + ' · ' + esc(it.price) + ' · Leseprobe: ' + fmtPages(sp) + '</small></div>' + (it.thumbs ? '' : '<button class="del" style="color:#2B6CB0" data-mkthumbs="' + esc(it.id) + '" title="Kleine Vorschaubilder für die Seitenübersicht erzeugen">Vorschau</button>') + '<button class="del" style="color:#2B6CB0" data-trimcover="' + esc(it.id) + '" title="Weißen Rand um das Cover entfernen">Rand weg</button>' + ((magById(it.magId) || {}).kind === 'comic' ? '<button class="del" style="color:#2B6CB0" data-comic="' + esc(it.id) + '" title="Bilder und Texte für Bild-für-Bild-Lesen einrichten">Bild für Bild</button>' : '') + '<button class="del" data-del="' + esc(it.id) + '">Löschen</button></div>' +
           '<details class="ed"><summary>Ausgabe bearbeiten</summary>' +
           '<div class="prow"><div class="pf"><label>Einzelpreis</label><input type="text" data-i="' + it.id + '" data-k="price" value="' + esc(it.price) + '"></div><div class="pf"><label>Leseprobe-Seiten</label><input type="text" data-i="' + it.id + '" data-k="sample" value="' + esc(fmtPages(sp).replace(/–/g, '-')) + '"></div></div>' +
           '<div class="pf"><label>Verkauf dieser Ausgabe</label><select data-i="' + it.id + '" data-k="sale"><option value="">Wie beim Magazin (' + SALE[(magById(it.magId) || {}).sale || 'options'] + ')</option>' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + (it.sale === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div>' +
           '<div class="pf"><label>Kurzbeschreibung</label><textarea data-i="' + it.id + '" data-k="teaser">' + esc(it.teaser || '') + '</textarea></div>' +
           '<button class="go small" data-saveissue="' + it.id + '">Speichern</button>' +
-          '<div class="pf" style="margin-top:12px"><label>Text für Lesemodus &amp; Vorlesen</label><label class="ghost" style="display:inline-flex;align-items:center;align-self:flex-start">Text aus PDF übernehmen<input type="file" accept="application/pdf,.pdf" hidden data-textpdf="' + it.id + '"></label><span class="help" style="margin:6px 0 0" id="tx-' + it.id + '"></span></div></details>';
-      }).join('') + '</div></details>';
-      return r;
-    }).join('') + '</div></div>'; }).join('');
-  }
-  h += '</div>';
+          '<div class="pf" style="margin-top:12px"><label>Text für Lesemodus &amp; Vorlesen</label><label class="ghost" style="display:inline-flex;align-items:center;align-self:flex-start">Text aus PDF übernehmen<input type="file" accept="application/pdf,.pdf" hidden data-textpdf="' + it.id + '"></label><span class="help" style="margin:6px 0 0" id="tx-' + it.id + '"></span></div></details>' +
+          '<details class="ed tocd" data-tocid="' + esc(it.id) + '"><summary>Inhaltsverzeichnis &amp; Sprungmarken</summary><div class="tocbox" id="tocb-' + esc(it.id) + '"><div class="help">Wird geladen …</div></div></details>';
+      };
+  var dupNote = function (kd) {
+    var list = mags.filter(function (m) { return kindOf(m) === kd; }), out = [];
+    list.forEach(function (m, i) {
+      var k = slug(m.name);
+      if (list.slice(0, i).some(function (x) { return slug(x.name) === k; })) return;
+      var n = list.filter(function (x) { return slug(x.name) === k; }).length;
+      if (n > 1) out.push('„' + esc(m.name) + '“ gibt es hier ' + n + '× – öffne einen davon und nutze „Zusammenführen“.');
+      var other = mags.filter(function (x) { return kindOf(x) !== kd && kindOf(x) !== 'book' && slug(x.name) === k; })[0];
+      if (other) out.push('„' + esc(m.name) + '“ steht auch unter ' + KN[kindOf(other)] + '. Ist es derselbe Titel, stelle beim falschen Eintrag den Bereich um und führe beide zusammen.');
+    });
+    return out.length ? '<div class="dupwarn">' + out.map(function (x) { return '<div>' + x + '</div>'; }).join('') + '</div>' : '';
+  };
+  var titleHTML = function (m) {
+    var kd = kindOf(m), nI = issuesOf(m.id).length, others = mags.filter(function (x) { return x.id !== m.id && kindOf(x) === kd; });
+    var r = '<details class="imag" data-mid="' + esc(m.id) + '"' + (ADMOPEN[m.id] ? ' open' : '') + '><summary class="imsum">' + (S.logos[m.id] ? '<img src="' + S.logos[m.id] + '" alt="" style="width:28px;height:28px;border-radius:14px;object-fit:cover;flex:none">' : '<i style="width:12px;height:12px;border-radius:6px;background:' + esc(m.color) + ';display:block;flex:none"></i>') + '<span class="imname"><b>' + esc(m.name) + '</b><small>' + nI + (nI === 1 ? ' Ausgabe' : ' Ausgaben') + '</small></span></summary><div class="imbody">';
+    r += '<details class="ed"><summary>' + K1[kd] + ' bearbeiten (Name, Logo, Verkauf, Abo)</summary>' +
+      '<div class="chipprev">' + magChipHTML(m, false, false) + '</div>' +
+      '<div class="prow"><div class="pf"><label>Name</label><input type="text" data-m="' + m.id + '" data-k="name" value="' + esc(m.name) + '"></div><div class="pf" style="flex:0 0 90px"><label>Farbe</label><input type="color" data-m="' + m.id + '" data-k="color" value="' + esc(m.color || '#888888') + '" style="padding:3px"></div></div>' +
+      '<div class="pf"><label>Logo / Bild</label>' + imgPick('logo:' + m.id, S.logos[m.id] || '', (m.logoAspect || 1) > 1.6 ? 'wide' : '', 'image/*') + '<div class="help">Quadratisch = rundes Icon mit Namen daneben, breit = Schriftzug statt Namen.</div></div>' +
+      (isWide(m) ? '<div class="pf"><label>Kachelfarbe hinter dem Logo</label><input type="color" data-m="' + m.id + '" data-k="logoBg" value="' + esc(m.logoBg || '#FFFFFF') + '" style="width:56px;padding:3px"></div>' : '') +
+      '<div class="pf"><label>Verkauf</label><select data-m="' + m.id + '" data-k="sale">' + Object.keys(SALE).map(function (k) { return '<option value="' + k + '"' + ((m.sale || (S.cfg.abos === false ? 'single' : 'options')) === k ? ' selected' : '') + '>' + SALE[k] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="prow"><div class="pf"><label>Monatsabo</label><input type="text" data-m="' + m.id + '" data-k="aboMonth" value="' + esc(m.aboMonth || '') + '"></div><div class="pf"><label>Jahresabo</label><input type="text" data-m="' + m.id + '" data-k="aboYear" value="' + esc(m.aboYear || '') + '"></div></div>' +
+      '<div class="pf"><label>Bereich</label><select data-m="' + m.id + '" data-k="kind"><option value="mag"' + (kd === 'mag' ? ' selected' : '') + '>Zeitschriften</option><option value="comic"' + (kd === 'comic' ? ' selected' : '') + '>Comics</option></select><div class="help">Nur ändern, wenn der Titel im falschen Bereich steht.</div></div>' +
+      '<button class="go small" data-savemag="' + m.id + '">Speichern</button>' +
+      (others.length ? '<div class="pf" style="margin-top:16px"><label>Doppelt angelegt? Zusammenführen mit</label><div style="display:flex;gap:8px"><select data-mergeto="' + m.id + '" style="flex:1">' + others.map(function (o) { return '<option value="' + esc(o.id) + '"' + (slug(o.name) === slug(m.name) ? ' selected' : '') + '>' + esc(o.name) + '</option>'; }).join('') + '</select><button class="ghost" data-merge="' + m.id + '">Zusammenführen</button></div><div class="help">Alle Ausgaben wandern zum gewählten Titel, dieser Eintrag wird gelöscht.</div></div>' : '') +
+      '</details>';
+    r += issuesOf(m.id).map(issueRowHTML).join('') + '</div></details>';
+    return r;
+  };
+  ['mag', 'comic'].forEach(function (kd) {
+    var list = mags.filter(function (m) { return kindOf(m) === kd; }).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'de'); });
+    var empty = allM.filter(function (m) { return kindOf(m) === kd && !issuesOf(m.id).length; });
+    h += '<div class="psec"><h2>' + KN[kd] + '</h2><div class="help" style="margin-top:0">' + (kd === 'mag' ? 'Jede Zeitschrift ist im Kiosk unter „Zeitschriften“ ein eigener Filter-Knopf. Hier stellst du pro Titel Name, Logo, Verkauf und Abo ein und siehst seine Ausgaben.' : 'Jede Reihe (z. B. Batman, Superman) ist im Kiosk unter „Comics“ ein eigener Filter-Knopf. Hier stellst du pro Reihe Name, Logo, Verkauf und Abo ein und siehst ihre Hefte.') + '</div>' + dupNote(kd);
+    if (list.length) h += '<div class="ktools"><input type="search" class="admFind" placeholder="' + (kd === 'mag' ? 'Zeitschrift' : 'Reihe') + ' suchen …"><button class="ghost admAll">Alle aufklappen</button></div><div class="ilist">' + list.map(titleHTML).join('') + '</div>';
+    else h += '<div class="pempty">Noch keine ' + KN[kd] + '. Lade unter „Hochladen“ eine Ausgabe hoch und wähle den Bereich „' + (kd === 'mag' ? 'Zeitschrift' : 'Comic') + '“.</div>';
+    if (empty.length) h += '<div class="adblock"><b>Leere Einträge (ohne Ausgaben)</b><div class="help">Erscheinen nicht im Kiosk.</div>' + empty.map(function (m) { return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span style="flex:1">' + esc(m.name) + '</span><button class="ghost red" data-delmag="' + esc(m.id) + '">Löschen</button></div>'; }).join('') + '</div>';
+    h += '</div>';
+  });
+  (function () {
+    var books = S.issues.filter(function (it) { var m = magById(it.magId); return m && m.kind === 'book'; }).sort(function (a, b) { return String(label(a)).localeCompare(String(label(b)), 'de'); });
+    var gs = [], seenG = {};
+    books.forEach(function (it) { var g = genreOf(it), k = catKey(g); if (!k) return; if (!seenG[k]) { seenG[k] = { name: g, n: 0 }; gs.push(seenG[k]); } seenG[k].n++; });
+    var noG = books.filter(function (it) { return !catKey(genreOf(it)); }).length;
+    h += '<div class="psec"><h2>Bücher</h2><div class="help" style="margin-top:0">Bücher stehen im Kiosk alle zusammen und werden nach Genre gefiltert. Titel und Genre stellst du direkt am Buch ein.</div>';
+    if (gs.length) h += '<div class="adblock"><b>Genres im Kiosk</b><div class="help">Umbenennen ändert das Genre bei allen Büchern darin – so führst du auch doppelte Genres zusammen (z. B. „Krimi“ und „Krimis“).</div>' + gs.map(function (g) { return '<div class="pf" style="display:flex;flex-direction:row;align-items:center;gap:8px;margin:6px 0 0"><input type="text" data-genrename="' + esc(g.name) + '" value="' + esc(g.name) + '" style="flex:1"><span class="help" style="margin:0;flex:none">' + g.n + (g.n === 1 ? ' Buch' : ' Bücher') + '</span></div>'; }).join('') + (noG ? '<div class="help">' + noG + (noG === 1 ? ' Buch hat' : ' Bücher haben') + ' noch kein Genre.</div>' : '') + '</div>';
+    h += books.length ? '<div class="ilist bookl">' + books.map(function (it) { return '<div class="bk">' + issueRowHTML(it) + '</div>'; }).join('') + '</div>' : '<div class="pempty">Noch keine Bücher. Lade unter „Hochladen“ ein EPUB oder PDF hoch und wähle den Bereich „Buch“.</div>';
+    h += '</div>';
+  })();
 
-  /* Kategorien */
-  var cl = catList();
-  h += '<div class="psec"><h2>Kategorien (optional)</h2>';
-  h += '<div class="help" style="margin-top:0">Optional: Magazine nach Themen gruppieren, z. B. „Games“ und „Hardware“. Dann erscheint über der Magazin-Leiste eine Reihe Bildkacheln zum Filtern. Die Kategorie trägst du beim Magazin ein („Magazin bearbeiten“ → Kategorie).</div>';
-  if (cl.length) h += '<div class="adblock"><b>Kachel „Alle“</b>' + imgPick('cat:all', S.catImg.all || '', 'wide') + '</div>';
-  else h += '<div class="pempty">Noch keine Kategorien vergeben – die Kachelreihe ist ausgeblendet.</div>';
-  h += cl.map(function (c) {
-    var n = S.mags.filter(function (m) { return catKey(m.cat) === c.key; }).length;
-    return '<div class="adblock"><b>' + esc(c.name) + ' <span style="font-weight:500;color:#6B6B73;font-size:12px">· ' + n + (n === 1 ? ' Magazin' : ' Magazine') + '</span></b>' + imgPick('cat:' + c.key, S.catImg[c.key] || '', 'wide') +
-      '<div class="pf"><label>Name der Kategorie</label><input type="text" data-catname="' + esc(c.key) + '" value="' + esc(c.name) + '"></div></div>';
-  }).join('');
+  /* Bestehende Ausgaben nachrüsten */
+  h += '<div class="psec"><h2>Bestehende Ausgaben aktualisieren</h2><div class="help" style="margin-top:0">Neue Funktionen für schon hochgeladene Ausgaben nachrüsten – ohne neu hochzuladen. Seiten, Cover, Preise und Verkauf bleiben unverändert. Von Hand bearbeitete Inhaltsverzeichnisse werden nie überschrieben.</div>';
+  h += '<div class="adblock"><b>Schnell, ohne Datei</b><div class="help">Sucht in ' + (S.issues.length === 1 ? 'der Ausgabe' : 'allen ' + S.issues.length + ' Ausgaben') + ' im gespeicherten Text nach dem Inhaltsverzeichnis und erzeugt fehlende Vorschaubilder für die Seitenleiste im Reader.</div>' +
+    '<label class="ck">Fehlende Vorschaubilder erzeugen<input type="checkbox" id="updThumbs" checked></label>' +
+    '<label class="ck">Schon erkannte Inhaltsverzeichnisse neu erkennen<input type="checkbox" id="updRedo"></label>' +
+    '<button class="go small" id="updAll"' + (S.issues.length ? '' : ' disabled') + '>Alle Ausgaben aktualisieren</button><div id="updLog" class="updtab"></div></div>';
+  h += '<div class="adblock"><b>Vollständig, mit den Original-Dateien</b><div class="help">Wähle die ursprünglichen PDFs und EPUBs – gern viele auf einmal. Sie werden über den Dateinamen den Ausgaben zugeordnet (prüfen und bei Bedarf ändern). Gelesen werden nur Text, Inhaltsverzeichnis, Lesezeichen und Verweise – die Seiten werden nicht neu erzeugt, das geht schnell. Für E-Books und für Inhaltsseiten zum Antippen ist dieser Weg nötig.</div>' +
+    '<label class="ghost" style="display:inline-flex;align-items:center;cursor:pointer;margin-top:6px">Dateien auswählen …<input type="file" id="updFiles" multiple accept="application/pdf,.pdf,application/epub+zip,.epub" hidden></label><div id="updMatch"></div></div>';
   h += '</div>';
 
   /* App & Logo */
@@ -4101,7 +4898,7 @@ function renderPanel() {
     '<label class="ck">Hintergrund im Hell-Modus<input type="color" id="cBgL" value="' + esc(themeBg('light')) + '"></label>' +
     '<div class="pf" style="margin-top:8px"><label for="cLook">Standard-Darstellung der App</label><select id="cLook">' + [['system', 'Automatisch (wie das Gerät)'], ['light', 'Hell'], ['dark', 'Dunkel']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.look || 'system') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<div class="help">Leser können das im Menü unter „Darstellung“ selbst umstellen.</div>' +
-    '<div class="pf" style="margin-top:8px"><label for="cRack">Zeitschriftenständer in der Bibliothek</label><select id="cRack">' + [['auto', 'Passend zu den App-Farben'], ['wood', 'Holz'], ['metal', 'Metall'], ['dark', 'Dunkel (Anthrazit)']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.rackMat || 'wood') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
+    '<div class="pf" style="margin-top:8px"><label for="cRack">Kiosk-Regal in der Bibliothek (Farbe)</label><select id="cRack">' + [['auto', 'Passend zu den App-Farben'], ['wood', 'Holz'], ['metal', 'Metall'], ['dark', 'Dunkel (Anthrazit)']].map(function (o) { return '<option value="' + o[0] + '"' + ((S.cfg.rackMat || 'wood') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>' +
     '<label class="ck">Akzentfarbe (Buttons, Markierungen)<input type="color" id="cAccent" value="' + esc(S.cfg.accent) + '"></label>' +
     '<label class="ck">Akzent folgt der Farbe des Magazins<input type="checkbox" id="cMagAcc"' + (S.cfg.magAccent ? ' checked' : '') + '></label>' +
     '<div class="help" style="margin-top:4px">Schrift- und Flächenfarben passen sich automatisch an hellen oder dunklen Hintergrund an.</div></div>';
@@ -4136,7 +4933,7 @@ function renderPanel() {
   var st = panel.scrollTop;
   panel.innerHTML = h;
   // Abschnitte zum Auf- und Zuklappen – nur „Neue Ausgabe“ und „Magazine & Ausgaben“ sind anfangs offen
-  $$('.psec > h2', panel).forEach(function (h2) {
+  if (IS_ADMIN) {} else $$('.psec > h2', panel).forEach(function (h2) {
     var key = h2.textContent.trim(), sec = h2.parentNode;
     if (PSOPEN[key] == null) PSOPEN[key] = /Neue Ausgabe|Magazine/.test(key);
     sec.classList.add('fold'); sec.classList.toggle('closed', !PSOPEN[key]);
@@ -4144,13 +4941,14 @@ function renderPanel() {
   });
   // Sprungleiste zu allen Bereichen – oben angeheftet, damit man nicht endlos scrollt
   (function () {
-    var hs = $$('.psec > h2', panel); if (hs.length < 3) return;
+    var hs = $$('.psec > h2', panel); if (IS_ADMIN || hs.length < 3) return;
     var nav = document.createElement('div'); nav.className = 'admnav';
     hs.forEach(function (h2, i) { h2.id = 'adm-s' + i; var b = document.createElement('button'); b.textContent = h2.textContent.replace(/\s*\(optional\)/i, ''); b.onclick = function () { var sec = h2.parentNode, key = h2.textContent.trim(); PSOPEN[key] = true; sec.classList.remove('closed'); h2.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; nav.appendChild(b); });
     var first = hs[0].parentNode; first.parentNode.insertBefore(nav, first);
   })();
   panel.scrollTop = st;
   bindPanel();
+  admLayout();
 }
 
 async function saveNews(key, patch) {
@@ -4180,6 +4978,8 @@ function bindPanel() {
   fin.addEventListener('click', function (e) { e.stopPropagation(); });
   fin.addEventListener('change', function () { if (fin.files[0]) pickFile(fin.files[0]); });
   $('#fMag', panel).addEventListener('change', syncNewMag);
+  $('#fArea', panel).addEventListener('change', syncNewMag);
+  $('#fName', panel).addEventListener('input', syncNewMag);
   $('#fGo', panel).addEventListener('click', processUpload);
 
   /* Bilder wählen / entfernen */
@@ -4241,9 +5041,13 @@ function bindPanel() {
         if (kind === 'video') {
           if (f.size > 30 * 1024 * 1024) { alert('Das Video ist ' + Math.round(f.size / 1048576) + ' MB groß. Bitte höchstens 30 MB (kürzer oder stärker komprimiert).'); continue; }
           blob = f.type ? f : new Blob([f], { type: 'video/mp4' });
+          busy.textContent = 'Video wird für schnellen Start vorbereitet …';
+          try { var fs = mp4Faststart(await blob.arrayBuffer()); if (fs) blob = fs; } catch (e) { console.warn(e); }
+          var poster = await videoPoster(blob);
         } else blob = await resizeImage(f, 1600, 'image/jpeg');
         busy.textContent = 'Lade hoch … ' + (kind === 'video' ? Math.round(f.size / 1048576) + ' MB' : '');
-        await DB.put('ads', { media: blob, kind: kind, order: base + n, created: Date.now() }, 'bslide:' + Date.now().toString(36) + n);
+        var rec = { media: blob, kind: kind, order: base + n, created: Date.now() }; if (kind === 'video' && poster) rec.poster = poster;
+        await DB.put('ads', rec, 'bslide:' + Date.now().toString(36) + n);
         n++;
       }
       busy.textContent = '';
@@ -4353,6 +5157,21 @@ function bindPanel() {
   $('#bTitle', panel).addEventListener('change', function (e) { saveAd('brand', { title: e.target.value.trim() || null }); });
 
   /* Magazin / Ausgabe bearbeiten */
+  $$('[data-btitle]', panel).forEach(function (inp) {
+    inp.addEventListener('change', async function () {
+      var it = issueById(inp.getAttribute('data-btitle')); if (!it) return;
+      var t = inp.value.trim(); if (!t || t === it.title) return;
+      it.title = t; await DB.put('issues', it); await loadData(); rerender(); toast('Titel gespeichert');
+    });
+  });
+  $$('[data-genre]', panel).forEach(function (inp) {
+    inp.addEventListener('change', async function () {
+      var it = issueById(inp.getAttribute('data-genre')); if (!it) return;
+      var g = inp.value.trim(); if ((it.genre || '') === g) return;
+      if (g) it.genre = g; else delete it.genre;
+      await DB.put('issues', it); await loadData(); rerender(); toast(label(it) + ' → Genre ' + (g || 'entfernt'));
+    });
+  });
   $$('[data-move]', panel).forEach(function (sel) {
     sel.addEventListener('change', async function () {
       var id = sel.getAttribute('data-move'), it = issueById(id), v = sel.value, box = $('#inew-' + id, panel);
@@ -4368,15 +5187,58 @@ function bindPanel() {
       var id = b.getAttribute('data-nmake'), it = issueById(id), name = $('[data-nn="' + id + '"]', panel).value.trim();
       if (!name) { alert('Bitte einen Namen eingeben.'); return; }
       var all = S.allMags || S.mags, mid = slug(name), n2 = 2; while (all.some(function (x) { return x.id === mid; })) mid = slug(name) + n2++;
-      var mag = { id: mid, name: name, kind: $('[data-nk="' + id + '"]', panel).value, cat: $('[data-nc="' + id + '"]', panel).value.trim(), color: PALETTE[all.length % PALETTE.length], created: Date.now() };
+      var kd = ((S.allMags || S.mags).filter(function (x) { return x.id === it.magId; })[0] || {}).kind || 'mag';
+      var twin = all.filter(function (x) { return (x.kind || 'mag') === kd && slug(x.name) === slug(name); })[0];
+      if (twin) { b.disabled = true; await moveIssueTo(it, twin); return; }   // keine Doppelung: vorhandenen Titel nehmen
+      var mag = { id: mid, name: name, kind: kd, color: PALETTE[all.length % PALETTE.length], created: Date.now() };
       b.disabled = true; await DB.put('mags', mag); await moveIssueTo(it, mag);
     });
   });
   $$('[data-admkind]', panel).forEach(function (b) { b.addEventListener('click', function () { S.admKind = b.getAttribute('data-admkind'); renderPanel(); }); });
+  $$('details.tocd', panel).forEach(function (d) { d.addEventListener('toggle', function () { if (d.open) tocEditorOpen(d.getAttribute('data-tocid')); }); });
   $$('details.imag', panel).forEach(function (d) { d.addEventListener('toggle', function () { ADMOPEN[d.getAttribute('data-mid')] = d.open; }); });
-  var fnd = $('#admFind', panel), applyFind = function () { var q = (fnd.value || '').trim().toLowerCase(); S.admFind = fnd.value; $$('details.imag', panel).forEach(function (d) { var t = (d.querySelector('.imname b') || {}).textContent || ''; d.style.display = !q || t.toLowerCase().indexOf(q) >= 0 ? '' : 'none'; }); };
-  if (fnd) { fnd.addEventListener('input', applyFind); applyFind(); }
-  var aAll = $('#admAll', panel); if (aAll) aAll.addEventListener('click', function () { var ds = $$('details.imag', panel), open = !ds.every(function (d) { return d.open; }); ds.forEach(function (d) { d.open = open; ADMOPEN[d.getAttribute('data-mid')] = open; }); aAll.textContent = open ? 'Alle zuklappen' : 'Alle aufklappen'; });
+  $$('.admFind', panel).forEach(function (fnd) {
+    var sec = fnd.closest('.psec');
+    fnd.addEventListener('input', function () { var q = (fnd.value || '').trim().toLowerCase(); $$('details.imag', sec).forEach(function (d) { var t = (d.querySelector('.imname b') || {}).textContent || ''; d.style.display = !q || t.toLowerCase().indexOf(q) >= 0 ? '' : 'none'; }); });
+  });
+  $$('.admAll', panel).forEach(function (aAll) {
+    var sec = aAll.closest('.psec');
+    aAll.addEventListener('click', function () { var ds = $$('details.imag', sec), open = !ds.every(function (d) { return d.open; }); ds.forEach(function (d) { d.open = open; ADMOPEN[d.getAttribute('data-mid')] = open; }); aAll.textContent = open ? 'Alle zuklappen' : 'Alle aufklappen'; });
+  });
+  var ua = $('#updAll', panel); if (ua) ua.addEventListener('click', function () { updAllRun(ua); });
+  var uf = $('#updFiles', panel); if (uf) uf.addEventListener('change', function () { UPDF = Array.prototype.slice.call(uf.files).map(function (f) { var id = matchIssue(f); return { f: f, id: id, auto: !!id }; }); uf.value = ''; updMatchRender(); });
+  updMatchRender();
+  $$('[data-merge]', panel).forEach(function (b) {
+    b.addEventListener('click', async function () {
+      var id = b.getAttribute('data-merge'), m = magById(id), t = magById($('[data-mergeto="' + id + '"]', panel).value);
+      if (!m || !t || m.id === t.id) return;
+      var its = S.issues.filter(function (x) { return x.magId === id; });
+      if (!confirm('„' + m.name + '“ mit „' + t.name + '“ zusammenführen?\n\n' + its.length + (its.length === 1 ? ' Ausgabe wandert' : ' Ausgaben wandern') + ' zu „' + t.name + '“, der Eintrag „' + m.name + '“ wird gelöscht.')) return;
+      b.disabled = true;
+      for (var it of its) { it.magId = t.id; await DB.put('issues', it); }
+      await DB.del('mags', id);
+      ADMOPEN[t.id] = true; await loadData(); rerender(); renderPanel(); toast(m.name + ' → ' + t.name + ' zusammengeführt');
+    });
+  });
+  $$('[data-delmag]', panel).forEach(function (b) {
+    b.addEventListener('click', async function () {
+      var id = b.getAttribute('data-delmag'), m = (S.allMags || []).filter(function (x) { return x.id === id; })[0];
+      if (!m || S.issues.some(function (x) { return x.magId === id; })) return;
+      if (!confirm('Leeren Eintrag „' + m.name + '“ löschen?')) return;
+      await DB.del('mags', id); await loadData(); rerender(); renderPanel(); toast(m.name + ' gelöscht');
+    });
+  });
+  $$('[data-genrename]', panel).forEach(function (inp) {
+    inp.addEventListener('change', async function () {
+      var old = inp.getAttribute('data-genrename'), nw = inp.value.trim();
+      if (!nw) { inp.value = old; return; }
+      if (nw === old) return;
+      var hit = S.issues.filter(function (it) { var m = magById(it.magId); return m && m.kind === 'book' && catKey(genreOf(it)) === catKey(old); });
+      for (var it of hit) { it.genre = nw; await DB.put('issues', it); }
+      if (S.cat === catKey(old)) S.cat = catKey(nw);
+      await loadData(); rerender(); renderPanel(); toast('Genre „' + old + '“ → „' + nw + '“ (' + hit.length + (hit.length === 1 ? ' Buch)' : ' Bücher)'));
+    });
+  });
   $$('[data-setkind]', panel).forEach(function (b) {
     b.addEventListener('click', async function (ev) {
       ev.preventDefault(); ev.stopPropagation();
@@ -4387,10 +5249,12 @@ function bindPanel() {
   });
   $$('[data-savemag]', panel).forEach(function (b) {
     b.addEventListener('click', async function () {
-      var id = b.getAttribute('data-savemag'), m = magById(id);
+      var id = b.getAttribute('data-savemag'), m = magById(id), oldK = m.kind || 'mag';
       $$('[data-m="' + id + '"]', panel).forEach(function (inp) { m[inp.getAttribute('data-k')] = inp.value.trim(); });
       if (!m.name) { alert('Bitte einen Namen eingeben.'); return; }
-      await DB.put('mags', m); await loadData(); rerender(); renderPanel(); toast('Magazin gespeichert');
+      var movedK = (m.kind || 'mag') !== oldK;
+      if (movedK) { ADMSTATE.tab_issues = AREATAB[m.kind || 'mag']; admSave(); ADMOPEN[m.id] = true; }
+      await DB.put('mags', m); await loadData(); rerender(); renderPanel(); toast(movedK ? m.name + ' → ' + ({ mag: 'Zeitschriften', comic: 'Comics' })[m.kind] : 'Gespeichert');
     });
   });
   $$('[data-saveissue]', panel).forEach(function (b) {
@@ -4412,12 +5276,29 @@ function bindPanel() {
       var id = inp.getAttribute('data-textpdf'), it = issueById(id), st = $('#tx-' + id, panel);
       try {
         st.textContent = 'Text wird gelesen …';
-        var pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise;
-        var texts = await extractTexts(pdf, Math.min(it.pageCount, pdf.numPages), function (p) { st.textContent = 'Seite ' + p + ' …'; });
+        var pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer() }).promise, nP = Math.min(it.pageCount, pdf.numPages);
+        var texts = await extractTexts(pdf, nP, function (p) { st.textContent = 'Seite ' + p + ' …'; });
+        st.textContent = 'Inhaltsverzeichnis wird gesucht …';
+        var extra = null; try { extra = await pdfTocExtra(pdf, nP); } catch (e) {}
         await pdf.destroy();
         await DB.put('texts', texts, id);
-        st.textContent = 'Text übernommen – Lesemodus und Vorlesen sind bereit.';
+        var oldT = null; try { oldT = await DB.get('texts', 'toc-' + id); } catch (e) {}
+        var tr = tocBuild(texts, nP, extra), keep = oldT && oldT.edited;
+        if (tr && !keep) await DB.put('texts', tr, 'toc-' + id);
+        st.textContent = 'Text übernommen – Lesemodus und Vorlesen sind bereit.' + (tr ? (keep ? ' Dein bearbeitetes Inhaltsverzeichnis bleibt unverändert.' : ' Inhaltsverzeichnis: ' + tr.entries.length + ' Einträge erkannt.') : '');
       } catch (e) { st.textContent = 'Das PDF konnte nicht gelesen werden.'; }
+    });
+  });
+  $$('[data-trimcover]', panel).forEach(function (b) {
+    b.addEventListener('click', async function () {
+      var it = issueById(b.getAttribute('data-trimcover')); if (!it) return; b.disabled = true; b.textContent = '…';
+      try {
+        var img = await loadImg(cover(it)), c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0);
+        var t = trimWhite(c);
+        if (t === c) { toast('Kein weißer Rand gefunden'); b.disabled = false; b.textContent = 'Rand weg'; return; }
+        it.cover = await new Promise(function (r) { t.toBlob(r, 'image/jpeg', 0.88); });
+        await DB.put('issues', it); await loadData(); rerender(); renderPanel(); toast('Cover zugeschnitten');
+      } catch (e) { alert('Das Cover konnte nicht bearbeitet werden: ' + e.message); b.disabled = false; b.textContent = 'Rand weg'; }
     });
   });
   $$('[data-comic]', panel).forEach(function (b) { b.addEventListener('click', function () { openComicEditor(b.getAttribute('data-comic')); }); });
@@ -4457,7 +5338,7 @@ function bindPanel() {
   });
   $('#cBg', panel).addEventListener('input', function (e) { S.cfg.bg = e.target.value; S.settings.look = 'dark'; savePrefs(); applyTheme(); });
   $('#cBgL', panel).addEventListener('input', function (e) { S.cfg.bgLight = e.target.value; S.settings.look = 'light'; savePrefs(); applyTheme(); });
-  $('#cRack', panel).addEventListener('change', function (e) { S.cfg.rackMat = e.target.value; savePrefs(); applyTheme(); if (S.screen !== 'library') { S.screen = 'library'; S.libView = 'rack'; } rerender(); });
+  $('#cRack', panel).addEventListener('change', function (e) { S.cfg.rackMat = e.target.value; savePrefs(); applyTheme(); if (S.screen !== 'library') { S.screen = 'library'; S.libView = 'kiosk'; } rerender(); });
   $('#cLook', panel).addEventListener('change', function (e) { S.cfg.look = e.target.value; delete S.settings.look; savePrefs(); applyTheme(); rerender(); });
   $('#cAccent', panel).addEventListener('input', function (e) { S.cfg.accent = e.target.value; savePrefs(); applyTheme(); });
   $('#cMagAcc', panel).addEventListener('change', function (e) { S.cfg.magAccent = e.target.checked; savePrefs(); applyTheme(); });
@@ -4496,8 +5377,29 @@ function bindPanel() {
   var lo = $('#aLogout', panel); if (lo) lo.addEventListener('click', function () { setAuth(null); renderPanel(); });
 }
 function syncNewMag() {
-  var isNew = $('#fMag', panel).value === '__new';
+  var fa = $('#fArea', panel), sel = $('#fMag', panel); if (!fa || !sel) return;
+  var area = fa.value || 'mag', isBook = area === 'book', all = S.allMags || S.mags;
+  var T = area === 'comic' ? ['Comic-Reihe', 'Neue Comic-Reihe anlegen', 'Name der Reihe', 'z. B. Batman'] : ['Zeitschrift', 'Neue Zeitschrift anlegen', 'Name der Zeitschrift', 'z. B. PC Games'];
+  if (!isBook && sel.getAttribute('data-area') !== area) {
+    var cur = sel.value, list = all.filter(function (m) { return (m.kind || 'mag') === area; }).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'de'); });
+    sel.innerHTML = list.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('') + '<option value="__new">+ ' + T[1] + ' …</option>';
+    sel.setAttribute('data-area', area);
+    sel.value = list.some(function (m) { return m.id === cur; }) ? cur : (list[0] ? list[0].id : '__new');
+  }
+  var isNew = !isBook && sel.value === '__new';
+  $('#fMagRow', panel).style.display = isBook ? 'none' : '';
+  $('#fMagLbl', panel).textContent = T[0];
+  $('#fNameLbl', panel).textContent = T[2]; $('#fName', panel).placeholder = T[3];
   $('#newmag', panel).style.display = isNew ? 'block' : 'none';
+  $('#newbook', panel).style.display = isBook ? 'block' : 'none';
+  $$('#fMonth,#fYear', panel).forEach(function (x) { var pf = x.closest('.prow') || x.closest('.pf'); if (pf) pf.style.display = isBook ? 'none' : ''; });
+  // Doppelung erkennen, schon beim Tippen
+  var dup = $('#fDup', panel), nm = slug(($('#fName', panel).value || '').trim());
+  var twin = isNew && nm ? all.filter(function (m) { return (m.kind || 'mag') !== 'book' && slug(m.name) === nm; })[0] : null;
+  dup.style.display = twin ? '' : 'none';
+  if (twin) dup.innerHTML = (twin.kind || 'mag') === area
+    ? '„' + esc(twin.name) + '“ gibt es schon – die Ausgabe wird dort einsortiert, es entsteht kein zweiter Eintrag.'
+    : '„' + esc(twin.name) + '“ gibt es schon unter ' + ({ mag: 'Zeitschriften', comic: 'Comics' })[twin.kind || 'mag'] + '. Ist es derselbe Titel, stelle oben den Bereich um.';
 }
 async function showStorage() {
   try {
@@ -4537,37 +5439,161 @@ async function openEpub(buf) {
   var cont = xml(await txt('META-INF/container.xml')), opfPath = cont.getElementsByTagName('rootfile')[0].getAttribute('full-path');
   var opf = xml(await txt(opfPath)), man = {};
   Array.prototype.forEach.call(opf.getElementsByTagName('item'), function (it) { man[it.getAttribute('id')] = { href: zipPath(opfPath, it.getAttribute('href')), type: it.getAttribute('media-type') || '' }; });
-  var imgs = [];
+  var imgs = [], spine = [], textLen = 0, docs = 0;
+  var tag = function (t) { var e = opf.getElementsByTagName(t)[0]; return e ? e.textContent.trim() : ''; };
+  var fixed = /pre-paginated/.test(new XMLSerializer().serializeToString(opf));
   for (var r of Array.prototype.slice.call(opf.getElementsByTagName('itemref'))) {
     if (r.getAttribute('linear') === 'no') continue;
     var m = man[r.getAttribute('idref')]; if (!m) continue;
     if (/^image\//.test(m.type)) { imgs.push(m.href); continue; }
+    spine.push(m.href);
     var doc = new DOMParser().parseFromString(await txt(m.href), 'application/xhtml+xml'), src = null;
+    docs++; textLen += ((doc.documentElement && doc.documentElement.textContent) || '').replace(/\s+/g, ' ').trim().length;
     var im = doc.getElementsByTagName('img')[0]; if (im) src = im.getAttribute('src');
     if (!src) { var si = doc.getElementsByTagName('image')[0]; if (si) src = si.getAttribute('xlink:href') || si.getAttribute('href'); }
     if (src) { var p = zipPath(m.href, src); if (!/(^|\/)blank\.[a-z]+$/i.test(p)) imgs.push(p); }
   }
-  if (!imgs.length) throw new Error('Diese EPUB enthält keine Seitenbilder (nur Text-EPUBs mit festen Seiten werden unterstützt).');
-  var tag = function (t) { var e = opf.getElementsByTagName(t)[0]; return e ? e.textContent.trim() : ''; };
+  // normales E-Book (fließender Text) → Seiten selbst setzen
+  if (!fixed && (!imgs.length || textLen / Math.max(1, docs) > 400)) return { text: await openTextEpub(buf, idx, opf, spine, tag, txt, opfPath) };
+  if (!imgs.length) throw new Error('In dieser EPUB wurden keine Seiten gefunden.');
   return {
     numPages: imgs.length, title: tag('dc:title'), author: tag('dc:creator'),
     image: async function (p) { var b = new Blob([await zipRead(buf, idx[imgs[p - 1]])]); return await createImageBitmap(b); }
+  };
+}
+/* ===== Text-EPUB (normale E-Books): im Browser zu Buchseiten setzen ===== */
+async function openTextEpub(buf, idx, opf, spine, tag, txt, opfPath) {
+  var PW = 1100, PH = 1556, PX = 100, PT = 120, PB = 140, IW = PW - 2 * PX, IH = PH - PT - PB, GAP = 2 * PX, STRIDE = IW + GAP;
+  var CSS = '.bk{font-family:Georgia,"Times New Roman",serif;font-size:33px;line-height:1.55;color:#1d1d1f;text-align:justify;hyphens:auto;-webkit-hyphens:auto;width:' + IW + 'px;height:' + IH + 'px;column-width:' + IW + 'px;column-gap:' + GAP + 'px;column-fill:auto;overflow:visible}' +
+    '.bk p{margin:0 0 .25em}.bk p+p{text-indent:1.3em}' +
+    '.bk h1,.bk h2,.bk h3,.bk h4{font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;line-height:1.2;text-align:left;break-after:avoid;margin:.2em 0 .8em;font-weight:700;hyphens:manual}' +
+    '.bk h1{font-size:56px}.bk h2{font-size:46px}.bk h3{font-size:38px}.bk h4{font-size:34px}' +
+    '.bk img,.bk svg{max-width:100%;max-height:' + (IH - 40) + 'px;height:auto;display:block;margin:.6em auto;break-inside:avoid}' +
+    '.bk a{color:inherit;text-decoration:none}.bk ul,.bk ol{margin:.3em 0 .6em 1.3em;padding:0}.bk li{margin:.15em 0}' +
+    '.bk blockquote{margin:.6em 1.4em;font-style:italic}.bk table{border-collapse:collapse;font-size:.82em;margin:.6em 0}.bk td,.bk th{border:1px solid #ccc;padding:4px 6px}' +
+    '.bk sup,.bk sub{font-size:.62em;line-height:0}.bk hr{border:0;border-top:1px solid #bbb;margin:1em 30%}.bk .cbr{break-before:column}';
+  var host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-30000px;top:0;width:' + IW + 'px;height:' + IH + 'px;overflow:hidden;visibility:hidden';
+  host.innerHTML = '<style>' + CSS + '</style>'; document.body.appendChild(host);
+  var dataURL = async function (path) {
+    var en = idx[path]; if (!en) return '';
+    var bm = await createImageBitmap(new Blob([await zipRead(buf, en)])), s = Math.min(1, 1000 / Math.max(bm.width, bm.height));
+    var c = document.createElement('canvas'); c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s);
+    var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bm, 0, 0, c.width, c.height); bm.close && bm.close();
+    return c.toDataURL('image/jpeg', 0.85);
+  };
+  var chapBase = {}, idPage = {}, rawLinks = [], navT = [];
+  try { navT = await epubNavToc(opf, opfPath, txt); } catch (e) {}
+  var chapters = [], pages = [], texts = [], boxes = [], BLOCK = 'p,h1,h2,h3,h4,h5,h6,li,blockquote,dd,dt,figcaption,td,th,pre';
+  try {
+    for (var si = 0; si < spine.length; si++) {
+      var href = spine[si], raw = await txt(href), doc = new DOMParser().parseFromString(raw, 'application/xhtml+xml');
+      if (doc.getElementsByTagName('parsererror').length) doc = new DOMParser().parseFromString(raw, 'text/html');
+      var body = doc.body || doc.getElementsByTagName('body')[0]; if (!body) continue;
+      Array.prototype.slice.call(body.querySelectorAll('script,style,link,iframe,video,audio,object,embed,nav[epub\\:type="toc"]')).forEach(function (x) { x.remove(); });
+      var plain = (body.textContent || '').replace(/\s+/g, ' ').trim();
+      var imEls = Array.prototype.slice.call(body.querySelectorAll('img,image'));
+      // Titelbild-Seite: nur ein Bild, kaum Text → als ganzseitiges Bild
+      if (imEls.length === 1 && plain.length < 40) {
+        var isrc = imEls[0].getAttribute('src') || imEls[0].getAttribute('xlink:href') || imEls[0].getAttribute('href');
+        var du = await dataURL(zipPath(href, isrc));
+        if (du) { chapBase[href] = pages.length; chapters.push({ cover: du }); pages.push({ c: chapters.length - 1, k: 0 }); texts.push([]); boxes.push([]); continue; }
+      }
+      if (!plain && !imEls.length) continue;
+      for (var im of imEls) {
+        var a = im.getAttribute('src') ? 'src' : (im.getAttribute('xlink:href') ? 'xlink:href' : 'href'), v = im.getAttribute(a);
+        var d2 = v ? await dataURL(zipPath(href, v)) : '';
+        if (im.tagName.toLowerCase() === 'image') { var ni = doc.createElementNS('http://www.w3.org/1999/xhtml', 'img'); ni.setAttribute('src', d2); ni.setAttribute('alt', ''); var sv = im.closest('svg') || im; sv.parentNode.replaceChild(ni, sv); }
+        else { im.setAttribute('src', d2); im.removeAttribute('srcset'); im.removeAttribute('width'); im.removeAttribute('height'); }
+      }
+      Array.prototype.slice.call(body.querySelectorAll('[style]')).forEach(function (x) { x.removeAttribute('style'); });
+      var flow = document.createElement('div'); flow.className = 'bk'; flow.setAttribute('lang', 'de');
+      Array.prototype.slice.call(body.childNodes).forEach(function (nd) { flow.appendChild(document.importNode(nd, true)); });
+      host.appendChild(flow);
+      await Promise.all(Array.prototype.slice.call(flow.querySelectorAll('img')).map(function (i) { return i.decode ? i.decode().catch(function () {}) : null; }));
+      var fr = flow.getBoundingClientRect(), n = Math.max(1, Math.round((flow.scrollWidth + GAP) / STRIDE));
+      var base = pages.length; chapters.push({ x: new XMLSerializer().serializeToString(flow) });
+      for (var k = 0; k < n; k++) { pages.push({ c: chapters.length - 1, k: k }); texts.push([]); boxes.push([]); }
+      // Sprungziele (ids) und Verweise (Links) für das Inhaltsverzeichnis
+      chapBase[href] = base;
+      Array.prototype.slice.call(flow.querySelectorAll('[id]')).forEach(function (el) { var rs = el.getClientRects(); if (!rs.length) return; idPage[href + '#' + el.id] = base + Math.max(0, Math.min(n - 1, Math.floor((rs[0].left - fr.left + 2) / STRIDE))); });
+      Array.prototype.slice.call(flow.querySelectorAll('a[href]')).forEach(function (a) {
+        var ah = a.getAttribute('href'); if (!ah || /^[a-z]+:/i.test(ah)) return;
+        var rs = Array.prototype.slice.call(a.getClientRects()); if (!rs.length) return;
+        var pg = Math.max(0, Math.min(n - 1, Math.floor((rs[0].left - fr.left + 2) / STRIDE))), lb = null;
+        rs.forEach(function (r) { if (Math.floor((r.left - fr.left + 2) / STRIDE) !== pg) return; var x0 = (r.left - fr.left - pg * STRIDE + PX) / PW, x1 = (r.right - fr.left - pg * STRIDE + PX) / PW, y0 = (r.top - fr.top + PT) / PH, y1 = (r.bottom - fr.top + PT) / PH; lb = lb ? [Math.min(lb[0], x0), Math.max(lb[1], x1), Math.min(lb[2], y0), Math.max(lb[3], y1)] : [x0, x1, y0, y1]; });
+        if (lb) rawLinks.push({ pg: base + pg + 1, b: lb.map(r3), target: tocTarget(href, ah) });
+      });
+      // Text je Seite für Lesemodus & Vorlesen (mit Position für die Markierung)
+      Array.prototype.slice.call(flow.querySelectorAll(BLOCK)).forEach(function (el) {
+        if (el.querySelector(BLOCK)) return;
+        var t = (el.textContent || '').replace(/\s+/g, ' ').trim(); if (t.replace(/[^A-Za-zÄÖÜäöüß0-9]/g, '').length < 2) return;
+        var rs = Array.prototype.slice.call(el.getClientRects()); if (!rs.length) return;
+        var pg = Math.max(0, Math.min(n - 1, Math.floor((rs[0].left - fr.left + 2) / STRIDE)));
+        var b = null;
+        rs.forEach(function (r) { var p2 = Math.floor((r.left - fr.left + 2) / STRIDE); if (p2 !== pg) return; var x0 = (r.left - fr.left - pg * STRIDE + PX) / PW, x1 = (r.right - fr.left - pg * STRIDE + PX) / PW, y0 = (r.top - fr.top + PT) / PH, y1 = (r.bottom - fr.top + PT) / PH; b = b ? [Math.min(b[0], x0), Math.max(b[1], x1), Math.min(b[2], y0), Math.max(b[3], y1)] : [x0, x1, y0, y1]; });
+        texts[base + pg].push(t); boxes[base + pg].push(b || [0, 1, 0, 1]);
+      });
+      host.removeChild(flow);
+    }
+  } finally { host.remove(); }
+  if (!pages.length) throw new Error('In dieser EPUB wurde kein Inhalt gefunden.');
+  var tocRes = function (tg) { if (idPage[tg] != null) return idPage[tg] + 1; var f = tg.split('#')[0]; return chapBase[f] != null ? chapBase[f] + 1 : 0; };
+  var tocOut = { entries: [], links: [], how: 'Inhaltsverzeichnis des E-Books' };
+  navT.forEach(function (e) { var p = tocRes(e.target); if (p) tocOut.entries.push({ t: e.t, p: p, printed: p, lvl: e.lvl }); });
+  rawLinks.forEach(function (l) { var p = tocRes(l.target); if (p && p !== l.pg) tocOut.links.push({ pg: l.pg, b: l.b, p: p }); });
+  var draw = function (src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { rej(new Error('Seite konnte nicht gesetzt werden')); }; i.src = src; }); };
+  return {
+    numPages: pages.length, title: tag('dc:title'), isEpub: true, isText: true,
+    render: async function (canvas, p) {
+      var pg = pages[p - 1], ch = chapters[pg.c]; canvas.width = PW; canvas.height = PH;
+      var g = canvas.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, PW, PH);
+      if (ch.cover) { var ci = await draw(ch.cover), s = Math.max(PW / ci.width, PH / ci.height); g.drawImage(ci, (PW - ci.width * s) / 2, (PH - ci.height * s) / 2, ci.width * s, ci.height * s); return; }
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + PW + '" height="' + PH + '"><foreignObject x="0" y="0" width="' + PW + '" height="' + PH + '"><div xmlns="http://www.w3.org/1999/xhtml" style="width:' + PW + 'px;height:' + PH + 'px;background:#fff;position:relative;overflow:hidden"><style>' + CSS + '</style>' +
+        '<div style="position:absolute;left:' + PX + 'px;top:' + PT + 'px;width:' + IW + 'px;height:' + IH + 'px;overflow:hidden"><div style="transform:translateX(' + (-pg.k * STRIDE) + 'px);width:' + IW + 'px">' + ch.x + '</div></div>' +
+        '<div style="position:absolute;left:0;right:0;bottom:62px;text-align:center;font:26px Georgia,serif;color:#9a9a9a">' + p + '</div></div></foreignObject></svg>';
+      var img = await draw('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+      g.drawImage(img, 0, 0);
+    },
+    toc: async function () { return tocOut; },
+    texts: async function (N) { return { v: 2, pages: texts.slice(0, N), boxes: boxes.slice(0, N) }; },
+    destroy: async function () {}
   };
 }
 /* gemeinsame Schnittstelle für PDF und EPUB beim Hochladen */
 async function openUploadDoc(buf, isEpub) {
   if (isEpub) {
     var ep = await openEpub(buf);
+    if (ep.text) return ep.text;
     return { numPages: ep.numPages, title: ep.title, isEpub: true,
       render: async function (canvas, p) { var bm = await ep.image(p), w = Math.min(1400, bm.width); canvas.width = w; canvas.height = Math.round(bm.height * w / bm.width); var c = canvas.getContext('2d'); c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, canvas.width, canvas.height); c.drawImage(bm, 0, 0, canvas.width, canvas.height); bm.close && bm.close(); },
+      toc: async function () { return null; },
       texts: async function (N) { var a = []; for (var i = 0; i < N; i++) a.push([]); return a; },
       destroy: async function () {} };
   }
   var pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
   return { numPages: pdf.numPages, title: '', isEpub: false,
     render: async function (canvas, p) { var page = await pdf.getPage(p), vp1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: 1100 / vp1.width }); canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height); var c = canvas.getContext('2d'); c.fillStyle = '#FFFFFF'; c.fillRect(0, 0, canvas.width, canvas.height); await page.render({ canvasContext: c, viewport: vp }).promise; page.cleanup(); },
+    toc: function (N) { return pdfTocExtra(pdf, N); },
     texts: function (N) { return extractTexts(pdf, N); },
     destroy: function () { return pdf.destroy(); } };
+}
+
+/* weißen Rand um ein Cover wegschneiden (z. B. Buch-PDF mit Cover auf einer größeren Seite) */
+function trimWhite(src) {
+  var W = src.width, H = src.height, sc = Math.min(1, 400 / W), w = Math.max(1, Math.round(W * sc)), h = Math.max(1, Math.round(H * sc));
+  var t = document.createElement('canvas'); t.width = w; t.height = h; var g = t.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 0, 0, w, h);
+  var d = g.getImageData(0, 0, w, h).data, white = function (x, y) { var o = (y * w + x) * 4; return d[o] > 238 && d[o + 1] > 238 && d[o + 2] > 238; };
+  var rowWhite = function (y) { var n = 0; for (var x = 0; x < w; x++) if (!white(x, y)) n++; return n < w * 0.01; };
+  var colWhite = function (x, y0, y1) { var n = 0; for (var y = y0; y < y1; y++) if (!white(x, y)) n++; return n < (y1 - y0) * 0.01; };
+  var y0 = 0, y1 = h - 1; while (y0 < h - 1 && rowWhite(y0)) y0++; while (y1 > y0 && rowWhite(y1)) y1--;
+  var x0 = 0, x1 = w - 1; while (x0 < w - 1 && colWhite(x0, y0, y1)) x0++; while (x1 > x0 && colWhite(x1, y0, y1)) x1--;
+  var cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+  if (cw > w * 0.97 && ch > h * 0.97) return src;              // kein nennenswerter Rand
+  if (cw < w * 0.3 || ch < h * 0.3) return src;               // sicherheitshalber: nicht zu viel wegschneiden
+  var out = document.createElement('canvas'); out.width = Math.round(cw / sc); out.height = Math.round(ch / sc);
+  out.getContext('2d').drawImage(src, x0 / sc, y0 / sc, cw / sc, ch / sc, 0, 0, out.width, out.height);
+  return out;
 }
 async function pickFile(f) {
   if (U.busy) return;
@@ -4578,7 +5604,7 @@ async function pickFile(f) {
   var title = '';
   try {
     var dd = await openUploadDoc(U.buf, isEpub);
-    U.pages = dd.numPages; title = dd.title;
+    U.pages = dd.numPages; title = dd.title; U.epubText = !!dd.isText;
     await dd.destroy();
   } catch (err) {
     alert((isEpub ? 'Die EPUB-Datei' : 'Die PDF-Datei') + ' konnte nicht gelesen werden.' + (err && err.message ? '\n\n' + err.message : ''));
@@ -4596,13 +5622,17 @@ function restoreForm() {
   info.innerHTML = '<b>' + esc(f.name) + '</b><span>· ' + U.pages + ' Seiten · ' + (f.size / 1048576).toFixed(1) + ' MB</span>';
   $('#form', panel).style.display = 'block';
   if (U.form) {
+    if (U.form.fArea) { $('#fArea', panel).value = U.form.fArea; syncNewMag(); }
     Object.keys(U.form).forEach(function (id) { var el = $('#' + id, panel); if (el) el.value = U.form[id]; });
     syncNewMag(); return;
   }
   var g = U.guess;
   var sel = $('#fMag', panel);
   var match = S.mags.filter(function (m) { return g.title && slug(m.name) === slug(g.title); })[0];
-  sel.value = match ? match.id : (S.mags.length && !g.title ? S.mags[0].id : '__new');
+  var area0 = U.epub ? (U.epubText ? 'book' : 'comic') : (match && match.kind !== 'book' ? (match.kind || 'mag') : 'mag');
+  $('#fArea', panel).value = area0; syncNewMag();
+  if (area0 !== 'book') sel.value = match && (match.kind || 'mag') === area0 ? match.id : (!g.title && sel.options.length > 1 ? sel.options[0].value : '__new');
+  if ($('#fBTitle', panel)) $('#fBTitle', panel).value = g.title || '';
   $('#fName', panel).value = match ? '' : g.title;
   $('#fColor', panel).value = PALETTE[S.mags.length % PALETTE.length];
   $('#fMonth', panel).value = String(g.month || NOW.getMonth() + 1);
@@ -4612,13 +5642,12 @@ function restoreForm() {
     if (last) $('#fPrice', panel).value = last.price;
   }
   $('#fLim', panel).value = U.pages > 60 && !U.epub ? '40' : '0';
-  if (U.epub && $('#fKind', panel)) $('#fKind', panel).value = 'comic';
   syncNewMag();
   rememberForm();
 }
 function rememberForm() {
   U.form = {};
-  ['fMag', 'fName', 'fKind', 'fCat', 'fColor', 'fAm', 'fAy', 'fMonth', 'fYear', 'fPrice', 'fLim', 'fSample', 'fTeaser'].forEach(function (id) {
+  ['fArea', 'fMag', 'fBTitle', 'fName', 'fArea', 'fGenre', 'fColor', 'fAm', 'fAy', 'fMonth', 'fYear', 'fPrice', 'fLim', 'fSample', 'fTeaser'].forEach(function (id) {
     var el = $('#' + id, panel); if (!el) return;
     U.form[id] = el.value;
     el.addEventListener('input', function () { U.form[id] = el.value; });
@@ -4628,24 +5657,30 @@ function rememberForm() {
 
 async function processUpload() {
   if (U.busy || !U.buf) return;
-  var selV = $('#fMag', panel).value;
+  var area = ($('#fArea', panel) || {}).value || 'mag', selV = area === 'book' ? '__book' : $('#fMag', panel).value;
   var month = Number($('#fMonth', panel).value), year = Number($('#fYear', panel).value);
   var price = $('#fPrice', panel).value.trim() || '5,99 €';
   var lim = Number($('#fLim', panel).value);
   var sampleStr = $('#fSample', panel).value;
   var teaser = $('#fTeaser', panel).value.trim();
   if (!year || year < 1990) { alert('Bitte ein gültiges Jahr eingeben.'); return; }
-  var mag;
-  if (selV === '__new') {
+  var mag, bookTitle = '';
+  if (selV === '__book') {
+    bookTitle = (($('#fBTitle', panel) || {}).value || '').trim();
+    if (!bookTitle) { alert('Bitte den Buchtitel eingeben.'); $('#fBTitle', panel).focus(); return; }
+    mag = (S.allMags || S.mags).filter(function (x) { return x.id === 'buecher'; })[0] || { id: 'buecher', name: 'Bücher', kind: 'book', color: '#2F5D8A', created: Date.now() };
+  } else if (selV === '__new') {
     var name = $('#fName', panel).value.trim();
     if (!name) { alert('Bitte einen Namen für das Magazin eingeben.'); $('#fName', panel).focus(); return; }
+    var twin = (S.allMags || S.mags).filter(function (x) { return (x.kind || 'mag') === area && slug(x.name) === slug(name); })[0];
     var id = slug(name), n2 = 2;
-    while (magById(id)) id = slug(name) + n2++;
-    mag = { id: id, name: name, cat: $('#fCat', panel).value.trim(), kind: ($('#fKind', panel) || {}).value || 'mag', color: $('#fColor', panel).value, aboMonth: $('#fAm', panel).value.trim(), aboYear: $('#fAy', panel).value.trim(), created: Date.now() };
-    if (U.newLogo) { mag.logo = U.newLogo; mag.logoAspect = U.newLogoAspect || 1; mag.logoBg = U.newLogoBg || '#FFFFFF'; }
-  } else mag = magById(selV);
-  var issueId = mag.id + '-' + year + '-' + pad(month);
-  if (issueById(issueId) && !confirm('Diese Ausgabe (' + mag.name + ' · ' + MONTHS[month - 1] + ' ' + year + ') gibt es schon. Ersetzen?')) return;
+    while ((S.allMags || S.mags).some(function (x) { return x.id === id; })) id = slug(name) + n2++;
+    if (twin) mag = twin;   // gleicher Titel im selben Bereich: kein zweiter Eintrag
+    else mag = { id: id, name: name, kind: area, color: $('#fColor', panel).value, aboMonth: $('#fAm', panel).value.trim(), aboYear: $('#fAy', panel).value.trim(), created: Date.now() };
+    if (!twin && U.newLogo) { mag.logo = U.newLogo; mag.logoAspect = U.newLogoAspect || 1; mag.logoBg = U.newLogoBg || '#FFFFFF'; }
+  } else mag = (S.allMags || S.mags).filter(function (x) { return x.id === selV; })[0];
+  var issueId = bookTitle ? 'buch-' + slug(bookTitle) : mag.id + '-' + year + '-' + pad(month);
+  if (issueById(issueId) && !confirm('Diese Ausgabe (' + (bookTitle || mag.name + ' · ' + MONTHS[month - 1] + ' ' + year) + ') gibt es schon. Ersetzen?')) return;
 
   U.busy = true;
   var go = $('#fGo', panel), prog = $('#prog', panel), bar = $('#pbar', panel), txt = $('#ptxt', panel);
@@ -4668,9 +5703,10 @@ async function processUpload() {
       await DB.put('pages', await new Promise(function (r) { tcv.toBlob(r, 'image/jpeg', 0.75); }), issueId + ':t' + pad3(p));
       if (p === 1) {
         aspect = canvas.height / canvas.width;
+        var cvs = trimWhite(canvas), ca = cvs.height / cvs.width;
         var c2 = document.createElement('canvas');
-        c2.width = 460; c2.height = Math.round(460 * aspect);
-        c2.getContext('2d').drawImage(canvas, 0, 0, c2.width, c2.height);
+        c2.width = 460; c2.height = Math.round(460 * ca);
+        c2.getContext('2d').drawImage(cvs, 0, 0, c2.width, c2.height);
         coverBlob = await new Promise(function (r) { c2.toBlob(r, 'image/jpeg', 0.86); });
       }
       bar.style.width = (p / N * 100) + '%';
@@ -4678,20 +5714,26 @@ async function processUpload() {
     txt.textContent = 'Text für Lesemodus und Vorlesen wird übernommen …';
     var texts = await pdf.texts(N);
     await DB.put('texts', texts, issueId);
+    txt.textContent = 'Inhaltsverzeichnis wird gesucht …';
+    var tocRec = null, tocN = 0;
+    try { tocRec = tocBuild(texts, N, pdf.toc ? await pdf.toc(N) : null); } catch (e) { tocRec = null; }
+    tocN = tocRec ? tocRec.entries.length : 0;
+    await DB.put('texts', tocRec || { v: 1, entries: [], links: [] }, 'toc-' + issueId);
     var total = pdf.numPages;
     await pdf.destroy();
     var sample = parsePages(sampleStr, N);
     await DB.put('mags', mag);
-    await DB.put('issues', { id: issueId, magId: mag.id, year: year, month: month, price: price, samplePages: sample, freePages: sample.length, teaser: teaser, pageCount: N, totalPages: total, aspect: aspect, cover: coverBlob, thumbs: 1, added: Date.now() });
+    var genre = area === 'book' ? (($('#fGenre', panel) || {}).value || '').trim() : '';
+    await DB.put('issues', { title: bookTitle || undefined, genre: genre || undefined, id: issueId, magId: mag.id, year: year, month: month, price: price, samplePages: sample, freePages: sample.length, teaser: teaser, pageCount: N, totalPages: total, aspect: aspect, cover: coverBlob, thumbs: 1, added: Date.now() });
     await loadData();
-    S.magId = mag.id; S.year = year; S.view = 'swipe';
-    S.kIndex = Math.max(0, issuesOf(mag.id, year).findIndex(function (x) { return x.id === issueId; }));
+    S.magId = mag.id; S.year = year; S.view = 'swipe'; S.kind = mag.kind || 'mag'; S.cat = 'all';
+    S.kIndex = Math.max(0, kList().findIndex(function (x) { return x.id === issueId; }));
     if (S.screen !== 'kiosk') { R = null; S.screen = 'kiosk'; }
     S.kIn = true;
     if (U.newLogoURL) URL.revokeObjectURL(U.newLogoURL);
     U = { file: null, buf: null, pages: 0, busy: false };
     render(); renderPanel(); panel.scrollTop = 0;
-    toast(mag.name + ' · ' + MONTHS[month - 1] + ' ' + year + ' ist im Kiosk');
+    toast((bookTitle ? bookTitle + ' ist im Kiosk' : mag.name + ' · ' + MONTHS[month - 1] + ' ' + year + ' ist im Kiosk') + (tocN ? ' · Inhalt mit ' + tocN + ' Einträgen erkannt' : ''));
   } catch (err) {
     console.error(err);
     U.busy = false;
@@ -4715,6 +5757,8 @@ function fit() {
     ph.classList.toggle('ipad', ipad);
     var pw = ipad ? 844 : 414, phh = ipad ? 1204 : 868, side = IS_ADMIN ? 400 + 44 + 48 : 48;
     ZOOM = window.innerWidth <= 920 ? Math.min(1, (window.innerWidth - 24) / pw) : Math.min(1, (window.innerHeight - 40) / phh, (window.innerWidth - side) / pw);
+    var pvb = IS_ADMIN && document.getElementById('pvbox');
+    if (pvb && pvb.clientWidth) ZOOM = Math.min(1, (pvb.clientWidth - 8) / pw, Math.max(260, window.innerHeight - 380) / phh);
     ph.style.zoom = ZOOM;
   }
   if (wasTab !== document.body.classList.contains('tablet') && typeof rerender === 'function' && app.innerHTML) rerender();
