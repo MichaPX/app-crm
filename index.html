@@ -321,7 +321,7 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .rtoc.out .rtocp{transform:translateX(40px);opacity:0;transition:transform .2s,opacity .2s}.rtoc.out .rtocscrim{opacity:0;transition:opacity .2s}
 @keyframes rtocin{from{transform:translateX(40px);opacity:0}}
 .tgrab{display:none}
-.tchead{display:flex;gap:14px;align-items:flex-start;padding:max(18px,env(safe-area-inset-top)) 16px 16px 20px;border-bottom:1px solid var(--line)}
+.tocHd{display:flex;gap:14px;align-items:flex-start;padding:max(18px,calc(env(safe-area-inset-top) + 6px)) 16px 16px 20px;border-bottom:1px solid var(--line)}
 .tccov{width:62px;height:84px;object-fit:cover;border-radius:5px;box-shadow:0 6px 16px rgba(0,0,0,.35);flex:none;background:var(--chip)}
 .tcmeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .tcmeta small{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
@@ -329,7 +329,7 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
 .tcmeta>span{font-size:13px;color:var(--muted)}
 .tcprog{height:4px;border-radius:2px;background:var(--chip);margin-top:9px;overflow:hidden}.tcprog i{display:block;height:100%;background:var(--accent);border-radius:2px}
 .tcmeta .tcpos{font-size:11.5px;margin-top:3px}
-.tcx{flex:none;width:36px;height:36px}
+.tocX{flex:none;width:36px;height:36px;position:relative;z-index:3}
 .tcsearch{padding:12px 16px 4px}
 .tcsearch input{width:100%;height:40px;border-radius:12px;border:0;background:var(--chip);color:var(--text);padding:0 14px;font-size:16px}
 .rtocl{flex:1;overflow:auto;padding:8px 10px max(24px,env(safe-area-inset-bottom))}
@@ -359,7 +359,7 @@ body.full #app.scrolled::before{content:"";position:absolute;left:0;right:0;top:
   .rtocp{width:100%;height:86%;border-radius:22px 22px 0 0;animation:rtocup .32s cubic-bezier(.2,.8,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.35)}
   .rtoc.out .rtocp{transform:translateY(60px)}
   .tgrab{display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0}
-  .tchead{padding-top:12px}
+  .tocHd{padding-top:12px}
 }
 @keyframes rtocup{from{transform:translateY(80px);opacity:0}}
 .cxed{position:fixed;inset:0;z-index:2000;background:#F4F4F6;display:flex;flex-direction:column;font:14px/1.4 system-ui,-apple-system,sans-serif;color:#1B1B1F}
@@ -508,6 +508,8 @@ body:not(.tablet) .cta .roundbtn,body:not(.tablet) .cta .savebtn{width:40px;heig
 
 /* ===== Bibliothek 3D ===== */
 .lib3d{padding:0 0 40px}
+.l3f{padding-top:10px}
+.lib3d .gone{visibility:hidden}
 .lab3d{padding:18px 20px 0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:750}
 .lab3d span{letter-spacing:0;margin-left:4px;opacity:.7}
 .scene3d{perspective:900px;perspective-origin:30% 20%;padding:14px 10px 40px;overflow:hidden}
@@ -711,7 +713,7 @@ body:not(.tablet) .cta .roundbtn,body:not(.tablet) .cta .savebtn{width:40px;heig
 .book.spread::before{content:"";position:absolute;top:0;bottom:0;left:-100%;width:200%;box-shadow:0 10px 30px rgba(0,0,0,.25);pointer-events:none}
 .ribbon.on span{opacity:1}
 .pall{position:absolute;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;animation:up .32s cubic-bezier(.2,.8,.2,1)}
-.pallh{display:flex;align-items:center;gap:10px;padding:14px 14px 8px 18px}
+.pallh{display:flex;align-items:center;gap:10px;padding:max(14px,calc(env(safe-area-inset-top) + 8px)) 14px 8px 18px;position:relative;z-index:5}
 .pallh h2{flex:1;margin:0;font-size:20px;font-weight:800}
 .pallh small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
 .pallf{display:flex;gap:8px;padding:0 16px 10px;align-items:center;flex-wrap:wrap}
@@ -1040,7 +1042,7 @@ body.full .sheet{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 /* ================= Grundlagen ================= */
 var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 var STEP = 186;
-var APP_BUILD = '26.11.2026 11:17';
+var APP_BUILD = '26.11.2026 11:31';
 var ZOOM = 1;
 var NOW = new Date();
 var app = document.getElementById('app');
@@ -1966,10 +1968,14 @@ var ADMOPEN = {}, PSOPEN = {};
 function kindSel(attrs, val) { return '<select ' + attrs + '>' + KINDS.map(function (k) { return '<option value="' + k[0] + '"' + ((val || 'mag') === k[0] ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>'; }
 /* ===== Bibliothek in 3D: Regal (Bücher & Comics) und Kiosk (Zeitschriften) ===== */
 var BOOKCOL = [['#1F4E9A', '#F5EAD2', '#D9B45A'], ['#B3261E', '#F5EAD2', '#D9B45A'], ['#2E6B3A', '#F5EAD2', '#D9B45A'], ['#3F2414', '#F5EAD2', '#D9A84A'], ['#EFE6D2', '#3A2A10', '#B08A3A'], ['#5B3A8A', '#F5EAD2', '#D9B45A'], ['#E9C33A', '#1D1D1F', '#2A2A2A'], ['#1E3A4C', '#F5EAD2', '#C9A24A'], ['#7A1F2B', '#F5EAD2', '#D9B45A']];
+function spinePal(hex) {   // Rückenfarbe vom Cover → passende Schrift- und Zierfarbe
+  var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16), L = (r * .299 + g * .587 + b * .114) / 255;
+  return [hex, L > .62 ? '#1D1D1F' : '#F5EAD2', L > .62 ? '#3a2a14' : '#D9B45A'];
+}
 function hash3(s) { var h = 7; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
 function lib3dW() { return Math.max(280, (IS_ADMIN ? (S.preview === 'ipad' ? 820 : 390) : window.innerWidth) - 20); }
 function bookFaces(it, w, h, d) {
-  var m = magById(it.magId) || {}, k = hash3(it.id), pal = BOOKCOL[k % BOOKCOL.length], title = m.kind === 'book' ? (it.title || m.name) : m.name;
+  var m = magById(it.magId) || {}, k = hash3(it.id), pal = it.spine ? spinePal(it.spine) : BOOKCOL[k % BOOKCOL.length], title = m.kind === 'book' ? (it.title || m.name) : m.name;
   var auth = it.author || '', leather = pal[0] === '#3F2414';
   return '<div class="bk old' + (leather ? ' leather' : '') + (isReadIt(it) ? '' : ' unread') + '" data-l3d="' + esc(it.id) + '" style="transform:rotateZ(' + (((k >>> 4) % 5) - 2) * 0.35 + 'deg);--w:' + w + 'px;--h:' + h + 'px;--d:' + d + 'px;--c:' + pal[0] + ';--t:' + pal[1] + ';--g:' + pal[2] + '">' +
     '<div class="hit"></div><div class="bki"><div class="f tp"></div><div class="f sd" style="background-image:url(\'' + cover(it) + '\')"></div><div class="f sp"><em>' + esc(auth) + '</em><b>' + esc(title) + '</b><em>✦</em></div></div></div>';
@@ -1981,23 +1987,25 @@ function shelf3d(inner, h, cls) { return '<div class="scene3d"><div class="row3d
 function lib3dRegalHTML(lib) {
   var list = lib.filter(libMatch), W = lib3dW(), tab = document.body.classList.contains('tablet'), h = '<div class="lib3d">', keys = [];
   var books = list.filter(function (it) { return kindOf(it) === 'book'; }), comics = list.filter(function (it) { return kindOf(it) === 'comic'; });
+  // Filter: Alle · Genres · Comics – ohne Filter stehen alle Bücher nebeneinander
+  var gl = []; books.forEach(function (it) { var g = genreOf(it); if (g && gl.indexOf(g) < 0) gl.push(g); });
+  var F = S.l3dF || 'all'; if (F !== 'all' && F !== 'comics' && gl.indexOf(F) < 0) F = S.l3dF = 'all';
+  if (gl.length || (books.length && comics.length)) h += '<div class="chips noscroll l3f">' + [['all', 'Alle']].concat(gl.map(function (g) { return [g, g]; })).concat(comics.length && books.length ? [['comics', 'Comics']] : []).map(function (o) { return '<button class="btn chip gchip' + (F === o[0] ? ' on' : '') + '" data-l3f="' + esc(o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>';
+  if (F === 'comics') books = [];
+  else if (F !== 'all') { books = books.filter(function (it) { return genreOf(it) === F; }); comics = []; }
   if (books.length) {
-    var byG = {}, gk = [];
-    books.forEach(function (it) { var g = genreOf(it) || 'Bücher'; if (!byG[g]) { byG[g] = []; gk.push(g); } byG[g].push(it); });
-    gk.forEach(function (g) {
-      keys.push(g); h += '<div class="lab3d" id="lg' + (keys.length - 1) + '">' + esc(g) + ' <span>' + byG[g].length + '</span></div>';
-      var row = '', used = 30, rows = [];
-      byG[g].forEach(function (it) {
-        var pc = it.totalPages || it.pageCount || 200, w = Math.max(26, Math.min(56, Math.round(22 + pc / 14))), bh = Math.round((tab ? 230 : 196) + ((hash3(it.id) >>> 8) % 5) * 7), d = Math.round(bh * 0.64);
-        if (used + w + 8 > W && row) { rows.push(row); row = ''; used = 30; }
-        row += bookFaces(it, w, bh, d); used += w + 8;
-      });
-      if (row) rows.push(row);
-      rows.forEach(function (r) { h += shelf3d(r, tab ? 270 : 236, 'books'); });
+    h += '<div class="lab3d">' + (F !== 'all' ? esc(F) : 'Bücher') + ' <span>' + books.length + '</span></div>';
+    var row = '', used = 30, rows = [];
+    books.forEach(function (it) {
+      var pc = it.totalPages || it.pageCount || 200, w = Math.max(24, Math.min(44, Math.round(18 + pc / 22))), bh = Math.round((tab ? 230 : 196) + ((hash3(it.id) >>> 8) % 5) * 7), d = Math.round(bh * 0.64);
+      if (used + w + 8 > W && row) { rows.push(row); row = ''; used = 30; }
+      row += bookFaces(it, w, bh, d); used += w + 8;
     });
+    if (row) rows.push(row);
+    rows.forEach(function (r) { h += shelf3d(r, tab ? 270 : 236, 'books'); });
   }
   if (comics.length) {
-    keys.push('Comics'); h += '<div class="lab3d" id="lg' + (keys.length - 1) + '">Comics <span>' + comics.length + '</span></div>';
+    h += '<div class="lab3d">Comics <span>' + comics.length + '</span></div>';
     var bySer = {}, sk = [];
     comics.forEach(function (it) { if (!bySer[it.magId]) { bySer[it.magId] = []; sk.push(it.magId); } bySer[it.magId].push(it); });
     var cw = tab ? 104 : 86, chh = Math.round(cw * 1.55), per = Math.max(1, Math.floor((W - 20) / (cw + 34))), groups = sk.map(function (id) {
@@ -2030,12 +2038,14 @@ function lib3dKioskHTML(lib) {
   return { html: h + '</div></div>' + (list.length ? '' : '<div class="lempty">Im Kiosk stehen deine Zeitschriften.</div>') + '</div>', keys: [] };
 }
 function bind3d() {
+  $$('[data-l3f]').forEach(function (b) { b.addEventListener('click', function () { S.l3dF = b.getAttribute('data-l3f'); rerender(); }); });
   $$('[data-l3d] > .hit').forEach(function (hit) {
     hit.addEventListener('click', function () {
       var el = hit.parentNode, id = el.getAttribute('data-l3d');
-      $$('[data-l3d].out').forEach(function (x) { if (x !== el) x.classList.remove('out'); });
-      el.classList.add('out');
-      setTimeout(function () { ACT.libitem(id); setTimeout(function () { el.classList.remove('out'); }, 600); }, 380);
+      if (lpAlive()) return;
+      // Buch: wie früher aus dem Regal ziehen und drehen · Heft: aus dem Fach/Ständer nach vorn fliegen
+      if (el.classList.contains('bk')) { el.setAttribute('data-spine', id); pullOut(el, false); }
+      else { el.setAttribute('data-rack', id); rackPull(el); }
     });
   });
 }
@@ -2396,7 +2406,7 @@ function rackPull(el) {
     LP.anims = [fly.animate([{ transform: tf(x0, y0, s0, 9) }, { transform: tf(x0, y0 - h0 * 0.35, s0 * 1.04, 4, -2), offset: .28 }, { transform: tf(x1, y1, 1, 0, 0) }], { duration: 640, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' }),
       LP.scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: 'forwards' })];
   } else { fly.style.transform = tf(x1, y1, 1, 0); LP.scrim.style.opacity = '1'; }
-  setTimeout(function () { if (!LP || LP.closing) return; var d = $('#ldet'); d.innerHTML = libDetailHTML(it).replace('Zurück ins Regal stellen', 'Zurück in den Ständer stellen'); requestAnimationFrame(function () { d.classList.add('show'); }); }, 340);
+  setTimeout(function () { if (!LP || LP.closing) return; var d = $('#ldet'); d.innerHTML = el.closest('.row3d') ? libDetailHTML(it) : libDetailHTML(it).replace('Zurück ins Regal stellen', 'Zurück in den Ständer stellen'); requestAnimationFrame(function () { d.classList.add('show'); }); }, 340);
 }
 function rackBack(after) {
   var o = LP; if (!o || o.closing) return; o.closing = true;
@@ -2926,9 +2936,9 @@ function openTocSheet() {
   var d = document.createElement('div'); d.className = 'rtoc'; d.id = 'rtoc';
   d.innerHTML = '<button class="bare rtocscrim" data-act="rtocclose" aria-label="Inhalt schließen"></button>' +
     '<div class="rtocp" role="dialog" aria-label="Inhaltsverzeichnis"><i class="tgrab"></i>' +
-    '<div class="tchead"><img class="tccov" src="' + cover(it) + '" alt=""><div class="tcmeta"><small>Inhalt</small><b>' + esc(m.kind === 'book' ? label(it) : m.name || '') + '</b><span>' + (m.kind === 'book' ? esc(num(it)) : label(it)) + ' · ' + E.length + ' Kapitel</span>' +
+    '<div class="tocHd"><img class="tccov" src="' + cover(it) + '" alt=""><div class="tcmeta"><small>Inhalt</small><b>' + esc(m.kind === 'book' ? label(it) : m.name || '') + '</b><span>' + (m.kind === 'book' ? esc(num(it)) : label(it)) + ' · ' + E.length + ' Kapitel</span>' +
     '<div class="tcprog"><i style="width:' + pct + '%"></i></div><span class="tcpos">Seite ' + (cur || 1) + ' von ' + total + '</span></div>' +
-    '<button class="btn roundbtn tcx" data-act="rtocclose" aria-label="Schließen">' + ICON.close + '</button></div>' +
+    '<button class="btn roundbtn tocX" data-act="rtocclose" aria-label="Schließen">' + ICON.close + '</button></div>' +
     (E.length > 12 ? '<div class="tcsearch"><input type="search" id="tcq" placeholder="Im Inhalt suchen …" autocomplete="off"></div>' : '') +
     '<div class="rtocl">' + rows + '<div class="tcempty" hidden>Nichts gefunden</div></div></div>';
   var rd = $('.reader'); if (rd) rd.appendChild(d);
@@ -4756,7 +4766,7 @@ function bindLogin() {
 function moveRowHTML(it) {
   var mk = magById(it.magId) || {};
   if (mk.kind === 'book') return '<div class="imove"><span>Buchtitel</span><input type="text" data-btitle="' + esc(it.id) + '" value="' + esc(it.title || mk.name || '') + '"></div>' +
-    '<div class="imove"><span>Genre</span><input type="text" list="genrelist" data-genre="' + esc(it.id) + '" value="' + esc(it.genre || '') + '" placeholder="z. B. Sachbuch, Krimi, Drama"></div>';
+    '<div class="imove"><span>Genre</span><input type="text" list="genrelist" data-genre="' + esc(it.id) + '" value="' + esc(it.genre || '') + '" placeholder="z. B. Sachbuch, Krimi, Drama"><span>Rücken</span><input type="color" data-spinecol="' + esc(it.id) + '" value="' + esc(it.spine || '#7A5C3E') + '" style="flex:none;width:44px;padding:2px"></div>';
   var kd = mk.kind || 'mag', nm = kd === 'comic' ? 'Reihe' : 'Zeitschrift';
   var all = (S.allMags || S.mags).filter(function (mm) { return (mm.kind || 'mag') === kd; }).sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'de'); });
   return '<div class="imove"><span>' + nm + '</span><select data-move="' + esc(it.id) + '">' + all.map(function (mm) { return '<option value="' + esc(mm.id) + '"' + (mm.id === it.magId ? ' selected' : '') + '>' + esc(mm.name) + '</option>'; }).join('') + '<option value="__new">+ Neue ' + nm + ' anlegen …</option></select></div>' +
@@ -4941,7 +4951,7 @@ function renderPanel() {
     var gs = [], seenG = {};
     books.forEach(function (it) { var g = genreOf(it), k = catKey(g); if (!k) return; if (!seenG[k]) { seenG[k] = { name: g, n: 0 }; gs.push(seenG[k]); } seenG[k].n++; });
     var noG = books.filter(function (it) { return !catKey(genreOf(it)); }).length;
-    h += '<div class="psec"><h2>Bücher</h2><div class="help" style="margin-top:0">Bücher stehen im Kiosk alle zusammen und werden nach Genre gefiltert. Titel und Genre stellst du direkt am Buch ein.</div>';
+    h += '<div class="psec"><h2>Bücher</h2><div class="help" style="margin-top:0">Bücher stehen im Kiosk alle zusammen und werden nach Genre gefiltert. Titel und Genre stellst du direkt am Buch ein.</div>' + (books.length ? '<div class="ktools"><button class="ghost" id="admSpines">🎨 Buchrücken-Farben aus den Covern übernehmen</button><span id="admSpinesSt" style="font-size:12.5px;color:#2B6CB0;align-self:center"></span></div>' : '');
     if (gs.length) h += '<div class="adblock"><b>Genres im Kiosk</b><div class="help">Umbenennen ändert das Genre bei allen Büchern darin – so führst du auch doppelte Genres zusammen (z. B. „Krimi“ und „Krimis“).</div>' + gs.map(function (g) { return '<div class="pf" style="display:flex;flex-direction:row;align-items:center;gap:8px;margin:6px 0 0"><input type="text" data-genrename="' + esc(g.name) + '" value="' + esc(g.name) + '" style="flex:1"><span class="help" style="margin:0;flex:none">' + g.n + (g.n === 1 ? ' Buch' : ' Bücher') + '</span></div>'; }).join('') + (noG ? '<div class="help">' + noG + (noG === 1 ? ' Buch hat' : ' Bücher haben') + ' noch kein Genre.</div>' : '') + '</div>';
     h += books.length ? '<div class="ilist bookl">' + books.map(function (it) { return '<div class="bk">' + issueRowHTML(it) + '</div>'; }).join('') + '</div>' : '<div class="pempty">Noch keine Bücher. Lade unter „Hochladen“ ein EPUB oder PDF hoch und wähle den Bereich „Buch“.</div>';
     h += '</div>';
@@ -5271,6 +5281,19 @@ function bindPanel() {
   $('#bTitle', panel).addEventListener('change', function (e) { saveAd('brand', { title: e.target.value.trim() || null }); });
 
   /* Magazin / Ausgabe bearbeiten */
+  var spb = $('#admSpines', panel);
+  if (spb) spb.addEventListener('click', async function () {
+    var books = S.issues.filter(function (it) { var m = magById(it.magId); return m && m.kind === 'book'; }), st = $('#admSpinesSt', panel), n = 0;
+    spb.disabled = true;
+    for (var i = 0; i < books.length; i++) {
+      var it = books[i]; st.textContent = (i + 1) + ' / ' + books.length + ' …';
+      try { var img = await loadImg(cover(it)), col = coverColor(img); if (col && col !== it.spine) { it.spine = col; await DB.put('issues', it); n++; } } catch (e) { console.warn(e); }
+    }
+    await loadData(); rerender(); renderPanel(); toast(n + ' Buchrücken eingefärbt');
+  });
+  $$('[data-spinecol]', panel).forEach(function (inp) {
+    inp.addEventListener('change', async function () { var it = issueById(inp.getAttribute('data-spinecol')); if (!it) return; it.spine = inp.value; await DB.put('issues', it); await loadData(); rerender(); toast('Rückenfarbe gespeichert'); });
+  });
   $$('[data-btitle]', panel).forEach(function (inp) {
     inp.addEventListener('change', async function () {
       var it = issueById(inp.getAttribute('data-btitle')); if (!it) return;
@@ -5709,6 +5732,23 @@ function trimWhite(src) {
   out.getContext('2d').drawImage(src, x0 / sc, y0 / sc, cw / sc, ch / sc, 0, 0, out.width, out.height);
   return out;
 }
+
+/* Hauptfarbe eines Covers für den Buchrücken bestimmen */
+function coverColor(src) {
+  var w = 48, h = Math.max(1, Math.round(w * (src.naturalHeight || src.height || 1) / (src.naturalWidth || src.width || 1))), c = document.createElement('canvas'); c.width = w; c.height = h;
+  var g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(src, 0, 0, w, h);
+  var d = g.getImageData(0, 0, w, h).data, B = {}, best = null;
+  for (var i = 0; i < d.length; i += 4) {
+    var r = d[i], gg = d[i + 1], b = d[i + 2], mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), sat = mx ? (mx - mn) / mx : 0;
+    if (mx > 238 && sat < .12) continue;
+    var k = (r >> 5) + '-' + (gg >> 5) + '-' + (b >> 5), wt = (.2 + sat * sat * 4) * (mx < 55 ? .35 : 1);
+    var e = B[k] || (B[k] = { n: 0, r: 0, g: 0, b: 0 }); e.n += wt; e.r += r * wt; e.g += gg * wt; e.b += b * wt;
+  }
+  Object.keys(B).forEach(function (k) { if (!best || B[k].n > best.n) best = B[k]; });
+  if (!best || best.n <= 0) return null;
+  var hx = function (v) { return ('0' + Math.round(v / best.n).toString(16)).slice(-2); };
+  return '#' + hx(best.r) + hx(best.g) + hx(best.b);
+}
 async function pickFile(f) {
   if (U.busy) return;
   var isEpub = /\.epub$/i.test(f.name) || f.type === 'application/epub+zip';
@@ -5821,6 +5861,7 @@ async function processUpload() {
         var c2 = document.createElement('canvas');
         c2.width = 460; c2.height = Math.round(460 * ca);
         c2.getContext('2d').drawImage(cvs, 0, 0, c2.width, c2.height);
+        try { U.spine = coverColor(c2); } catch (e) { U.spine = null; }
         coverBlob = await new Promise(function (r) { c2.toBlob(r, 'image/jpeg', 0.86); });
       }
       bar.style.width = (p / N * 100) + '%';
@@ -5838,7 +5879,7 @@ async function processUpload() {
     var sample = parsePages(sampleStr, N);
     await DB.put('mags', mag);
     var genre = area === 'book' ? (($('#fGenre', panel) || {}).value || '').trim() : '';
-    await DB.put('issues', { title: bookTitle || undefined, genre: genre || undefined, id: issueId, magId: mag.id, year: year, month: month, price: price, samplePages: sample, freePages: sample.length, teaser: teaser, pageCount: N, totalPages: total, aspect: aspect, cover: coverBlob, thumbs: 1, added: Date.now() });
+    await DB.put('issues', { spine: U.spine || undefined, title: bookTitle || undefined, genre: genre || undefined, id: issueId, magId: mag.id, year: year, month: month, price: price, samplePages: sample, freePages: sample.length, teaser: teaser, pageCount: N, totalPages: total, aspect: aspect, cover: coverBlob, thumbs: 1, added: Date.now() });
     await loadData();
     S.magId = mag.id; S.year = year; S.view = 'swipe'; S.kind = mag.kind || 'mag'; S.cat = 'all';
     S.kIndex = Math.max(0, kList().findIndex(function (x) { return x.id === issueId; }));
